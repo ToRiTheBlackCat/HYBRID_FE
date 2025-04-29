@@ -1,7 +1,9 @@
 import React, {useState} from "react";
 import ParentInfoForm from "../components/SignUpForm/ParentInfoForm";
 import StudentInfoForm from "../components/SignUpForm/StudentInfoForm";
+import TeacherInfoForm from "../components/SignUpForm/TeacherInfoform";
 import Header from "../components/HomePage/Header";
+import Logo from "../assets/Logo1_noBg.png"
 
 const SignUpPage : React.FC = () =>{
     const [role, setRole] = useState<'initial' | 'student' | 'teacher'>('initial');
@@ -32,11 +34,13 @@ const SignUpPage : React.FC = () =>{
             <>
           {/* Card */}
           <div className="bg-white rounded-2xl shadow-md mt-32 px-8 py-10 flex flex-col items-center gap-6 w-80">
-            <img src="/logo.png" alt="logo" className="w-10 h-10" />
-            <h2 className="text-[#1e4c91] font-bold text-lg">HYBRID</h2>
+            <img src={Logo} alt="logo" className="w-20 h-20" />
+            {/* <h2 className="text-[#1e4c91] font-bold text-lg">HYBRID</h2> */}
             <p className="text-gray-500 text-lg">You are ?</p>
             <div className="flex gap-4">
-              <button className="bg-[#b4c9fa] hover:bg-[#a3bcf9] text-gray-800 font-medium px-5 py-2 rounded-lg shadow">
+              <button 
+              onClick={() => handleRoleSelection('teacher')}
+              className="bg-[#b4c9fa] hover:bg-[#a3bcf9] text-gray-800 font-medium px-5 py-2 rounded-lg shadow">
                 Teacher
               </button>
               <button 
@@ -70,6 +74,7 @@ const SignUpPage : React.FC = () =>{
         )}
           {role === "student" && submittedAge !== null && parseInt(age) < 12 && <ParentInfoForm/>}
           {role === "student" && submittedAge !== null && parseInt(age) >= 12 && <StudentInfoForm/>}
+          {role === "teacher" && <TeacherInfoForm/>}
         </div>
         </>
       );

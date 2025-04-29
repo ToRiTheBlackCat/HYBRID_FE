@@ -1,5 +1,6 @@
 import React from "react";
 import Header from "../components/HomePage/Header";
+import Body from "../components/HomePage/Body";
 import "../tailwind.css";
 
 const HomePage : React.FC = () =>{
@@ -7,6 +8,7 @@ const HomePage : React.FC = () =>{
         <>
             <div>
                 <Header/>
+                <Body/>
             </div>
         </>
     )

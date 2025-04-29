@@ -1,29 +1,29 @@
-import React from "react";
-import Logo from "../../assets/Logo2_noBg.png"
+import React from 'react';
+import Logo from '../../assets/Logo2_noBg.png';
 
-const StudentInfoForm : React.FC = () =>{
+const TeacherInfoForm: React.FC = () => {
     return (
         <div className='bg-white border border-black rounded-2xl flex flex-col items-center gap-0 w-220 mt-25 '>
             <div className="flex flex-col items-center mb-8">
-                <img src={Logo} alt="logo" className="w-30 h-20" />
+                <img src={Logo} alt="logo" className="w-25 h-20" />
                 {/* <h2 className="text-[#1e4c91] font-bold text-xl">HYBRID</h2> */}
-                <p className="text-2xl text-gray-700 mt-2 font-medium">Information of Student</p>
+                <p className="text-2xl text-gray-700 mt-2 font-medium">Information of Teacher</p>
             </div>
             <form className="w-200 m-5 mr-3 ml-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
-            <input type="email" placeholder="Email*" className="border-b p-2 outline-none" required />
-            <input type="text" placeholder="FullName*" className="border-b p-2 outline-none" required />
+            <input type="email" placeholder="Parent's email*" className="border-b p-2 outline-none" required />
+            <input type="text" placeholder="Parent's fullName*" className="border-b p-2 outline-none" required />
             <input type="password" placeholder="Password*" className="border-b p-2 outline-none" required />
-            <input type="tel" placeholder="Phone*" className="border-b p-2 outline-none" required />
+            <input type="tel" placeholder="Parent's phone*" className="border-b p-2 outline-none" required />
             <input type="password" placeholder="Confirm password*" className="border-b p-2 outline-none" required />
             <input type="text" placeholder="Address" className="border-b p-2 outline-none" />
-        
+    
             <div className="col-span-1 md:col-span-2 flex items-center gap-2 mt-4">
                 <input type="checkbox" id="agree" required />
                 <label htmlFor="agree">
                 I have read and agree to the <a href="#" className="text-blue-500 underline">Terms of Service</a> and <a href="#" className="text-blue-500 underline">Privacy Policy</a>.
                 </label>
             </div>
-        
+    
             <div className="col-span-1 md:col-span-2 flex justify-center mt-2">
                 <button
                 type="submit"
@@ -35,5 +35,5 @@ const StudentInfoForm : React.FC = () =>{
             </form>
         </div>
       );
-    };
-export default StudentInfoForm
+}
+export default TeacherInfoForm;

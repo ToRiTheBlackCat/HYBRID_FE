@@ -85,12 +85,12 @@ const Header: React.FC = () => {
             </div>
           ) : (
             <>
-              <Link to="/login" className="text-sm text-gray-700 hover:text-blue-600">
+              <Link to="/login" className="text-sm px-4 py-2 bg-blue-600 rounded-full text-white hover:bg-green-700">
                 Đăng nhập
               </Link>
               <Link
                 to="/sign-up"
-                className="text-sm px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+                className="text-sm px-4 py-2 bg-white text-black rounded-full hover:bg-orange-500"
               >
                 Đăng ký
               </Link>
