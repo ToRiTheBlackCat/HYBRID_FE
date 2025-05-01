@@ -14,7 +14,16 @@ import Reading from "../../assets/TemplateLogo/Reading.jpg";
 import SongPuzzle from "../../assets/TemplateLogo/SongPuzzle.jpg";
 import Spelling from "../../assets/TemplateLogo/Spelling.jpg";
 import Quiz from "../../assets/TemplateLogo/Quiz.jpg";
-import { FaSearch,FaChevronLeft, FaChevronRight } from "react-icons/fa";
+// import BodyPic1 from "../../assets/BodyPic1.jpg";
+import BodyPic2 from "../../assets/BodyPic2.jpg";
+
+import { FaSearch,FaChevronLeft, FaChevronRight, FaQuoteRight } from "react-icons/fa";
+// import { motion } from "framer-motion";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 import AnimatedText from "../../hooks/AnimatedText";
 import FadeInOnView from "../../hooks/FadeInOnView";
 
@@ -33,6 +42,23 @@ const Body: React.FC = () => {
     { id: 3, title: "Course 3", views: 180, skill: "SongPuzzle", rating: 4.1, image: SongPuzzle },
     { id: 4, title: "Course 4", views: 400, skill: "Spelling", rating: 4.6, image: Spelling },
     { id: 5, title: "Course 5", views: 210, skill: "Quiz", rating: 4.2, image: Quiz },
+  ];
+  const testimonials = [
+    {
+      name: "Tri Nguyen",
+      role: "Student",
+      // image: "../../assets/BodyPic1.jpg", // thay bằng path ảnh thật hoặc avatar mặc định
+      rating: 5,
+      text: "An interesting foundation worth experiencing. Help me prepare lessons quickly and conveniently with a very suitable price",
+    },
+    {
+      name: "Thang Duc",
+      role: "Student",
+      // image: "../../assets/BodyPic2.jpg", // thay bằng path ảnh thật hoặc avatar mặc định
+      rating: 5,
+      text: "I have used many templates on this platform and I am very satisfied with the quality of the templates. The price is also very reasonable compared to the quality.",
+    },
+    // Thêm các đánh giá khác nếu muốn
   ];
   
   
@@ -240,6 +266,57 @@ const Body: React.FC = () => {
         className="bg-blue-600 text-white px-4 py-2 rounded-full font-semibold hover:bg-blue-700 flex items-center gap-2">
           Explore now <FaSearch className="text-white" />
         </button>
+      </div>
+      </FadeInOnView>
+    </section>
+    <div className="w-full h-[80px] bg-gradient-to-r from-blue-400 to-white"></div>
+    <section className="py-12 px-4 md:px-16 bg-white">
+      <FadeInOnView delay={0.7}>
+      <div className="flex flex-col md:flex-row items-center gap-10">
+        <div className="md:w-1/3 text-center md:text-left">
+          <h2 className="text-gray-800 font-bold text-xl md:text-2xl mb-4">
+            <AnimatedText text="What our valuable users say about us"/>
+          </h2>
+        </div>
+
+        <div className="md:w-2/3">
+          <Swiper
+            modules={[Navigation, Pagination, Autoplay]}
+            navigation={{
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+            }}
+            pagination={{ clickable: true }}
+            autoplay={{ delay: 5000 }}
+            loop={true}
+            className="w-full max-w-xl h-[300px] rounded-xl border-[3px] border-blue-400 p-6 bg-white"
+          >
+            {testimonials.map((t, i) => (
+              <SwiperSlide key={i}>
+                <div className="flex flex-col gap-4 relative mt-15 ml-3">
+                  <div className="flex gap-1">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <span key={i}>⭐</span>
+                    ))}
+                  </div>
+                  <p className="text-gray-600 italic text-sm">{`"${t.text}"`}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <img
+                      src={BodyPic2}
+                      alt={t.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div>
+                      <p className="font-bold text-sm">{t.name}</p>
+                      <p className="text-xs text-gray-500">{t.role}</p>
+                    </div>
+                  </div>
+                  <FaQuoteRight className="text-blue-500 text-4xl mr-3 absolute bottom-0 right-0" />
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
       </div>
       </FadeInOnView>
     </section>
