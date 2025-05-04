@@ -15,6 +15,9 @@ import Spelling from "..//assets/TemplateLogo/Spelling.jpg";
 import Quiz from "../assets/TemplateLogo/Quiz.jpg";
 import Pronunciation from "../assets/TemplateLogo/Pronunciation.jpg";
 
+import AnimatedText from "../hooks/AnimatedText";
+import FadeInOnView from "../hooks/FadeInOnView";
+
 import Header from "../components/HomePage/Header";
 import React, {useState} from "react";
 
@@ -51,27 +54,35 @@ const TemplatePage: React.FC = () => {
         <Header/>
             <section className="bg-white text-center mt-20 mb-10">
                 <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-10">
-                    How to use our <span className="text-blue-600 text-7xl font-bold relative inline-block">
-                    Platform
+                    <AnimatedText text="How to use our"/> <span className="text-blue-600 text-7xl font-bold relative inline-block">
+                    <AnimatedText text="Platform"/>
                     <span className="absolute -top-2 -right-6 text-blue-400 text-xl">✨</span>
                     </span>
                 </h2>
                 <div className="flex flex-col md:flex-row justify-center gap-10 text-gray-700">
                     <div>
-                        <h3 className="font-bold text-lg mb-2">Step 1:</h3>
-                        <p className="text-sm">Choose a template<br />from our platform</p>
+                        <h3 className="font-bold text-lg mb-2">
+                            <AnimatedText text="Step 1:"/></h3>
+                        <p className="text-sm">
+                            <AnimatedText text="Choose a template"/><br />
+                            <AnimatedText text="from our platform"/></p>
                     </div>
                     <div>
-                        <h3 className="font-bold text-lg mb-2">Step 2:</h3>
-                        <p className="text-sm">Input your data</p>
+                        <h3 className="font-bold text-lg mb-2">
+                            <AnimatedText text="Step 2:"/></h3>
+                        <p className="text-sm">
+                            <AnimatedText text="Input your data"/></p>
                     </div>
                     <div>
-                        <h3 className="font-bold text-lg mb-2">Step 3:</h3>
-                        <p className="text-sm">Post your activity</p>
+                        <h3 className="font-bold text-lg mb-2">
+                            <AnimatedText text="Step 3:"/></h3>
+                        <p className="text-sm">
+                            <AnimatedText text="Post your activity"/></p>
                     </div>
                 </div>
             </section>
             <div className="w-full h-[80px] bg-gradient-to-r from-blue-400 to-white"></div>
+            <FadeInOnView>
             <section className="py-12 px-4 md:px-16 bg-white text-center">
                 <h2 className="text-lg font-semibold text-gray-700 mb-6 border-b border-gray-300 pb-2 w-fit mx-auto">
                     Free templates
@@ -97,7 +108,9 @@ const TemplatePage: React.FC = () => {
                     {showMoreBasic ? "SHOW LESS" : "SEE MORE"}
                 </button>
             </section>
+            </FadeInOnView>
             {showMoreBasic && (
+                <FadeInOnView>
                 <section className="py-12 px-4 md:px-16 bg-white text-center">
                 <h2 className="text-lg font-semibold text-gray-700 mb-6 border-b border-gray-300 pb-2 w-fit mx-auto">
                     Basic templates
@@ -123,8 +136,10 @@ const TemplatePage: React.FC = () => {
                     {showMorePremium ? "SHOW LESS" : "SEE MORE"}
                 </button>
             </section>
+            </FadeInOnView>
             )}
             {showMorePremium && (
+                <FadeInOnView>
                 <section className="py-12 px-4 md:px-16 bg-white text-center">
                 <h2 className="text-lg font-semibold text-gray-700 mb-6 border-b border-gray-300 pb-2 w-fit mx-auto">
                     Premium templates
@@ -150,6 +165,7 @@ const TemplatePage: React.FC = () => {
                     {showMorePremium ? "SHOW LESS" : "SEE MORE"}
                 </button> */}
             </section>
+            </FadeInOnView>
             )}
 
         </>
