@@ -21,9 +21,8 @@ import { FaSearch,FaChevronLeft, FaChevronRight, FaQuoteRight } from "react-icon
 // import { motion } from "framer-motion";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import "../../../node_modules/swiper/swiper-bundle.css";
+import "../../../node_modules/swiper/swiper.css";
 import AnimatedText from "../../hooks/AnimatedText";
 import FadeInOnView from "../../hooks/FadeInOnView";
 

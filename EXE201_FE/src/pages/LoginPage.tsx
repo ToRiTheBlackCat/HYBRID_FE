@@ -3,15 +3,17 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaFacebook } from 'react-icons/fa';
 import { FiMail, FiLock } from 'react-icons/fi';
 import LoginImg from "../assets/LoginImg.jpg";
+import Logo from "../assets/Logo1_noBg.png"
+import { Link } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#033f9f] flex flex-col">
       {/* Header */}
-      <div className="bg-white py-4 px-8 flex items-center shadow-md">
-        <img src="/logo.png" alt="Logo" className="h-8 mr-2" />
+      <Link to="/" className="bg-white py-4 px-8 flex items-center shadow-md">
+        <img src={Logo} alt="Logo" className="h-8 mr-2" />
         <span className="text-xl font-bold text-[#3d6fc2]">HYBRID</span>
-      </div>
+      </Link>
 
       {/* Login box */}
       <div className="flex-grow flex justify-center items-center">

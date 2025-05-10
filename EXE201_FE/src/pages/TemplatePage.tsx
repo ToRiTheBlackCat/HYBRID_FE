@@ -19,18 +19,19 @@ import AnimatedText from "../hooks/AnimatedText";
 import FadeInOnView from "../hooks/FadeInOnView";
 
 import Header from "../components/HomePage/Header";
+import { Link } from "react-router-dom";
 import React, {useState} from "react";
 
 const TemplatePage: React.FC = () => {
     const [showMoreBasic, setShowMoreBasic] = useState(false);
     const [showMorePremium, setShowMorePremium] = useState(false);
     const freeTemplates = [
-        { title: "Conjunction", image: Conjunction },
-        { title: "Anagram", image: Anagram },
-        { title: "Quiz", image: Quiz },
-        { title: "Random Card", image: RandomCard },
-        { title: "Spelling", image: Spelling},
-        { title: "Flashcard", image: FlashCard },
+        { title: "Conjunction", image: Conjunction, url: "/conjunction" },
+        { title: "Anagram", image: Anagram, url: "/anagram" },
+        { title: "Quiz", image: Quiz, url: "/quiz" },
+        { title: "Random Card", image: RandomCard, url: "/random-card" },
+        { title: "Spelling", image: Spelling, url: "/spelling" },
+        { title: "Flashcard", image: FlashCard, url: "/flashcard" },
       ];
     const basicTemplates = [
         {title: "Completion", image: Completion },
@@ -90,15 +91,14 @@ const TemplatePage: React.FC = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-3 w-full gap-6 justify-items-center">
                     {freeTemplates.map((item, index) => (
-                    <div
-                        key={index}
-                        className="flex items-center border rounded-2xl overflow-hidden w-[350px] h-[150px] max-w-sm hover:shadow-md transition"
-                    >
-                        <div className="w-[250px] h-[147px] rounded-lg overflow-hidden">
-                            <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
-                        </div>
-                        <p className="text-gray-800 font-semibold">{item.title}</p>
-                    </div>
+                        <Link to={item.url} key={index}>
+                            <div className="flex items-center border rounded-2xl overflow-hidden w-[350px] h-[150px] max-w-sm hover:shadow-md transition">
+                                <div className="w-[250px] h-[147px] rounded-lg overflow-hidden">
+                                    <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
+                                </div>
+                                <p className="text-gray-800 font-semibold">{item.title}</p>
+                            </div>
+                        </Link>
                     ))}
                 </div>    
                 <button

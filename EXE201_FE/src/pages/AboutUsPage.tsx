@@ -1,10 +1,10 @@
-import React, {useEffect} from "react";
+import React from "react";
 import FadeInOnView from "../hooks/FadeInOnView";
 import AnimatedText from "../hooks/AnimatedText";
 import Header from "../components/HomePage/Header";
 import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/autoplay';
+import "../../node_modules/swiper/swiper.css";
+import "../../node_modules/swiper/swiper-bundle.css";
 import { Autoplay } from 'swiper/modules';
 import ThanhHang from "../assets/TeamMembers/ThanhHang.jpg";
 import Dat from "../assets/TeamMembers/Dat.jpg";
