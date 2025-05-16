@@ -18,7 +18,7 @@ const Footer: React.FC = () => {
     <motion.footer
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-blue-300 text-white py-10 px-6 md:px-20 mb-0"
+      className="bg-blue-400 text-white py-10 px-6 md:px-20 mb-0"
     >
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
         {/* Logo and intro */}

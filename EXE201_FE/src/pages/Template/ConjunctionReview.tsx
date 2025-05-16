@@ -2,6 +2,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import KeywordDragDrop from "../../components/Conjunction/DragDrop";
+import Header from "../../components/HomePage/Header";
 import { useState } from "react";
 
 const ConjunctionReview: React.FC = () => {
@@ -17,6 +18,7 @@ const ConjunctionReview: React.FC = () => {
 
     return (
         <>
+            <Header />
             <div className="max-w-3xl mx-auto p-6 space-y-4 mt-20 border rounded-lg shadow-lg bg-white">
                 <h1 className="text-2xl font-bold mb-4">Activity Review</h1>
                 <h2 className="text-xl font-semibold text-blue-700">Activity Name: {activityName}</h2>

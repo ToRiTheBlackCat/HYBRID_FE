@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import sliceReducer from './slice';
+import conjunctionSliceReducer from './slice';
+import anagramSliceReducer from './anagramSlice';
 
 export const store = configureStore({
     reducer: {
-        conjunction: sliceReducer,
+        conjunction: conjunctionSliceReducer,
+        anagram: anagramSliceReducer,
     },
 });
 
