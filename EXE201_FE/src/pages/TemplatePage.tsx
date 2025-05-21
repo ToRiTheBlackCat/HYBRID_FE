@@ -15,8 +15,8 @@ import Spelling from "..//assets/TemplateLogo/Spelling.jpg";
 import Quiz from "../assets/TemplateLogo/Quiz.jpg";
 import Pronunciation from "../assets/TemplateLogo/Pronunciation.jpg";
 
-import AnimatedText from "../hooks/AnimatedText";
-import FadeInOnView from "../hooks/FadeInOnView";
+import AnimatedText from "../components/hooks/AnimatedText";
+import FadeInOnView from "../components/hooks/FadeInOnView";
 
 import Header from "../components/HomePage/Header";
 import { Link } from "react-router-dom";

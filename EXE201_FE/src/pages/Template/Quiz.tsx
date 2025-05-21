@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Question } from "../../types";
 import { Trash, Copy, Image as ImageIcon } from "lucide-react";
 import VoiceInput from "../../components/Conjunction/VoiceInput";
@@ -6,6 +7,7 @@ import Header from "../../components/HomePage/Header";
 
 const Quiz: React.FC = () => {
     const [activityName, setActivityName] = useState("");
+    const navigate = useNavigate();
     const [questions, setQuestions] = useState<Question[]>([
         {text: "", answer: ["", ""]},
     ]);
@@ -39,7 +41,7 @@ const Quiz: React.FC = () => {
         ]);
     }
     const handleSubmit = () =>{
-        console.log("Success");
+        navigate("/quiz-review") 
     }
 
     return (

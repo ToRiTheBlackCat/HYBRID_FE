@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import Logo from "../../assets/Logo2_noBg.png"
+import Logo from "../../assets/Logo.jpg"
 import { FiMenu, FiX, FiUser, FiChevronDown } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 // import "../../tailwind.css";

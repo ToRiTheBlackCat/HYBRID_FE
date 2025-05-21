@@ -1,6 +1,6 @@
 import React from "react";
-import FadeInOnView from "../hooks/FadeInOnView";
-import AnimatedText from "../hooks/AnimatedText";
+import FadeInOnView from "../components/hooks/FadeInOnView";
+import AnimatedText from "../components/hooks/AnimatedText";
 import Header from "../components/HomePage/Header";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import "../../node_modules/swiper/swiper.css";
@@ -30,102 +30,117 @@ const FeatureSection = ({ title, description, imgSrc, index }: {
         <>
         <FadeInOnView>
         <div
-          id={sectionId}
-          className={`relative lg:grid lg:max-w-7xl lg:grid-cols-2 lg:gap-24 lg:px-8 mb-10 ml-20 ${
-            reverse ? "lg:grid-flow-col-dense lg:col-start-2" : ""
-          }`}
-        >
-          {!reverse && (
-            <div className="mx-auto max-w-xl px-6 lg:mx-0 lg:max-w-none lg:py-16 lg:px-0">
-              <h2 className="text-3xl font-bold tracking-tight text-white">{title}</h2>
-              {typeof description === "string" ? (
-                <p className="mt-4 text-lg text-gray-300">{description}</p>  
-              ) : Array.isArray(description) ? (
-                <ul className="mt-4 space-y-4 list-disc list-inside text-gray-300">
-                  {description.map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))}
-                </ul>              
-              ) : (
-                <>
-                  <div className="mt-4">
-                    <h3 className="text-xl font-semibold text-white">For Students</h3>
-                    <p className="text-gray-300">{description.student}</p>
-                  </div>
-                  <div className="mt-4">
-                    <h3 className="text-xl font-semibold text-white">For Teachers</h3>
-                    <p className="text-gray-300">{description.teacher}</p>
-                  </div>
-                </>
-              )
-              }
-              
-            </div>
-          )}
-    
-          <div className="mt-12 sm:mt-16 lg:mt-0">
-            {title === "Meet the Team" ? (
-                    <Swiper
-                    modules={[Autoplay]}
-                    autoplay={{ delay: 3000 }}
-                    loop
-                    spaceBetween={20}
-                    slidesPerView={1}
-                    className="rounded-xl shadow-2xl ring-1 ring-black ring-opacity-5"
-                    >
-                    {teamMembers.map((src, idx) => (
-                        <SwiperSlide key={idx}>
-                            <div className="flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-800 rounded-xl">
-                                <img
-                                    src={src.imgSrc}
-                                    alt={src.name}
-                                    className="w-32 h-32 rounded-full object-cover border-4 border-gray-300 shadow-md"
-                                />
-                                <h3 className="mt-4 text-xl font-semibold text-gray-800 dark:text-white">
-                                    {src.name}
-                                </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-300">{src.role}</p>
-                            </div>
-                        </SwiperSlide>
-                    ))}
-                    </Swiper>
-                ) : (
-                    <img
-                    loading="lazy"
-                    className="w-full rounded-xl shadow-2xl ring-1 ring-black ring-opacity-5"
-                    src={imgSrc}
-                    alt={title}
-                    />
-                )}
+        id={sectionId}
+        className={`relative grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-24 px-4 sm:px-6 lg:px-8 mb-10 ${
+          reverse ? "lg:grid-flow-col-dense lg:col-start-2" : ""
+        }`}
+      >
+        {!reverse && (
+          <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-none lg:py-16">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              {title}
+            </h2>
+            {typeof description === "string" ? (
+              <p className="mt-4 text-base sm:text-lg text-gray-300">
+                {description}
+              </p>
+            ) : Array.isArray(description) ? (
+              <ul className="mt-4 space-y-4 list-disc list-inside text-gray-300">
+                {description.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            ) : (
+              <>
+                <div className="mt-4">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white">
+                    For Students
+                  </h3>
+                  <p className="text-gray-300">{description.student}</p>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white">
+                    For Teachers
+                  </h3>
+                  <p className="text-gray-300">{description.teacher}</p>
+                </div>
+              </>
+            )}
           </div>
-    
-          {reverse && (
-            <div className="mx-auto max-w-xl px-6 lg:mx-0 lg:max-w-none lg:py-16 lg:px-0">
-              <h2 className="text-3xl font-bold tracking-tight text-white">{title}</h2>
-              {typeof description === "string" ? (
-                <p className="mt-4 text-lg text-gray-300">{description}</p>  
-              ) : Array.isArray(description) ? (
-                <ul className="mt-4 space-y-4 list-disc list-inside text-gray-300">
-                  {description.map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))}
-                </ul>              
-              ) : (
-                <>
-                  <div className="mt-4">
-                    <h3 className="text-xl font-semibold text-white">For Students</h3>
-                    <p className="text-gray-300">{description.student}</p>
+        )}
+
+        <div className="mt-6 sm:mt-10 lg:mt-0">
+          {title === "Meet the Team" ? (
+            <Swiper
+              modules={[Autoplay]}
+              autoplay={{ delay: 3000 }}
+              loop
+              spaceBetween={20}
+              slidesPerView={1}
+              className="rounded-xl shadow-2xl ring-1 ring-black ring-opacity-5"
+            >
+              {teamMembers.map((src, idx) => (
+                <SwiperSlide key={idx}>
+                  <div className="flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-800 ">
+                    <img
+                      src={src.imgSrc}
+                      alt={src.name}
+                      className="w-32 h-32 rounded-full object-cover border-4 border-gray-300 shadow-md"
+                    />
+                    <h3 className="mt-4 text-xl font-semibold text-gray-800 dark:text-white">
+                      {src.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-300">
+                      {src.role}
+                    </p>
                   </div>
-                  <div className="mt-4">
-                    <h3 className="text-xl font-semibold text-white">For Teachers</h3>
-                    <p className="text-gray-300">{description.teacher}</p>
-                  </div>
-                </>
-              )
-              }
-            </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          ) : (
+            <img
+              loading="lazy"
+              className="w-full h-auto max-h-[400px] object-cover rounded-xl shadow-2xl ring-1 ring-black ring-opacity-5"
+              src={imgSrc}
+              alt={title}
+            />
           )}
         </div>
+
+        {reverse && (
+          <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-none lg:py-16">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              {title}
+            </h2>
+            {typeof description === "string" ? (
+              <p className="mt-4 text-base sm:text-lg text-gray-300">
+                {description}
+              </p>
+            ) : Array.isArray(description) ? (
+              <ul className="mt-4 space-y-4 list-disc list-inside text-gray-300">
+                {description.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            ) : (
+              <>
+                <div className="mt-4">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white">
+                    For Students
+                  </h3>
+                  <p className="text-gray-300">{description.student}</p>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white">
+                    For Teachers
+                  </h3>
+                  <p className="text-gray-300">{description.teacher}</p>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
         </FadeInOnView>
         </>
       );
@@ -149,17 +164,18 @@ const AboutUsPage: React.FC = () => {
         <>
         <Header/>
         <div className="relative overflow-hidden bg-gray-900 pt-16 pb-32 mt-6">
-            <div className="text-center px-6 mb-5">
-                <h1 className="text-5xl font-extrabold text-white">
-                    <AnimatedText text="About Future Aim & Hybrid"/></h1>
-                <p className="mt-4 text-lg text-gray-300 max-w-2xl mx-auto">
-                    <AnimatedText text="Hybrid - Study and Teach At Once."/>
-                </p>
-            </div>
+          <div className="text-center px-4 sm:px-6 mb-5">
+            <h1 className="text-3xl sm:text-5xl font-extrabold text-white">
+              <AnimatedText text="About Future Aim & Hybrid" />
+            </h1>
+            <p className="mt-4 text-base sm:text-lg text-gray-300 max-w-2xl mx-auto">
+              <AnimatedText text="Hybrid - Study and Teach At Once." />
+            </p>
+          </div>
 
-            {features.map((feature, index) => (
-                <FeatureSection key={index} index={index} {...feature} />
-            ))}
+          {features.map((feature, index) => (
+            <FeatureSection key={index} index={index} {...feature} />
+          ))}
         </div>
         </>
       )

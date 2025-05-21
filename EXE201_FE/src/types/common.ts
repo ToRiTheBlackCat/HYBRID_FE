@@ -22,3 +22,13 @@ export type Question = {
   text: string;
   answer: Answer[];
 }
+
+export type RandomCardItem = {
+  keyword: string;
+  imageURL: string;
+}
+
+export type SpellingItem = {
+  question?: string;
+  answer?: string;
+}

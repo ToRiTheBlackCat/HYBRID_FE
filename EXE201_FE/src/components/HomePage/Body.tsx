@@ -23,8 +23,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import "../../../node_modules/swiper/swiper-bundle.css";
 import "../../../node_modules/swiper/swiper.css";
-import AnimatedText from "../../hooks/AnimatedText";
-import FadeInOnView from "../../hooks/FadeInOnView";
+import AnimatedText from "../hooks/AnimatedText";
+import FadeInOnView from "../hooks/FadeInOnView";
 
 const Body: React.FC = () => {
 
@@ -81,6 +81,7 @@ const Body: React.FC = () => {
           <AnimatedText text="Our platform provide diverse templates with the most suitable price and help minimize preparation time for teachers."/>
         </p>
         <button
+        onClick={() => window.location.href = "/template"}
         className="mt-6 bg-blue-700 hover:bg-blue-800 text-white font-semibold px-5 py-2 rounded-full flex items-center gap-2 shadow-md transition animate-fadeInUp">
           Explore now <FaSearch className="text-white" />
         </button>
@@ -139,7 +140,9 @@ const Body: React.FC = () => {
         </p>
         </FadeInOnView>
         <FadeInOnView delay={0.3}>
-        <button className="mt-6 bg-blue-700 hover:bg-blue-800 text-white font-semibold px-5 py-2 rounded-full flex items-center gap-2 shadow-md transition">
+        <button 
+        onClick={() => window.location.href = "/course"}
+        className="mt-6 bg-blue-700 hover:bg-blue-800 text-white font-semibold px-5 py-2 rounded-full flex items-center gap-2 shadow-md transition">
           Explore now <FaSearch className="text-white" />
         </button>
         </FadeInOnView>
