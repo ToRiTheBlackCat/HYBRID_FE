@@ -1,6 +1,7 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import { ConjunctionState, Entry } from '../types/index';
 
+
 const initialState: ConjunctionState = {
   activityName: '',
   entries: [],
@@ -23,5 +24,5 @@ const conjunctionSlice = createSlice({
   },
 });
 
-export const { setActivityName, setEntries, reset } = conjunctionSlice.actions;    
+export const { setActivityName, setEntries, reset } = conjunctionSlice.actions;   
 export default conjunctionSlice.reducer;

@@ -1,48 +1,49 @@
-import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage';
-import SignUpPage from './pages/SignUpPage';
-import TemplatePage from './pages/TemplatePage';
-import AboutUsPage from './pages/AboutUsPage';
-import ForgotPassword from './pages/ForgotPassword';
-import ConjunctionTemplate from './pages/Template/Conjunction';
-import ConjunctionReview from './pages/Template/ConjunctionReview';
-import AnagramTemplate from './pages/Template/Anagram';
-import AnagramReview from './pages/Template/AnagramReview';
-import CoursePage from './pages/CoursePage';
-import Quiz from './pages/Template/Quiz';
-import QuizReview from './pages/Template/QuizReview';
-import RandomCard from './pages/Template/RandomCard';
-import RandomCardReview from './pages/Template/RandomCardReview';
-import Spelling from './pages/Template/Spelling';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {routes} from "./routes"
+import { useSelector } from 'react-redux';
+import { RootState } from './store/store';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 function App() {
+  const accessToken = useSelector((state: RootState) => state.user.accessToken)
+  const isAuthenticated = !!accessToken;
+
   return (
     <>
+    <ToastContainer/>
     <Router>
       <Routes>
-        <Route path='/' element={<HomePage/>}/>
-        <Route path='/login' element={<LoginPage/>}/>
-        <Route path='/sign-up' element={<SignUpPage/>}/>
-        <Route path='/template' element={<TemplatePage/>}/>
-        <Route path='/about-us' element={<AboutUsPage/>}/>
-        <Route path='/forgot-password' element={<ForgotPassword/>}/>
-        <Route path='/conjunction' element={<ConjunctionTemplate/>}/>
-        <Route path='/conjunction-preview' element={<ConjunctionReview/>}/>
-        <Route path='/anagram' element={<AnagramTemplate/>}/>
-        <Route path='/anagram-review' element={<AnagramReview/>}/>
-        <Route path='/course' element={<CoursePage/>}/>
-        <Route path='/quiz' element={<Quiz/>}/>
-        <Route path='/quiz-review' element={<QuizReview/>}/>
-        <Route path='/random-card' element={<RandomCard/>}/>
-        <Route path='/random-card-review' element={<RandomCardReview/>}/>
-        <Route path='/spelling' element={<Spelling/>}/>
+        {routes.public.map(({path, element})=>(
+          <Route key={path} path={path} element={element}/>
+        ))}
+
+        {routes.private.map(({path, element}) => (
+          <Route key={path} path={path} element={isAuthenticated ? element : <Navigate to= "/login" replace/>}/>
+        ))}
+
+         {routes.admin.map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={route.element} 
+            >
+              {route.children.map((child, idx) => (
+                <Route
+                  key={idx}
+                  index={child.index}
+                  path={child.path}
+                  element={child.element}
+                />
+              ))}
+            </Route>
+          ))}
         {/* Add more routes for other templates here */}
       </Routes>
     </Router>
     </>
-  )
-}
+  );
+};
 
 export default App

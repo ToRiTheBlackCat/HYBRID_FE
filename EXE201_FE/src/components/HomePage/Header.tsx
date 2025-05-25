@@ -1,27 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import Logo from "../../assets/Logo.jpg"
-import { FiMenu, FiX, FiUser, FiChevronDown } from 'react-icons/fi';
+import Logo from "../../assets/whitecat_logo.jpg"
+import { FiMenu, FiX  } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSelector, useDispatch } from 'react-redux';
+import Cookies from 'js-cookie';
+import { RootState } from '../../store/store';
+import { logout } from '../../store/userSlice';
+import DropdownMenu from "./DropdownMenu";
+import { fecthUserProfile } from "../../services/authService";
+import { Profile } from '../../types';
 // import "../../tailwind.css";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userData, setUserData] = useState<Profile>();
+  
+  const user = useSelector((state: RootState) => state.user)
+  const isAuthenticated = !!user.userId;
 
-  // 🟡 Giả lập trạng thái đăng nhập
-  const isAuthenticated = false;
-  const userAccountName = 'User Name';
+  const menuRef = useRef<HTMLDivElement>(null)
+  
 
   useEffect(() => {
+    const getFullName = async () => {
+      const isTeacher = user.roleId === "3";
+      try{
+        const data = await fecthUserProfile(user.userId, isTeacher);
+        setUserData(data ?? undefined);
+      }catch (error){
+        console.log(error);
+      }
+    }
+    getFullName()
+
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [user.roleId, user.userId]);
+
+  useEffect(() => {
+    const handleClickOutside = (e : MouseEvent) => {
+      if(menuRef.current && !menuRef.current.contains(e.target as Node)){
+        setIsMobileMenuOpen(false)
+      }
+    };
+    if(isMobileMenuOpen){
+      document.addEventListener('mousedown', handleClickOutside);
+    } else{
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMobileMenuOpen]);
 
   const handleLogout = () => {
+    Cookies.remove('user');
+    dispatch(logout())
     navigate('/');
     setIsMobileMenuOpen(false);
   };
@@ -31,7 +70,7 @@ const Header: React.FC = () => {
   const menuItems = [
     { path: '/template', label: 'Template' },
     { path: '/course', label: 'Courses' },
-    { path: '/member', label: 'Pricing' },
+    { path: '/pricing', label: 'Pricing' },
     { path: '/about-us', label: 'About Us' },
   ];
 
@@ -49,11 +88,10 @@ const Header: React.FC = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <img src={Logo} alt="Logo" className="h-10 w-auto" />
-          {/* <span className="text-xl font-bold text-blue-700">Hybrid</span> */}
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center gap-6">
+        <div className="hidden lg:flex mr-20 items-center gap-4">
           {menuItems.map((item) => (
             <Link
               key={item.path}
@@ -72,17 +110,7 @@ const Header: React.FC = () => {
         {/* Auth Buttons */}
         <div className="hidden lg:flex items-center gap-4">
           {isAuthenticated ? (
-            <div className="flex items-center gap-2 cursor-pointer">
-              <FiUser className="w-5 h-5 text-blue-600" />
-              <span className="text-sm text-gray-700">{userAccountName}</span>
-              <FiChevronDown className="w-4 h-4 text-gray-500" />
-              <button
-                onClick={handleLogout}
-                className="text-sm text-red-500 hover:text-red-600 ml-3"
-              >
-                Đăng xuất
-              </button>
-            </div>
+            <DropdownMenu roleName={userData?.fullName}/>
           ) : (
             <>
               <Link to="/login" className="text-sm px-4 py-2 bg-blue-600 rounded-full text-white hover:bg-green-700">
@@ -111,6 +139,7 @@ const Header: React.FC = () => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
+            ref={menuRef}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -139,7 +168,7 @@ const Header: React.FC = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="text-sm text-gray-700 hover:text-blue-600"
                   >
-                    {userAccountName}
+                    My profile
                   </Link>
                   <button
                     onClick={handleLogout}

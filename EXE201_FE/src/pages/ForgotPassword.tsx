@@ -1,13 +1,32 @@
 import React, { useState } from 'react';
 import forgotPasswordImage from '../assets/forgot-password.jpg';
 import Logo from '../assets/Logo1_noBg.png';
+import {toast} from "react-toastify"
+import { resetPass } from '../services/userService';
+import { useNavigate } from 'react-router-dom';
 
 const ForgotPassword: React.FC = () => {
     const [email, setEmail] = useState('');
+    const navigate = useNavigate();
   
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      console.log('Email submitted:', email);
+
+      try{
+        const response = await resetPass(email);
+
+        if(response && response.data.success){
+          toast.success('A reset link has been sent to your email.')
+          navigate('/verify-code')
+        }else{
+          toast.error(response?.data.message)
+          console.log(response.data.message)
+        }
+      }catch (error) {
+        console.error('Error occurred while resetting password:', error);
+        toast.error('An error occurred. Please try again later.');
+      }
+      // console.log('Email submitted:', email);
     };
   
     return (

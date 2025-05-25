@@ -1,7 +1,44 @@
-import React from 'react';
+import React, {useState} from 'react';
 import Logo from '../../assets/Logo2_noBg.png';
 
-const TeacherInfoForm: React.FC = () => {
+interface TeacherInfoFormProps {
+  onSubmit: (data: {
+    email: string;
+    password: string;
+    fullName: string;
+    address?: string;
+    phone: string;
+  }) => void;
+}
+
+const TeacherInfoForm: React.FC<TeacherInfoFormProps> = ({onSubmit}) => {
+    const [formData, setFormData] = useState({
+        email: "",
+        password: "",
+        fullName: "",
+        address: "",
+        phone: "",
+        confirmPassword: "",
+    });
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (formData.password !== formData.confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+        }
+        onSubmit({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
+        address: formData.address || undefined,
+        phone: formData.phone,
+        });
+    };
     return (
         <div className='bg-white border border-black rounded-2xl flex flex-col items-center gap-0 w-220 mt-25 '>
             <div className="flex flex-col items-center mb-8">
@@ -9,13 +46,60 @@ const TeacherInfoForm: React.FC = () => {
                 {/* <h2 className="text-[#1e4c91] font-bold text-xl">HYBRID</h2> */}
                 <p className="text-2xl text-gray-700 mt-2 font-medium">Information of Teacher</p>
             </div>
-            <form className="w-200 m-5 mr-3 ml-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
-            <input type="email" placeholder="Parent's email*" className="border-b p-2 outline-none" required />
-            <input type="text" placeholder="Parent's fullName*" className="border-b p-2 outline-none" required />
-            <input type="password" placeholder="Password*" className="border-b p-2 outline-none" required />
-            <input type="tel" placeholder="Parent's phone*" className="border-b p-2 outline-none" required />
-            <input type="password" placeholder="Confirm password*" className="border-b p-2 outline-none" required />
-            <input type="text" placeholder="Address" className="border-b p-2 outline-none" />
+            <form className="w-200 m-5 mr-3 ml-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700" onSubmit={handleSubmit}>
+            <input
+                type="email"
+                name="email"
+                placeholder="Teacher's email*"
+                className="border-b p-2 outline-none"
+                required
+                value={formData.email}
+                onChange={handleChange}
+            />
+            <input
+                type="text"
+                name="fullName"
+                placeholder="Teacher's fullName*"
+                className="border-b p-2 outline-none"
+                required
+                value={formData.fullName}
+                onChange={handleChange}
+            />
+            <input
+                type="password"
+                name="password"
+                placeholder="Password*"
+                className="border-b p-2 outline-none"
+                required
+                value={formData.password}
+                onChange={handleChange}
+            />
+            <input
+                type="tel"
+                name="phone"
+                placeholder="Teacher's phone*"
+                className="border-b p-2 outline-none"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+            />
+            <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm password*"
+                className="border-b p-2 outline-none"
+                required
+                value={formData.confirmPassword}
+                onChange={handleChange}
+            />
+            <input
+                type="text"
+                name="address"
+                placeholder="Address"
+                className="border-b p-2 outline-none"
+                value={formData.address}
+                onChange={handleChange}
+            />
     
             <div className="col-span-1 md:col-span-2 flex items-center gap-2 mt-4">
                 <input type="checkbox" id="agree" required />

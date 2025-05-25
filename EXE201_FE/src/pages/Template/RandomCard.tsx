@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Trash, Image, Copy } from "lucide-react";
 import { RandomCardItem } from "../../types/index";
-import fetchImage from "../../services/userService";
+import {fetchImage} from "../../services/userService";
 import Header from "../../components/HomePage/Header";
 
 const RandomCard: React.FC = () => {

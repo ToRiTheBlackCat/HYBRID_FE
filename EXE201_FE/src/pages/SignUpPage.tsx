@@ -4,26 +4,76 @@ import StudentInfoForm from "../components/SignUpForm/StudentInfoForm";
 import TeacherInfoForm from "../components/SignUpForm/TeacherInfoform";
 import Header from "../components/HomePage/Header";
 import Logo from "../assets/Logo1_noBg.png"
+import { SignUp } from "../services/userService";
+import { useNavigate } from "react-router-dom";
+import {toast} from "react-toastify";
 
 const SignUpPage : React.FC = () =>{
     const [role, setRole] = useState<'initial' | 'student' | 'teacher'>('initial');
     const [age, setAge] = useState('');
     const [submittedAge, setSubmittedAge] = useState<number | null>(null);
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+      email: "",
+      password: "",
+      fullName: "",
+      address: "",
+      phone: "",
+      yearOfBirth: 0,
+      roleId: "1", 
+      tierId: "1", 
+    });
 
     const handleRoleSelection = (selectedRole: 'student' | 'teacher') => {
         if (selectedRole === 'student') {
           setRole('student');
+          setFormData((prev) => ({...prev, roleId: "2"}))
         } else {
           setRole('teacher');
-          // Nếu muốn redirect hoặc xử lý logic khác cho Teacher, làm tại đây
+          setFormData((prev) => ({...prev, roleId: "3"}))
         }
       };
       const handleSubmitAge = () => {
         const numericAge = parseInt(age);
         if (!isNaN(numericAge)) {
           setSubmittedAge(numericAge);
+          const currentYear = new Date().getFullYear();
+          setFormData((prev) => ({
+            ...prev,
+            yearOfBirth: currentYear - numericAge,
+          }))
         }
       };  
+      const handleFormSubmit = async (data: {
+        email: string;
+        password: string;
+        fullName: string;
+        address?: string;
+        phone: string;
+
+      }) => {
+        const finalData = {
+          ...formData,
+          ...data,
+          yearOfBirth: formData.yearOfBirth || 0,
+        };
+        console.log(finalData);
+        try {
+          const response = await SignUp(finalData);
+          if(response.isSuccess === true){
+            toast.success("Đăng kí thành công");
+            navigate("/login");
+          }
+          else{
+            toast.error(response.message);
+            return;
+          }
+          // Handle success (e.g., redirect or show message)
+        } catch (error) {
+          console.error("Signup failed:", error);
+          // Handle error (e.g., show error message to user)
+        }
+      };
     return (
       <>
         <Header/>
@@ -72,9 +122,9 @@ const SignUpPage : React.FC = () =>{
             </div>
           </>
         )}
-          {role === "student" && submittedAge !== null && parseInt(age) < 12 && <ParentInfoForm/>}
-          {role === "student" && submittedAge !== null && parseInt(age) >= 12 && <StudentInfoForm/>}
-          {role === "teacher" && <TeacherInfoForm/>}
+          {role === "student" && submittedAge !== null && parseInt(age) < 12 && <ParentInfoForm onSubmit={handleFormSubmit}/>}
+          {role === "student" && submittedAge !== null && parseInt(age) >= 12 && <StudentInfoForm onSubmit={handleFormSubmit}/>}
+          {role === "teacher" && <TeacherInfoForm onSubmit={handleFormSubmit}/>}
         </div>
         </>
       );
