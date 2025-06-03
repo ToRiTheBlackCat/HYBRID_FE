@@ -4,7 +4,7 @@ import { RefreshToken } from '../services/userService';
 import { setUserRedux, logout } from '../store/userSlice';
 import Cookies from 'js-cookie';
 
-const API_URL = "https://localhost:64326/"
+const API_URL = "https://hybridelearn-acdwdxa8dmh2fdgm.southeastasia-01.azurewebsites.net/"
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

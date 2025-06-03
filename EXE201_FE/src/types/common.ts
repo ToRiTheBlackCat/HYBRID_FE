@@ -32,3 +32,9 @@ export type SpellingItem = {
   question?: string;
   answer?: string;
 }
+
+export type ResetPasswordData = {
+  email: string;
+  resetCode: string;
+  password: string;
+}

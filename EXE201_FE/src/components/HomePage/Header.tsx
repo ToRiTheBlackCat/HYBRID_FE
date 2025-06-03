@@ -8,7 +8,7 @@ import Cookies from 'js-cookie';
 import { RootState } from '../../store/store';
 import { logout } from '../../store/userSlice';
 import DropdownMenu from "./DropdownMenu";
-import { fecthUserProfile } from "../../services/authService";
+import { fetchUserProfile } from "../../services/authService";
 import { Profile } from '../../types';
 // import "../../tailwind.css";
 
@@ -31,7 +31,7 @@ const Header: React.FC = () => {
     const getFullName = async () => {
       const isTeacher = user.roleId === "3";
       try{
-        const data = await fecthUserProfile(user.userId, isTeacher);
+        const data = await fetchUserProfile(user.userId, isTeacher);
         setUserData(data ?? undefined);
       }catch (error){
         console.log(error);

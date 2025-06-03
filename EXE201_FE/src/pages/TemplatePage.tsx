@@ -34,12 +34,12 @@ const TemplatePage: React.FC = () => {
         { title: "Flashcard", image: FlashCard, url: "/flashcard" },
       ];
     const basicTemplates = [
-        {title: "Completion", image: Completion },
-        {title: "Pairing", image: Pairing },
-        {title: "Restoration", image: Restoration },
-        {title: "Find Word", image: FindWord },
-        {title: "True/False", image: TrueFalse },
-        {title: "Crossword", image: Crossword },
+        {title: "Completion", image: Completion, url: "/completion" },
+        {title: "Pairing", image: Pairing, url: "/pairing" },
+        {title: "Restoration", image: Restoration, url: "/restoration" },
+        {title: "Find Word", image: FindWord, url: "/find-word" },
+        {title: "True/False", image: TrueFalse, url: "/true-false" },
+        {title: "Crossword", image: Crossword, url: "/crossword" },
     ] 
     const premiumTemplates = [
         {title: "Drag & Drop", image: DragDrop },
@@ -118,15 +118,14 @@ const TemplatePage: React.FC = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-3 w-full gap-6 justify-items-center">
                     {basicTemplates.map((item, index) => (
-                    <div
-                        key={index}
-                        className="flex items-center border rounded-2xl overflow-hidden w-[350px] h-[150px] max-w-sm hover:shadow-md transition"
-                    >
-                        <div className="w-[250px] h-[147px] rounded-lg overflow-hidden">
-                            <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
-                        </div>
-                        <p className="text-gray-800 font-semibold">{item.title}</p>
-                    </div>
+                        <Link to={item.url} key={index}>
+                            <div className="flex items-center border rounded-2xl overflow-hidden w-[350px] h-[150px] max-w-sm hover:shadow-md transition">
+                                <div className="w-[250px] h-[147px] rounded-lg overflow-hidden">
+                                    <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
+                                </div>
+                                <p className="text-gray-800 font-semibold">{item.title}</p>
+                            </div>
+                        </Link>
                     ))}
                 </div>    
                 <button

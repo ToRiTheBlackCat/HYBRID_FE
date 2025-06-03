@@ -9,6 +9,7 @@ import RandomCard from '../pages/Template/RandomCard';
 import RandomCardReview from '../pages/Template/RandomCardReview';
 import Spelling from '../pages/Template/Spelling';
 import ProfilePage from '../pages/ProfilePage';
+import SpellingReview from '../pages/Template/SpellingReview';
 
 export const privateRoutes = [
     {path: "/conjunction", element: <ConjunctionTemplate/>},
@@ -22,4 +23,5 @@ export const privateRoutes = [
     {path: "/random-card-review", element: <RandomCardReview/>},
     {path: "/spelling", element: <Spelling/>},
     {path: "/profile", element: <ProfilePage/>},
+    {path: "/spelling-review", element: <SpellingReview/>},
 ]

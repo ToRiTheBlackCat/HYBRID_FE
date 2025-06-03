@@ -37,7 +37,7 @@ const ConjunctionTemplate: React.FC = () => {
     if(localActivityName && localEntries.every(e => e.keyword && e.meaning)) {
       dispatch(setActivityName(localActivityName));
       dispatch(setEntries(localEntries));
-      navigate("/conjunction-preview");
+      navigate("/conjunction-review");
     }else{
       alert("Please fill in all fields");
     }

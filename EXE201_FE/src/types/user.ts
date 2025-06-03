@@ -8,12 +8,7 @@ export type User = {
 export type Account = {
     email: string;
     password: string;
-    fullName: string;
-    address: string;
-    phone: string;
-    yearOfBirth: number;
     roleId: string;
-    tierId: string;
 }
 export type Profile = {
     userId: string;
@@ -22,4 +17,26 @@ export type Profile = {
     phone: string;
     yearOfBirth: number;    
     tierName: string;
+}
+export type ProfileUpdate = {
+    userId: string;
+    isTeacher: boolean;
+    fullName?: string;
+    address?: string;
+    phone?: string;
+    yearOfBirth?: number;
+}
+export type StudentAccount = {
+    userId: string;
+    fullName: string;
+    address: string;
+    phone: string;
+    yearOfBirth: number;
+}
+export type TeacherAccount = {
+    userId: string;
+    fullName: string;
+    address: string;
+    phone: string;
+    yearOfBirth: number;
 }
