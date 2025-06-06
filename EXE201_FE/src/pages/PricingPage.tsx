@@ -1,92 +1,87 @@
-import React from 'react';
-import { CheckCircle, XCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Logo from "../assets/Logo.jpg"
+import { useSelector } from 'react-redux';
+import Logo from "../assets/Logo.jpg";
 import Header from '../components/HomePage/Header';
+import { fetchStudentTier, fetchTeacherTier } from '../services/userService';
+import { RootState } from '../store/store';
 
-const plans = [
-  {
-    name: 'FREE',
-    current: true,
-    price: '',
-    features: [true, false, false, false],
-  },
-  {
-    name: 'BASIC',
-    current: false,
-    price: '30.000 VND /month',
-    features: [true, true, true, false],
-  },
-  {
-    name: 'PREMIUM',
-    current: false,
-    price: '60.000 VND /month',
-    features: [true, true, true, true],
-  },
-];
-
-const features = ['Free content', 'Func1', 'Func2', 'Func3'];
+// Giả định Tier type
+type Tier = {
+  tierId: string;
+  tierName: string;
+  description: string;
+};
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
+  const roleName = useSelector((state: RootState) => state.user.roleName); // Lấy từ Redux
+  const [tiers, setTiers] = useState<Tier[]>([]);
+  console.log('Role Name:', roleName); // Kiểm tra giá trị roleName
+
+  useEffect(() => {
+    const fetchTiers = async () => {
+      try {
+        let data: Tier[] = [];
+        if (roleName === 'User') {
+          data = await fetchStudentTier();
+        } else if (roleName === 'Teacher') {
+          data = await fetchTeacherTier();
+        }
+        setTiers(data);
+      } catch (error) {
+        console.error('Error fetching tiers:', error);
+      }
+    };
+
+    fetchTiers();
+  }, [roleName]);
 
   return (
     <>
-    <Header/>
-    <div className="min-h-screen bg-[#4e71b3] flex flex-col items-center justify-center text-sm">
-      {/* Logo and title */}
-      
-
-      {/* Plan cards */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg flex flex-col items-center">
-        {/* Logo */}
-        <div className="mb-4">
+      <Header />
+      <div className="min-h-screen bg-[#4e71b3] flex flex-col items-center justify-center text-sm">
+        <div className="bg-white rounded-2xl p-6 shadow-lg flex flex-col items-center">
+          <div className="mb-4">
             <img src={Logo} alt="logo" className="h-14 mx-auto" />
-        </div>
+          </div>
 
-        {/* Danh sách các loại tài khoản: nằm ngang */}
-        <div className="flex gap-6 justify-center flex-wrap">
-            {plans.map((plan, index) => (
-            <div
-                key={plan.name}
-                className="bg-[#d6e4ff] rounded-xl px-6 py-4 flex flex-col items-center w-52"
-            >
+          {/* Hiển thị thông tin gói theo tier */}
+          <div className="flex gap-6 justify-center flex-wrap">
+            {tiers.map((tier) => (
+              <div
+                key={tier.tierId}
+                className="bg-[#d6e4ff] rounded-xl px-6 py-4 flex flex-col items-center w-64"
+              >
                 <h2 className="text-xl font-semibold text-center text-blue-800">
-                {plan.name}{" "}
-                {plan.current && (
-                    <span className="text-xs text-red-500">(current)</span>
-                )}
+                  {tier.tierName.trim()}
                 </h2>
-                <ul className="mt-4 mb-4 space-y-2 text-sm">
-                {features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                    {plan.features[i] ? (
-                        <CheckCircle className="text-green-500 w-5 h-5" />
-                    ) : (
-                        <XCircle className="text-red-500 w-5 h-5" />
-                    )}
-                    {feature}
-                    </li>
-                ))}
-                </ul>
-                {plan.price && (
-                <p className="text-red-500 text-sm font-semibold mb-2">
-                    {plan.price}
-                </p>
-                )}
-                <button className="text-blue-700 border border-blue-700 px-3 py-1 rounded hover:bg-blue-100">
-                See detail
+                <div className="text-center mt-2 text-sm space-y-1">
+                  {tier.description
+                    .split(/\s*\/\s*/g) // Tách bằng dấu "/"
+                    .map((line, index) => (
+                      <li key={index} className="flex items-start gap-2 mb-2">
+                        <CheckCircle className="text-green-500 w-4 h-4 mt-1" />
+                        <span>{line.trim()}</span>
+                      </li>
+                    ))}
+                </div>
+                <button className="mt-4 text-blue-700 border border-blue-700 px-3 py-1 rounded hover:bg-blue-100">
+                  See detail
                 </button>
-            </div>
+              </div>
             ))}
-        </div>
+          </div>
 
-        {/* Nút Back */}
-        <button className="mt-6 bg-blue-800 text-white px-8 py-2 rounded-full hover:bg-blue-900">
+          <button
+            onClick={() => navigate(-1)}
+            className="mt-6 bg-blue-800 text-white px-8 py-2 rounded-full hover:bg-blue-900"
+          >
             Back
-        </button>
+          </button>
         </div>
-    </div>
+      </div>
     </>
   );
 };

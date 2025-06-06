@@ -3,7 +3,10 @@ import { SpellingItem } from "../../types/common";
 import { useNavigate } from "react-router-dom";
 import Header from "../../components/HomePage/Header";
 
-const Spelling: React.FC = () => {
+interface SpellingProps {
+    courseId?: string;
+}
+const Spelling: React.FC<SpellingProps> = ({courseId}) => {
     const [activityName, setActivityName] = useState<string>("");
     const [mode, setMode] = useState<"none" | "voice" | "qa">("none");
     const [inputWord, setInputWord] = useState(['']);

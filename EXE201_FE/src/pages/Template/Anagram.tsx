@@ -8,8 +8,11 @@ import { useNavigate } from "react-router-dom";
 interface AnagramEntry {
   word: string;
 }
+interface AnagramTemplateProps {
+  courseId?: string;  
+}
 
-const AnagramTemplate: React.FC = () => {
+const AnagramTemplate: React.FC<AnagramTemplateProps> = ({courseId}) => {
 
   const [activityName, setActivityNameLocal] = useState("");
   const [entries, setEntries] = useState<AnagramEntry[]>([{ word: "" }]);

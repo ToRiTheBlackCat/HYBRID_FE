@@ -99,6 +99,7 @@ export const confirmReset = async (data: ResetPasswordData) => {
 }
 export const SignUp = async (account: Account) => {
     try{
+        console.log('SignUp account:', account);
         const response = await axiosInstance.post('/api/User/signup', account);
         return response.data;
     }catch (error) {
@@ -116,6 +117,7 @@ export const StudentSignUp = async (account: StudentAccount) => {
     }
 }
 export const TeacherSignUp = async (account: TeacherAccount) => {
+    console.log('TeacherSignUp account:', account);
     try{
         const response = await axiosInstance.post('/api/User/signup-teacher', account);
         return response.data;
@@ -142,6 +144,24 @@ export const fetchCourseList = async (courseName: string, levelId: string, curre
 export const fetchCourseDetail = async (courseId: string) => {
     try{
         const response = await axiosInstance.get(`/api/Course/${courseId}`);
+        return response.data;
+    }catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+export const fetchStudentTier = async () => {
+    try{
+        const response = await axiosInstance.get(`api/Tier/tier-student`);
+        return response.data;
+    }catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+export const fetchTeacherTier = async () => {
+    try{
+        const response = await axiosInstance.get(`api/Tier/tier-teacher`);
         return response.data;
     }catch (error) {
         console.log(error);

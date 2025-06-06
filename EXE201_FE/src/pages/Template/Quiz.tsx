@@ -5,7 +5,10 @@ import { Trash, Copy, Image as ImageIcon } from "lucide-react";
 import VoiceInput from "../../components/Conjunction/VoiceInput";
 import Header from "../../components/HomePage/Header";
 
-const Quiz: React.FC = () => {
+interface QuizProps {
+    courseId?: string;
+}
+const Quiz: React.FC<QuizProps> = ({courseId}) => {
     const [activityName, setActivityName] = useState("");
     const navigate = useNavigate();
     const [questions, setQuestions] = useState<Question[]>([

@@ -1,26 +1,38 @@
 import React from "react";
-import { DndContext, useDraggable, useDroppable, closestCenter, DragEndEvent} from "@dnd-kit/core";
+import {
+  DndContext,
+  useDraggable,
+  useDroppable,
+  closestCenter,
+  DragEndEvent,
+} from "@dnd-kit/core";
 
 interface KeywordDragDropProps {
   keywords: string[];
   targets: string[];
   onDrop: (targetIndex: number, keyword: string) => void;
   droppedKeywords: { [index: number]: string | null };
+  disabled?: boolean;
 }
 
-const DraggableKeyword = ({ id }: { id: string }) => {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({ id });
-  const style = {
+const DraggableKeyword = ({ id, disabled }: { id: string; disabled?: boolean }) => {
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    id,
+    disabled, // ✅ ngăn kéo thả nếu đang disable
+  });
+
+  const style: React.CSSProperties = {
     transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
     padding: "8px 16px",
-    backgroundColor: "#c4f5ff",
+    backgroundColor: disabled ? "#ddd" : "#c4f5ff",
     borderRadius: "8px",
-    cursor: "grab",
+    cursor: disabled ? "not-allowed" : "grab",
     margin: "4px",
+    opacity: disabled ? 0.6 : 1,
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <div ref={setNodeRef} style={style} {...(disabled ? {} : listeners)} {...(disabled ? {} : attributes)}>
       {id}
     </div>
   );
@@ -52,8 +64,11 @@ const KeywordDragDrop: React.FC<KeywordDragDropProps> = ({
   targets,
   onDrop,
   droppedKeywords,
+  disabled = false,
 }) => {
   const handleDragEnd = (event: DragEndEvent) => {
+    if (disabled) return; // ✅ ngăn drop nếu bị disable
+
     const { over, active } = event;
     if (over) {
       const targetIndex = parseInt(over.id as string);
@@ -66,7 +81,7 @@ const KeywordDragDrop: React.FC<KeywordDragDropProps> = ({
       {/* Draggables */}
       <div className="flex gap-4 mb-6 flex-wrap">
         {keywords.map((word) => (
-          <DraggableKeyword key={word} id={word} />
+          <DraggableKeyword key={word} id={word} disabled={disabled} />
         ))}
       </div>
 

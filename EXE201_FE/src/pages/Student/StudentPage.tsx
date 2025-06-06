@@ -1,0 +1,156 @@
+import React from "react";
+import AnimatedText from "../../components/hooks/AnimatedText";
+import FadeInOnView from "../../components/hooks/FadeInOnView";
+
+import Anagram from "../../assets/TemplateLogo/Anagram.jpg";
+// import Completion from "../../assets/TemplateLogo/Completion.jpg";
+import Conjunction from "../../assets/TemplateLogo/Conjunction.jpg";
+import Crossword from "../../assets/TemplateLogo/Crossword.jpg";
+import DragDrop from "../../assets/TemplateLogo/DragDrop.jpg";
+// import RandomCard from "../assets/TemplateLogo/RandomCard.jpg";
+// import Restoration from "../../assets/TemplateLogo/Restoration.jpg";
+// import Pairing from "../../assets/TemplateLogo/Pairing.jpg";
+// import FindWord from "../../assets/TemplateLogo/FindWord.jpg";
+import TrueFalse from "../../assets/TemplateLogo/TrueFalse.jpg";
+// import FlashCard from "../../assets/TemplateLogo/Flashcard.jpg";
+// import Reading from "../../assets/TemplateLogo/Reading.jpg";
+import SongPuzzle from "../../assets/TemplateLogo/SongPuzzle.jpg";
+// import Spelling from "../..//assets/TemplateLogo/Spelling.jpg";
+// import Quiz from "../../assets/TemplateLogo/Quiz.jpg";
+import Pronunciation from "../../assets/TemplateLogo/Pronunciation.jpg";
+import { FaSearch } from "react-icons/fa";
+import Header from "../../components/HomePage/Header";
+
+const StudentPage: React.FC = () => {
+    const templates = [
+    { name: "Conjunction", image: Conjunction },
+    { name: "Anagram", image: Anagram },
+    { name: "True or False", image: TrueFalse },
+    { name: "Crossword", image: Crossword },
+    { name: "Pronunciation", image: Pronunciation },
+    { name: "Drag and Drop", image: DragDrop },
+    { name: "Song Puzzle", image: SongPuzzle },
+    // { name: "Story Listening", image: StoryListening },
+    ];
+    return (
+        <>
+        <Header />
+            <section className="bg-white text-center mt-20 mb-10">
+                <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-10">
+                <AnimatedText text="Let's explore our" />{" "}
+                <span className="text-blue-600 text-7xl font-bold relative inline-block">
+                    <AnimatedText text="Courses" />
+                    <span className="absolute -top-2 -right-6 text-blue-400 text-xl">✨</span>
+                </span>
+                </h2>
+                <div className="flex flex-col md:flex-row justify-center gap-10 text-gray-700">
+                <div>
+                    <h3 className="font-bold text-lg mb-2">
+                    <AnimatedText text="Step 1:" />
+                    </h3>
+                    <p className="text-sm">
+                    <AnimatedText text="Search for a skill" />
+                    </p>
+                </div>
+                <div>
+                    <h3 className="font-bold text-lg mb-2">
+                    <AnimatedText text="Step 2:" />
+                    </h3>
+                    <p className="text-sm">
+                    <AnimatedText text="Choose a course" />
+                    </p>
+                </div>
+                <div>
+                    <h3 className="font-bold text-lg mb-2">
+                    <AnimatedText text="Step 3:" />
+                    </h3>
+                    <p className="text-sm">
+                    <AnimatedText text="Enjoy it" />
+                    </p>
+                </div>
+                </div>
+            </section>
+            <div className="w-full h-[80px] bg-gradient-to-r from-blue-400 to-white"></div>
+            {/* Section Tìm kiếm và lọc */}
+            <FadeInOnView>
+      <section className="p-4 md:p-8 max-w-6xl mx-auto">
+        <div className="flex flex-col items-center gap-6 mt-10">
+            {/* Search By Course */}
+            <div className="w-full max-w-[500px]">
+                <label className="text-gray-700 text-left block mb-2">Search By Course</label>
+                <div className="relative">
+                <input
+                    type="text"
+                    placeholder="Search course..."
+                    className="w-full border rounded-full py-2 px-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+                <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-600" />
+                </div>
+            </div>
+
+            {/* Search By Skill */}
+            <div className="text-center">
+                <label className="text-gray-700 block mb-2">Search By Skill</label>
+                <div className="flex flex-wrap justify-center gap-3">
+                {["Reading", "Listening", "Writing", "Speaking"].map((skill) => (
+                    <button
+                    key={skill}
+                    className="flex items-center justify-between border border-blue-500 text-blue-600 px-4 py-2 rounded-full min-w-[120px] hover:bg-blue-100"
+                    >
+                    <span>{skill}</span>
+                    <FaSearch className="ml-2 text-blue-600 text-sm" />
+                    </button>
+                ))}
+                </div>
+            </div>
+
+            {/* Sort By */}
+            <div className="text-center">
+                <label className="text-gray-700 block mb-2">Sort By</label>
+                <div className="flex flex-wrap justify-center gap-3">
+                <select className="border rounded-full px-4 py-2 focus:outline-none">
+                    <option>Newest</option>
+                    <option>Oldest</option>
+                </select>
+                <select className="border rounded-full px-4 py-2 focus:outline-none">
+                    <option>Free</option>
+                    <option>Premium</option>
+                </select>
+                <select className="border rounded-full px-4 py-2 focus:outline-none">
+                    <option>Popular</option>
+                    <option>Less Popular</option>
+                </select>
+                </div>
+            </div>
+            </div>
+            
+
+        {/* Templates grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          {templates.map((template) => (
+            <div
+              key={template.name}
+              className="border rounded-xl p-2 flex flex-col items-center shadow-sm hover:shadow-md transition"
+            >
+              <img
+                src={template.image}
+                alt={template.name}
+                className="w-14 h-14 rounded-md mb-2 object-contain border-2 border-blue-400"
+              />
+              <p className="text-sm font-semibold text-gray-700">{template.name}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Nút See More */}
+        <div className="text-center mt-6">
+          <button className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700">
+            SEE MORE
+          </button>
+        </div>
+      </section>
+      </FadeInOnView>
+        </>
+    )
+}
+export default StudentPage;

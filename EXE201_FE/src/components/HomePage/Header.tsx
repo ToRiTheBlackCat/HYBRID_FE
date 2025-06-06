@@ -68,7 +68,7 @@ const Header: React.FC = () => {
   const isActiveLink = (path: string) => location.pathname === path;
 
   const menuItems = [
-    { path: '/template', label: 'Template' },
+    { path: '/', label: 'Home' },
     { path: '/course', label: 'Courses' },
     { path: '/pricing', label: 'Pricing' },
     { path: '/about-us', label: 'About Us' },

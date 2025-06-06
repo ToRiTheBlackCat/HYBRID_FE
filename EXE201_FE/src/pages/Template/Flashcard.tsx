@@ -5,8 +5,11 @@ interface Flashcard {
   front: string;
   back: string;
 }
+interface FlashcardDesignerProps {
+  courseId?: string;
+}
 
-const FlashcardDesigner: React.FC = () => {
+const FlashcardDesigner: React.FC<FlashcardDesignerProps> = ({courseId}) => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [front, setFront] = useState<string>('');
   const [back, setBack] = useState<string>('');

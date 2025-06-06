@@ -4,7 +4,10 @@ import { RandomCardItem } from "../../types/index";
 import {fetchImage} from "../../services/userService";
 import Header from "../../components/HomePage/Header";
 
-const RandomCard: React.FC = () => {
+interface RandomCardProps {
+    courseId?: string;
+}
+const RandomCard: React.FC<RandomCardProps> = ({courseId}) => {
     const [activityName, setActivityName] = useState<string>("");
     const [cards, setCards] = useState<RandomCardItem[]>([{
         keyword: "",
