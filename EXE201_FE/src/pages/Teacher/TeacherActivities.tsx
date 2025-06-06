@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { baseImageUrl } from "../../config/base";
 
 
-const TeacherAccomplishment: React.FC = () => {
+const TeacherActivities: React.FC = () => {
   const teacherId = useSelector((state: RootState) => state.user.userId);
   const [minigames, setMinigames] = useState<Minigame[]>([]);
   const navigate = useNavigate();
@@ -76,4 +76,4 @@ const TeacherAccomplishment: React.FC = () => {
   );
 };
 
-export default TeacherAccomplishment;
+export default TeacherActivities;

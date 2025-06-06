@@ -25,6 +25,7 @@ const Header: React.FC = () => {
   const isAuthenticated = !!user.userId;
 
   const menuRef = useRef<HTMLDivElement>(null)
+  const roleId = user.roleId;
   
 
   useEffect(() => {
@@ -110,7 +111,7 @@ const Header: React.FC = () => {
         {/* Auth Buttons */}
         <div className="hidden lg:flex items-center gap-4">
           {isAuthenticated ? (
-            <DropdownMenu roleName={userData?.fullName}/>
+            <DropdownMenu userName={userData?.fullName} roleId={roleId}/>
           ) : (
             <>
               <Link to="/login" className="text-sm px-4 py-2 bg-blue-600 rounded-full text-white hover:bg-green-700">

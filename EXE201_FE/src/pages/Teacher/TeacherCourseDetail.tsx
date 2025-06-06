@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { fetchCourseDetail } from "../../services/userService";
-import { Course } from "../../types/index";
+import { fetchCourseMinigame } from "../../services/authService";
+import { Course, Minigame } from "../../types/index";
 import Header from "../../components/HomePage/Header";
 import Footer from "../../components/HomePage/Footer";
 import ImageModal from "../../components/common/ImageModal";
@@ -13,7 +14,7 @@ import { baseImageUrl } from "../../config/base";
 const TeacherCourseDetail: React.FC = () => {
     const { courseId } = useParams<{ courseId: string }>();
     const [course, setCourse] = useState<Course>();
-    // const [minigames, setMinigames] = useState<Minigame[]>([]);
+    const [minigames, setMinigames] = useState<Minigame[]>([]);
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
     const [carouselIndex, setCarouselIndex] = useState(0);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -43,13 +44,13 @@ const TeacherCourseDetail: React.FC = () => {
               images,
             });
     
-            // const gameResponse = await fetchCourseMinigame(courseId);
-            // if (Array.isArray(gameResponse.minigames)) {
-            //   setMinigames(gameResponse.minigames);
-            // } else {
-            //   console.warn("Invalid minigame data", gameResponse);
-            //   setMinigames([]);
-            // }
+            const gameResponse = await fetchCourseMinigame(courseId);
+            if (Array.isArray(gameResponse.minigames)) {
+              setMinigames(gameResponse.minigames);
+            } else {
+              console.warn("Invalid minigame data", gameResponse);
+              setMinigames([]);
+            }
           } catch (error) {
             console.error("Error loading course detail or minigames:", error);
           }
@@ -140,28 +141,28 @@ const TeacherCourseDetail: React.FC = () => {
         </div>
 
         {/* Games */}
-        {/* <h3 className="text-2xl font-semibold mb-4">Here are some games to practice</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {minigames.map(game => {
-            const imageUrl = `${baseImageUrl}${game.thumbnailImage.replace(/^\/+/, "")}`;
-            return (
-              <div key={game.minigameId} className="bg-pink-100 rounded-lg p-4 shadow-md">
-                <img
-                  src={imageUrl}
-                  alt={game.minigameName}
-                  className="rounded-md mb-3 w-full h-40 object-cover"
-                />
-                <h4 className="text-lg font-bold">{game.minigameName}</h4>
-                <p className="text-sm">Author: {game.teacherName}</p>
-                <p className="text-sm">Type: {game.templateName}</p>
-                <div className="flex justify-between items-center mt-2 text-sm">
-                  <span>⭐ {game.ratingScore ?? "N/A"}</span>
-                  <span>👥 {game.participantsCount ?? "0"} participants</span>
+                <h3 className="text-2xl font-semibold mb-4">Here are some games to practice</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {minigames.map(game => {
+                    const imageUrl = `${baseImageUrl}${game.thumbnailImage.replace(/^\/+/, "")}`;
+                    return (
+                      <div key={game.minigameId} className="bg-pink-100 rounded-lg p-4 shadow-md">
+                        <img
+                          src={imageUrl}
+                          alt={game.minigameName}
+                          className="rounded-md mb-3 w-full h-40 object-cover"
+                        />
+                        <h4 className="text-lg font-bold">{game.minigameName}</h4>
+                        <p className="text-sm">Author: {game.teacherName}</p>
+                        <p className="text-sm">Type: {game.templateName}</p>
+                        <div className="flex justify-between items-center mt-2 text-sm">
+                          <span>⭐ {game.ratingScore ?? "N/A"}</span>
+                          <span>👥 {game.participantsCount ?? "0"} participants</span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            );
-          })}
-        </div> */}
       </div>
 
       {/* Modal */}

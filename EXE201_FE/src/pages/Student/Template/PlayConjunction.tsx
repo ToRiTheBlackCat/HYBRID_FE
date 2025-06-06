@@ -1,12 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import KeywordDragDrop from "../../components/Conjunction/DragDrop";
-import Header from "../../components/HomePage/Header";
-import { fetchPlayMinigames } from "../../services/authService";
-import EditConjunction from "../Teacher/Template/EditConjunction";
+import KeywordDragDrop from "../../../components/Conjunction/DragDrop";
+import Header from "../../../components/HomePage/Header";
+import { fetchPlayMinigames } from "../../../services/authService";
 
-const ConjunctionReview: React.FC = () => {
+const PlayConjunction: React.FC = () => {
   const { minigameId } = useParams<{ minigameId: string }>();
   const [activityName, setActivityName] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
@@ -61,7 +60,7 @@ const ConjunctionReview: React.FC = () => {
 
   const calculateScore = () => {
     let correct = 0;
-    meanings.forEach((meaning, index) => {
+    meanings.forEach((_, index) => {
       if (dropped[index] === keywords[index]) correct++;
     });
     setScore(correct);
@@ -121,20 +120,6 @@ const ConjunctionReview: React.FC = () => {
           >
             {isPaused ? "▶️ Resume" : "⏸️ Pause"}
           </button>
-          <EditConjunction
-            initialActivityName={activityName}
-            initialDuration={duration}
-            initialEntries={keywords.map((k, i) => ({
-              keyword: k,
-              meaning: meanings[i] || "",
-            }))}
-            onSave={(newData) => {
-              setActivityName(newData.activityName);
-              setDuration(newData.duration);
-              setKeywords(newData.entries.map(e => e.keyword));
-              setMeanings(newData.entries.map(e => e.meaning));
-            }}
-          />
         </div>
 
         <h2 className="text-xl font-semibold text-blue-700">
@@ -176,8 +161,7 @@ const ConjunctionReview: React.FC = () => {
           </div>
         )}
 
-        {/* Nút hành động cuối trang */}
-        {isTimeUp && (
+        {isTimeUp ? (
           <div className="flex justify-end gap-4 mt-6">
             <button
               onClick={tryAgain}
@@ -186,9 +170,7 @@ const ConjunctionReview: React.FC = () => {
               🔄 Try Again
             </button>
           </div>
-        )}
-
-        {!isTimeUp && (
+        ) : (
           <div className="flex justify-end mt-6">
             <button
               onClick={finishEarly}
@@ -198,10 +180,9 @@ const ConjunctionReview: React.FC = () => {
             </button>
           </div>
         )}
-        
       </div>
     </>
   );
 };
 
-export default ConjunctionReview;
+export default PlayConjunction;

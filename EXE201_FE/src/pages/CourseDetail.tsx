@@ -6,9 +6,9 @@ import { Course, Minigame } from "../types/index";
 import Header from "../components/HomePage/Header";
 import Footer from "../components/HomePage/Footer";
 import ImageModal from "../components/common/ImageModal";
+import { baseImageUrl } from "../config/base";
+import { useNavigate } from "react-router-dom";
 
-const baseImageUrl =
-  "https://hybridelearn-acdwdxa8dmh2fdgm.southeastasia-01.azurewebsites.net/images/";
 
 const CourseDetail: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -16,6 +16,7 @@ const CourseDetail: React.FC = () => {
   const [minigames, setMinigames] = useState<Minigame[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const navigate = useNavigate();
 
   const parseCourseImages = (dataText: string) => {
     const parser = new DOMParser();
@@ -27,6 +28,9 @@ const CourseDetail: React.FC = () => {
 
     return { thumbnail, images };
   };
+  const handleMinigameClick = () => {
+    navigate(`/student/conjunction/${minigames[0].minigameId}`);
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -134,7 +138,7 @@ const CourseDetail: React.FC = () => {
 
         {/* Games */}
         <h3 className="text-2xl font-semibold mb-4">Here are some games to practice</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" onClick={handleMinigameClick}>
           {minigames.map(game => {
             const imageUrl = `${baseImageUrl}${game.thumbnailImage.replace(/^\/+/, "")}`;
             return (

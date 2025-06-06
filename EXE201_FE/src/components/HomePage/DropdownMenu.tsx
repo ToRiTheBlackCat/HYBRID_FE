@@ -9,10 +9,11 @@ import { MdUpgrade } from 'react-icons/md';
 import { FaTicketAlt, FaBriefcase } from 'react-icons/fa';
 
 interface Props {
-  roleName?: string;
+  userName?: string;
+  roleId?: string;
 }
 
-const UserDropdown: React.FC<Props> = ({ roleName }) => {
+const UserDropdown: React.FC<Props> = ({ userName, roleId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch();
@@ -43,7 +44,7 @@ const UserDropdown: React.FC<Props> = ({ roleName }) => {
         onClick={toggleDropdown}
       >
         <FiUser className="text-blue-600 w-5 h-5" />
-        <span className="text-sm text-gray-700">{roleName}</span>
+        <span className="text-sm text-gray-700">{userName}</span>
         <FiChevronDown className="w-4 h-4 text-gray-500" />
       </div>
 
@@ -62,20 +63,25 @@ const UserDropdown: React.FC<Props> = ({ roleName }) => {
             >
               <FiUser /> Edit Profile
             </Link>
-            <Link
-              to="/activities"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-4 py-2 hover:bg-blue-400 rounded"
-            >
-              <FaTicketAlt /> My Activities
-            </Link>
-            <Link
-              to="/teacher/accomplishments"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-4 py-2 hover:bg-blue-400 rounded"
-            >
-              <FaBriefcase /> My Accomplishments
-            </Link>
+            {roleId === '1' && (
+              <Link
+                to="/teacher/activities"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2 px-4 py-2 hover:bg-blue-400 rounded"
+              >
+              
+                <FaTicketAlt /> My Activities
+              </Link>
+            )}
+            {roleId === '2' && (
+              <Link
+                to="/student/accomplishments"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2 px-4 py-2 hover:bg-blue-400 rounded"
+              >
+                <FaBriefcase /> My Accomplishments
+              </Link>
+            )}
             <Link
               to="/upgrade"
               onClick={() => setIsOpen(false)}

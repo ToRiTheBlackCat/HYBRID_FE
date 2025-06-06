@@ -1,12 +1,12 @@
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Logo from "../../assets/Logo1_noBg.png";
 
 const Footer: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
 
-  const isActiveLink = (path: string) => location.pathname === path;
+  // const isActiveLink = (path: string) => location.pathname === path;
   //   const menuItems = [
   //     { path: "/", label: "Template" },
   //     { path: "/chat-with-ai", label: "Courses" },

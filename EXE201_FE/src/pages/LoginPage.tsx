@@ -94,7 +94,11 @@ const LoginPage: React.FC = () => {
         dispatch(setUserRedux(userData));
         Cookies.set('user', JSON.stringify(userData), { expires: 7 });
         toast.success("Đăng nhập thành công");
-        navigate("/");
+        if(userData.roleId === "1") {
+          navigate("/");
+        } else if (userData.roleId === "2") {
+          navigate("/student");
+        }
       } else {
         toast.error("Đăng nhập thất bại");
       }

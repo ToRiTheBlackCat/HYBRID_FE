@@ -24,7 +24,8 @@ import CoursePage from '../pages/CoursePage';
 // import CrosswordReview from "../pages/Template/Basic/CrosswordReview";
 import CourseDetail from '../pages/CourseDetail';
 import TeacherCourseDetail from '../pages/Teacher/TeacherCourseDetail';
-import TeacherAccomplishment from '../pages/Teacher/TeacherAccomplisment';
+import TeacherActivities from '../pages/Teacher/TeacherActivities';
+import PlayConjunction from '../pages/Student/Template/PlayConjunction';
 
 export const privateRoutes = [
     // {path: "/conjunction", element: <ConjunctionTemplate/>},
@@ -54,5 +55,6 @@ export const privateRoutes = [
     {path: "/course", element: <CoursePage/>},
     {path: "/student/course/:courseId", element: <CourseDetail/>},
     {path: "/teacher/course/:courseId", element: <TeacherCourseDetail/>},
-    {path: "/teacher/accomplishments", element: <TeacherAccomplishment/>},
+    {path: "/teacher/activities", element: <TeacherActivities/>},
+    {path: "/student/conjunction/:minigameId", element: <PlayConjunction/>},
 ]
