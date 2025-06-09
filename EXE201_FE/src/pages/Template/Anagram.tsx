@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Copy, Trash } from "lucide-react";
-import Header from "../../components/HomePage/Header";
-import { setActivityName, setWords } from "../../store/anagramSlice";
-import { useDispatch } from "react-redux";
+// import Header from "../../components/HomePage/Header";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { RootState } from "../../store/store";
+import { createAnagram } from "../../services/authService";
+import { Anagram } from "../../types/index";
 
 interface AnagramEntry {
   word: string;
@@ -16,14 +18,27 @@ const AnagramTemplate: React.FC<AnagramTemplateProps> = ({courseId}) => {
 
   const [activityName, setActivityNameLocal] = useState("");
   const [entries, setEntries] = useState<AnagramEntry[]>([{ word: "" }]);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const teacherId = useSelector((state: RootState) => state.user.userId);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [duration, setDuration] = useState<number>(60);
+  const [gameDataJson, setGameDataJson] = useState("");
 
   const handleChange = (index: number, value: string) => {
     const updated = [...entries];
     updated[index].word = value;
     setEntries(updated);
   };
+  const generateGameDataJson = (data: AnagramEntry[]) => {
+      const validEntries = data.filter(e => e.word); // Lọc các entry hợp lệ
+      const jsonArray = validEntries.map(entry => ({
+        Word: entry.word.trim() // Chỉ lấy từ đã nhập, loại bỏ khoảng trắng
+      }));
+      return JSON.stringify(jsonArray, null, 2); // Trả về mảng JSON
+    };
+  useEffect(() => {
+      setGameDataJson(generateGameDataJson(entries));
+    }, [entries]);
 
   const addEntry = () => {
     setEntries([...entries, { word: "" }]);
@@ -42,25 +57,36 @@ const AnagramTemplate: React.FC<AnagramTemplateProps> = ({courseId}) => {
     ]);
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (!activityName || entries.some((e) => !e.word)) {
       alert("Please complete all fields");
       return;
     }
 
-    const words = entries.map((e) => e.word.trim());
+    // const words = entries.map((e) => e.word.trim());
+    const anagramData: Anagram = {
+      MinigameName: activityName,
+      ImageFile: imageFile,
+      GameDataJson: gameDataJson,
+      TeacherId: teacherId,
+      Duration: duration,
+      TemplateId: "TP3", 
+      CourseId: courseId || "",
+    };
+    console.log("Anagram data to be sent:", anagramData);
 
-    // Dispatch lên Redux
-    dispatch(setActivityName(activityName));
-    dispatch(setWords({ words }));
+    const result = await createAnagram(anagramData);
 
-    // Chuyển trang sang review
-    navigate("/anagram-review");
+    if (result) {
+      navigate("/teacher/activities");
+    } else {
+      alert("Failed to create anagram activity");
+    }
   };
 
   return (
     <>
-    <Header />
+    {/* <Header /> */}
     <div className="border p-4 rounded-md w-full max-w-3xl mx-auto mt-25">
       <h2 className="text-xl font-bold mb-3">Activity name</h2>
       <input
@@ -92,6 +118,31 @@ const AnagramTemplate: React.FC<AnagramTemplateProps> = ({courseId}) => {
       >
         ➕ Add more
       </button>
+      <div className="flex gap-4 mt-4">
+        <div className="flex-1">
+            <label className="block font-medium mb-1">Upload image (optional):</label>
+            <input
+              type="file"
+              className="w-full border border-gray-300 p-2 rounded"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setImageFile(file);
+              }}
+            />
+          </div>
+
+          <div className="flex-1">
+            <label className="block font-medium mb-1">Duration (seconds):</label>
+            <input
+              type="number"
+              className="border px-2 py-1 w-32"
+              min={10}
+              value={duration}
+              onChange={(e) => setDuration(Number(e.target.value))}
+            />
+          </div>
+        </div>
 
       <div className="mt-4 text-right">
         <button

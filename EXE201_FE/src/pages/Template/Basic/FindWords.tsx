@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { FaCopy, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../../components/HomePage/Header';
-import Footer from '../../../components/HomePage/Footer';
 
 const FindWordsScreen: React.FC = () => {
   const [activityName, setActivityName] = useState('');
@@ -30,7 +28,6 @@ const FindWordsScreen: React.FC = () => {
 
   return (
     <>
-      <Header />
       <div className="p-4 w-[900px] mt-25 mb-30 mx-auto bg-white border rounded shadow">
         <label className="block text-lg font-semibold mb-2">Activity name</label>
         <input
@@ -80,7 +77,6 @@ const FindWordsScreen: React.FC = () => {
         </button>
       </div>
     </div>
-    <Footer />
     </>
   );
 }

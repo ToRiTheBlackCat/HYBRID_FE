@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Flashcard {
   id: number;
@@ -9,12 +10,13 @@ interface FlashcardDesignerProps {
   courseId?: string;
 }
 
-const FlashcardDesigner: React.FC<FlashcardDesignerProps> = ({courseId}) => {
+const FlashcardDesigner: React.FC<FlashcardDesignerProps> = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [front, setFront] = useState<string>('');
   const [back, setBack] = useState<string>('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [flipped, setFlipped] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +88,7 @@ const FlashcardDesigner: React.FC<FlashcardDesignerProps> = ({courseId}) => {
             <button
               type="submit"
               className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition"
+              onClick={() => navigate('/flashcard-review')}
             >
               {editingId !== null ? 'Cập nhật' : 'Tạo Flashcard'}
             </button>

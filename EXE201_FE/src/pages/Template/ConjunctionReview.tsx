@@ -5,12 +5,15 @@ import KeywordDragDrop from "../../components/Conjunction/DragDrop";
 import Header from "../../components/HomePage/Header";
 import { fetchPlayMinigames } from "../../services/authService";
 import EditConjunction from "../Teacher/Template/EditConjunction";
+import { baseImageUrl } from "../../config/base";
+import { toast } from "react-toastify";
 
 const ConjunctionReview: React.FC = () => {
   const { minigameId } = useParams<{ minigameId: string }>();
   const [activityName, setActivityName] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [meanings, setMeanings] = useState<string[]>([]);
+  const [thumbnail, setThumbnail] = useState<string | null>(null); // URL for display
   const [dropped, setDropped] = useState<{ [index: number]: string | null }>({});
   const [duration, setDuration] = useState<number>(0);
   const [isTimeUp, setIsTimeUp] = useState(false);
@@ -24,6 +27,11 @@ const ConjunctionReview: React.FC = () => {
     }
   };
 
+  const normalizeUrl = (base: string, path: string): string => {
+    // Remove trailing slash from base and leading slash from path, then join with a single slash
+    return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+  };
+
   const loadMinigame = async () => {
     if (!minigameId) return;
 
@@ -31,6 +39,10 @@ const ConjunctionReview: React.FC = () => {
       const result = await fetchPlayMinigames(minigameId);
       setActivityName(result.minigameName || "");
       setDuration(result.duration || 0);
+
+      // Construct thumbnail URL
+      const thumbnailUrl = result.thumbnailImage ? normalizeUrl(baseImageUrl, result.thumbnailImage) : null;
+      setThumbnail(thumbnailUrl);
 
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(result.dataText, "text/xml");
@@ -52,6 +64,7 @@ const ConjunctionReview: React.FC = () => {
       setMeanings(defs);
     } catch (error) {
       console.error("Failed to load minigame:", error);
+      toast.error("Failed to load minigame.");
     }
   };
 
@@ -103,7 +116,7 @@ const ConjunctionReview: React.FC = () => {
     setIsPaused(false);
     setShowResult(false);
     setScore(0);
-    loadMinigame(); // Reload dữ liệu
+    loadMinigame();
   };
 
   return (
@@ -112,12 +125,10 @@ const ConjunctionReview: React.FC = () => {
       <div className="max-w-3xl mx-auto p-6 space-y-4 mt-20 border rounded-lg shadow-lg bg-white">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Activity Review</h1>
-          <div className="text-red-600 font-semibold text-lg">
-            ⏳ {formatTime(duration)}
-          </div>
+          <div className="text-red-600 font-semibold text-lg">⏳ {formatTime(duration)}</div>
           <button
             onClick={() => setIsPaused(!isPaused)}
-            className="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200"
+            className="px-3 py-1 rounded border bg-gray-200 hover:bg-gray-300"
           >
             {isPaused ? "▶️ Resume" : "⏸️ Pause"}
           </button>
@@ -125,21 +136,26 @@ const ConjunctionReview: React.FC = () => {
             initialActivityName={activityName}
             initialDuration={duration}
             initialEntries={keywords.map((k, i) => ({
-              keyword: k,
-              meaning: meanings[i] || "",
+              Term: k,
+              Definition: meanings[i] || "",
             }))}
+            initialThumbnailUrl={thumbnail} // Pass URL only
             onSave={(newData) => {
               setActivityName(newData.activityName);
               setDuration(newData.duration);
-              setKeywords(newData.entries.map(e => e.keyword));
-              setMeanings(newData.entries.map(e => e.meaning));
+              setKeywords(newData.entries.map((e) => e.Term));
+              setMeanings(newData.entries.map((e) => e.Definition));
+              setThumbnail(newData.thumbnailUrl); // Update URL
             }}
           />
         </div>
 
-        <h2 className="text-xl font-semibold text-blue-700">
-          Activity Name: {activityName}
-        </h2>
+        <h2 className="text-xl font-semibold text-blue-700">Activity Name: {activityName}</h2>
+        {thumbnail && (
+          <div className="mt-2">
+            <img src={thumbnail} alt="Activity thumbnail" className="w-20 h-20 object-cover rounded" />
+          </div>
+        )}
 
         {isTimeUp && (
           <div className="text-red-600 font-bold mt-2">
@@ -149,7 +165,6 @@ const ConjunctionReview: React.FC = () => {
 
         <div className="p-6 mt-6 border rounded-lg shadow bg-white">
           <h2 className="text-xl font-bold mb-4">Match the keywords</h2>
-
           <KeywordDragDrop
             keywords={keywords}
             targets={meanings}
@@ -176,7 +191,6 @@ const ConjunctionReview: React.FC = () => {
           </div>
         )}
 
-        {/* Nút hành động cuối trang */}
         {isTimeUp && (
           <div className="flex justify-end gap-4 mt-6">
             <button
@@ -198,7 +212,6 @@ const ConjunctionReview: React.FC = () => {
             </button>
           </div>
         )}
-        
       </div>
     </>
   );

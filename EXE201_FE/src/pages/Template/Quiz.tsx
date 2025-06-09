@@ -1,129 +1,241 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Question } from "../../types";
+import { MinigameData, Question } from "../../types";
 import { Trash, Copy, Image as ImageIcon } from "lucide-react";
 import VoiceInput from "../../components/Conjunction/VoiceInput";
 import Header from "../../components/HomePage/Header";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+import { createQuiz } from "../../services/authService";
 
 interface QuizProps {
     courseId?: string;
 }
-const Quiz: React.FC<QuizProps> = ({courseId}) => {
+
+const Quiz: React.FC<QuizProps> = ({ courseId }) => {
     const [activityName, setActivityName] = useState("");
+    const [thumbnail, setThumbnail] = useState<File | null>(null);
     const navigate = useNavigate();
+    const teacherId = useSelector((state: RootState) => state.user.userId);
+    const [duration, setDuration] = useState<number>(60);
+
     const [questions, setQuestions] = useState<Question[]>([
-        {text: "", answer: ["", ""]},
+        { text: "", answer: ["", ""], correctIndexes: [] },
     ]);
+    const [gameDataJson, setGameDataJson] = useState("");
+
+    const generateGameDataJson = (data: Question[]) => {
+        const validEntries = data.filter(e => 
+            e.text && 
+            Array.isArray(e.answer) && 
+            e.answer.length > 0 &&
+            Array.isArray(e.correctIndexes)
+        );
+
+        const jsonArray = validEntries.map(entry => ({
+            Header: entry.text.trim(),
+            Options: entry.answer.map(a => a.trim()),
+            AnswerIndexes: entry.correctIndexes.map(index => index + 1) 
+        }));
+
+        return JSON.stringify(jsonArray, null, 2);
+        };
+      useEffect(() => {
+          setGameDataJson(generateGameDataJson(questions));
+        }, [questions]);
 
     const handleQuestionChange = (index: number, text: string) => {
         const update = [...questions];
         update[index].text = text;
         setQuestions(update);
-    }
+    };
+
     const handleAnswerChange = (questionIndex: number, answerIndex: number, text: string) => {
         const update = [...questions];
         update[questionIndex].answer[answerIndex] = text;
         setQuestions(update);
-    }
-    const addAnswer = (qIndex: number) =>{
+    };
+
+    const addAnswer = (qIndex: number) => {
         const update = [...questions];
         update[qIndex].answer.push("");
         setQuestions(update);
-    } 
+    };
+
     const addQuestion = () => {
-        setQuestions([...questions, {text: "", answer: ["",""]}]);
-    }
-    const deleteQuestion = (index: number) =>{
+        setQuestions([
+            ...questions,
+            { text: "", answer: ["", ""], correctIndexes: [] },
+        ]);
+    };
+
+    const deleteQuestion = (index: number) => {
         setQuestions(questions.filter((_, i) => i !== index));
-    }
+    };
+
     const duplicateQuestion = (index: number) => {
         setQuestions([
             ...questions.slice(0, index + 1),
-            {...questions[index], answer: [...questions[index].answer]},
+            {
+                ...questions[index],
+                answer: [...questions[index].answer],
+                correctIndexes: [...(questions[index].correctIndexes || [])],
+            },
             ...questions.slice(index + 1),
         ]);
-    }
-    const handleSubmit = () =>{
-        navigate("/quiz-review") 
-    }
+    };
+
+    const toggleCorrectAnswer = (qIndex: number, aIndex: number) => {
+        const update = [...questions];
+        const correct = update[qIndex].correctIndexes || [];
+        if (correct.includes(aIndex)) {
+            update[qIndex].correctIndexes = correct.filter((i) => i !== aIndex);
+        } else {
+            update[qIndex].correctIndexes = [...correct, aIndex];
+        }
+        setQuestions(update);
+    };
+
+    const handleSubmit = async () => {
+        // Construct MinigameData object
+        const minigameData: MinigameData = {
+            MinigameName: activityName,
+            TeacherId: teacherId,
+            GameDataJson: gameDataJson,
+            Duration: duration,
+            TemplateId: "TP2",
+            CourseId: courseId || "",
+            ImageFile: thumbnail || null,
+        };
+
+        const result = await createQuiz(minigameData);
+        if (result) {
+            navigate("/teacher/activities");
+        } else {
+            alert("Tạo quiz thất bại!");
+        }
+    };
 
     return (
         <>
-            <Header/>
+            <Header />
             <div className="w-[900px] mx-auto mt-25 p-6 space-y-6 bg-white border shadow rounded-md">
                 <label className="text-2xl font-bold">Activity name</label>
-                <input 
+                <input
                     className="border p-2 w-full rounded"
                     value={activityName}
                     onChange={(e) => setActivityName(e.target.value)}
-                    placeholder="Enter activity name" 
+                    placeholder="Enter activity name"
                 />
-            
-            {questions.map((q, qIndex) => (
-                <div key={qIndex} className="bg-gray-50 p-4 rounded-md border space-y-4">
-                    <div className="flex items-center gap-2">
-                        <span className="font-medium">{qIndex + 1}</span>
-                        <div className="flex-1 relative">
-                            <input 
-                                className="w-full border rounded px-3 py-2"
-                                placeholder="Question"
-                                value={q.text}
-                                onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
-                            />
-                            <div className="absolute right-2 top-2 flex gap-2">
-                                <VoiceInput onResult={(text) => handleQuestionChange(qIndex, text)} />
-                                <button className="p-1">
-                                    <ImageIcon size={18} />
-                                </button>
+
+                {/* Thumbnail Upload */}
+                <div className="flex gap-4 mt-4">
+                    <div className="flex-1">
+                        <label className="block font-medium mb-1">Upload image (optional):</label>
+                        <input
+                        type="file"
+                        className="w-full border border-gray-300 p-2 rounded"
+                        accept="image/*"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) setThumbnail(file);
+                        }}
+                        />
+                    </div>
+
+                    <div className="flex-1">
+                        <label className="block font-medium mb-1">Duration (seconds):</label>
+                        <input
+                        type="number"
+                        className="border px-2 py-1 w-32"
+                        min={10}
+                        value={duration}
+                        onChange={(e) => setDuration(Number(e.target.value))}
+                        />
+                    </div>
+                </div>
+
+                {questions.map((q, qIndex) => (
+                    <div key={qIndex} className="bg-gray-50 p-4 rounded-md border space-y-4">
+                        <div className="flex items-center gap-2">
+                            <span className="font-medium">{qIndex + 1}</span>
+                            <div className="flex-1 relative">
+                                <input
+                                    className="w-full border rounded px-3 py-2"
+                                    placeholder="Question"
+                                    value={q.text}
+                                    onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
+                                />
+                                <div className="absolute right-2 top-2 flex gap-2">
+                                    <VoiceInput onResult={(text) => handleQuestionChange(qIndex, text)} />
+                                    <button className="p-1">
+                                        <ImageIcon size={18} />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <Copy
-                            size={20}
-                            onClick={() => duplicateQuestion(qIndex)}
-                            className="cursor-pointer text-gray-600 hover:text-black"
-                        />
-                        <Trash
-                            size={20}
-                            onClick={() => deleteQuestion(qIndex)}
-                            className="cursor-pointer text-red-500"
-                        />
-                    </div>
-                    <div className="flex flex-wrap gap-2 pl-6">
-                        {q.answer.map((a, aIndex) =>(
-                            <input
-                                key={aIndex}
-                                className="border p-2 rounded w-40"
-                                value={a}
-                                onChange={(e) => handleAnswerChange(qIndex, aIndex, e.target.value)}
-                                placeholder={`Answer ${String.fromCharCode(65 + aIndex)}`}
+                            <Copy
+                                size={20}
+                                onClick={() => duplicateQuestion(qIndex)}
+                                className="cursor-pointer text-gray-600 hover:text-black"
                             />
-                        ))}
+                            <Trash
+                                size={20}
+                                onClick={() => deleteQuestion(qIndex)}
+                                className="cursor-pointer text-red-500"
+                            />
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 pl-6">
+                            {q.answer.map((a, aIndex) => (
+                                <div key={aIndex} className="relative">
+                                    <input
+                                        className={`border p-2 rounded w-40 ${q.correctIndexes?.includes(aIndex)
+                                            ? "border-green-500"
+                                            : ""
+                                            }`}
+                                        value={a}
+                                        onChange={(e) =>
+                                            handleAnswerChange(qIndex, aIndex, e.target.value)
+                                        }
+                                        placeholder={`Answer ${String.fromCharCode(65 + aIndex)}`}
+                                    />
+                                    <input
+                                        type="checkbox"
+                                        className="absolute -top-2 -right-2"
+                                        checked={q.correctIndexes?.includes(aIndex)}
+                                        onChange={() => toggleCorrectAnswer(qIndex, aIndex)}
+                                        title="Mark as correct answer"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        <button
+                            onClick={() => addAnswer(qIndex)}
+                            className="text-sm text-gray-600 pl-6 hover:underline"
+                        >
+                            + More answer
+                        </button>
                     </div>
+                ))}
+
+                <div className="flex justify-between items-center">
                     <button
-                        onClick={() => addAnswer(qIndex)}
-                        className="text-sm text-gray-600 pl-6 hover:underline"
+                        onClick={addQuestion}
+                        className="flex items-center gap-1 bg-yellow-200 text-black font-medium px-4 py-2 rounded"
                     >
-                        + More answer
+                        <span className="text-xl">+</span> Add more
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className="bg-green-400 text-white px-6 py-2 rounded text-lg hover:bg-green-500"
+                    >
+                        Finish
                     </button>
                 </div>
-            ))}
-            <div className="flex justify-between items-center">
-                <button
-                    onClick={addQuestion}
-                    className="flex items-center gap-1 bg-yellow-200 text-black font-medium px-4 py-2 rounded"
-                >
-                    <span className="text-xl">+</span> Add more
-                </button>
-                <button 
-                    onClick={handleSubmit}
-                    className="bg-green-400 text-white px-6 py-2 rounded text-lg hover:bg-green-500"
-                >
-                    Finish
-                </button>
-            </div>
             </div>
         </>
-    )
+    );
+};
 
-}
-export default Quiz
+export default Quiz;

@@ -1,17 +1,9 @@
 export type ConjunctionEntry = {
-  keyword: string;
-  meaning: string;
+  Term: string;
+  Definition: string;
 }
 
-export interface ConjunctionState {
-  activityName: string;
-  entries: ConjunctionEntry[];
-}
 
-export interface AnagramState {
-  activityName: string;
-  words: string[];
-}
 export type Words = {
   words: string[];
 }
@@ -21,6 +13,7 @@ export type Answer = string;
 export type Question = {
   text: string;
   answer: Answer[];
+  correctIndexes: number[];
 }
 
 export type RandomCardItem = {
@@ -64,9 +57,51 @@ export type Conjunction = {
   MinigameName: string,
   ImageFile: File | null,
   TeacherId: string,
-  GameDataJson: string,
   Duration: number,
   TemplateId: string,
   CourseId: string,
-  // GameData: ConjunctionEntry[];
+  GameData: ConjunctionEntry[];
+}
+export type Anagram = {
+  MinigameName: string;
+  ImageFile: File | null;
+  GameDataJson: string; 
+  TeacherId: string;
+  Duration: number;
+  TemplateId: string;
+  CourseId: string;
+}
+export type MinigameData = {
+  MinigameName: string;
+  ImageFile: File | null;
+  GameDataJson: string; 
+  TeacherId: string;
+  Duration: number;
+  TemplateId: string;
+  CourseId: string;
+}
+export type UpdateConjunctionData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile?: File;
+  ImageUrl?: string;
+  Duration: number;
+  TemplateId: string;
+  TeacherId: string;
+  GameData: ConjunctionEntry[];
+}
+export type UpdateAnagramData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile?: File;
+  Duration: number;
+  TemplateId: string;
+  TeacherId: string;
+  GameData: Words[]};
+export type FetchTeacherMinigamesParams = {
+  teacherId: string;
+  minigameName?: string;
+  templateId?: string;
+  pageNum?: number;
+  pageSize?: number;
 }

@@ -28,6 +28,13 @@ import RandomCardTemplate from "./Template/RandomCard";
 import SpellingTemplate from "./Template/Spelling";
 import FlashcardDesigner from "./Template/Flashcard";
 
+import CompletionTemplate from "./Template/Basic/Conpletion";
+import PairingScreen from "./Template/Basic/Pairing";
+import RestorationScreen from "./Template/Basic/Restoration";
+import FindWordsScreen from "./Template/Basic/FindWords";
+import TrueFalseComponent from "./Template/Basic/TrueFalse";
+import CrosswordEditor from "./Template/Basic/Crossword";
+
 type TemplateComponentProps = {
   courseId: string;
 };
@@ -39,6 +46,13 @@ const templateComponents: { [key: string]: React.FC<TemplateComponentProps> } = 
     "Random Card": RandomCardTemplate,
     Spelling: SpellingTemplate,
     Flashcard: FlashcardDesigner,
+
+    Completion: CompletionTemplate,
+    Pairing: PairingScreen,
+    Restoration: RestorationScreen,
+    "Find Word": FindWordsScreen,
+    "True/False": TrueFalseComponent,
+    Crossword: CrosswordEditor,
 }
 interface TemplatePageProps {
     courseId?: string;

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/store";
 import KeywordDragDrop from "../../components/Anagram/DragDrop";
 import Header from "../../components/HomePage/Header";
+import { fetchPlayMinigames } from "../../services/authService";
+import { useParams } from "react-router-dom";
+import EditAnagram from "../Teacher/Template/EditAnagram";
 
 const shuffleArray = (array: string[]) => {
   const result = [...array];
@@ -13,33 +14,76 @@ const shuffleArray = (array: string[]) => {
   return result;
 };
 
+const parseXmlWords = (xml: string): string[] => {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xml, "text/xml");
+  const wordElements = xmlDoc.getElementsByTagName("word");
+  const words: string[] = [];
+  for (let i = 0; i < wordElements.length; i++) {
+    words.push(wordElements[i].textContent || "");
+  }
+  return words;
+};
+
 const AnagramReview: React.FC = () => {
-  const words = useSelector((state: RootState) => state.anagram.words);
+  const { minigameId } = useParams<{ minigameId: string }>();
+  const [words, setWords] = useState<string[]>([]);
+  const [duration, setDuration] = useState(60);
+  const [timer, setTimer] = useState(60);
+  const [isPaused, setIsPaused] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [shuffledLetters, setShuffledLetters] = useState<string[]>([]);
   const [droppedLetters, setDroppedLetters] = useState<{ [index: number]: string | null }>({});
+  const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
+  const [finished, setFinished] = useState(false);
+  const [resetCounter, setResetCounter] = useState(0);
+
+  useEffect(() => {
+    if (minigameId) {
+      fetchPlayMinigames(minigameId).then((res) => {
+        const parsedWords = parseXmlWords(res.dataText);
+        setWords(parsedWords);
+        setDuration(res.duration || 60);
+        setTimer(res.duration || 60);
+      });
+    }
+  }, [minigameId]);
 
   useEffect(() => {
     if (words.length > 0 && currentIndex < words.length) {
       const currentWord = words[currentIndex];
       const shuffled = shuffleArray(currentWord.split(""));
       setShuffledLetters(shuffled);
-      // Khởi tạo droppedLetters với các giá trị null
-      setDroppedLetters(
-        Object.fromEntries(
-          Array(currentWord.length)
-            .fill(null)
-            .map((_, idx) => [idx, null])
-        )
-      );
-    } else {
-      setShuffledLetters([]);
-      setDroppedLetters({});
+      setDroppedLetters(Object.fromEntries(Array(currentWord.length).fill(null).map((_, idx) => [idx, null])));
+      setFeedback(null);
     }
   }, [words, currentIndex]);
 
+  useEffect(() => {
+    if (!isPaused && timer > 0 && !finished) {
+      const interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isPaused, timer, finished]);
+
   const handleDrop = (targetIndex: number, keyword: string) => {
-    setDroppedLetters((prev) => ({ ...prev, [targetIndex]: keyword }));
+    const updated = { ...droppedLetters, [targetIndex]: keyword };
+    setDroppedLetters(updated);
+
+    const assembled = Object.values(updated).join("");
+    const currentWord = words[currentIndex];
+
+    if (assembled.length === currentWord.length) {
+      if (assembled === currentWord) {
+        setFeedback("correct");
+      } else {
+        setFeedback("incorrect");
+      }
+    } else {
+      setFeedback(null);
+    }
   };
 
   const handleNext = () => {
@@ -54,17 +98,51 @@ const AnagramReview: React.FC = () => {
     }
   };
 
+  const handleFinish = () => {
+    setFinished(true);
+  };
+
+  const handleRetry = () => {
+    setDroppedLetters({});
+    setCurrentIndex(0);
+    setFinished(false);
+    setTimer(duration);
+    setIsPaused(false);
+    setResetCounter(prev => prev + 1);
+    setFeedback(null);
+  };
+
+  const togglePause = () => {
+    setIsPaused((prev) => !prev);
+  };
+
   if (words.length === 0) {
     return <div className="text-center mt-10 text-gray-600">Không tìm thấy từ cho hoạt động này.</div>;
   }
 
-  const currentWord = words[currentIndex]
+  const currentWord = words[currentIndex];
 
   return (
     <>
       <Header />
       <div className="border rounded-lg p-6 w-full max-w-3xl mx-auto mt-20 bg-pink-50">
-        {/* Hiển thị chữ cái xáo trộn */}
+        <div className="flex justify-between mb-4 text-lg font-medium">
+          <div>⏰ Thời gian còn lại: {timer}s</div>
+          <button onClick={togglePause} className="bg-gray-400 px-3 py-1 rounded text-white">
+            {isPaused ? "Resume" : "Pause"}
+          </button>
+        </div>
+        <EditAnagram
+          initialActivityName="Anagram Review"
+          initialDuration={duration}
+          initialWords={words}
+          onSave={(data) => {
+            setWords(data.words);
+            setDuration(data.duration);
+            setTimer(data.duration);
+          }}
+          />
+
         <div className="text-center text-2xl mb-6 font-semibold tracking-wide">
           {currentWord.split("").map((letter, idx) => (
             <span key={idx} className="inline-block mx-2 font-mono">
@@ -73,9 +151,8 @@ const AnagramReview: React.FC = () => {
           ))}
         </div>
 
-        {/* Các ô trống để thả chữ cái */}
         <div className="flex justify-center gap-2 mb-6">
-          {words[currentIndex].split("").map((_, idx) => (
+          {currentWord.split("").map((_, idx) => (
             <div
               key={idx}
               className="w-10 h-10 border border-black rounded flex items-center justify-center text-xl bg-white"
@@ -85,16 +162,23 @@ const AnagramReview: React.FC = () => {
           ))}
         </div>
 
-        {/* Component kéo thả */}
         <KeywordDragDrop
           keywords={shuffledLetters}
-          targets={words[currentIndex].split("")}
+          targets={currentWord.split("")}
           droppedKeywords={droppedLetters}
           onDrop={handleDrop}
           direction="horizontal"
+          paused={isPaused}              // boolean: true khi nhấn "Finish", false khi bắt đầu lại
+          resetTrigger={resetCounter}
         />
 
-        {/* Nút điều hướng */}
+        {feedback === "correct" && (
+          <div className="text-green-600 text-center text-lg font-semibold mt-4">✅ Chính xác!</div>
+        )}
+        {feedback === "incorrect" && (
+          <div className="text-red-600 text-center text-lg font-semibold mt-4">❌ Sai rồi!</div>
+        )}
+
         <div className="flex justify-center items-center gap-4 mt-8 text-lg font-medium">
           <button
             onClick={handlePrev}
@@ -113,6 +197,18 @@ const AnagramReview: React.FC = () => {
           >
             →
           </button>
+        </div>
+
+        <div className="flex justify-center gap-6 mt-6">
+          {!finished ? (
+            <button onClick={handleFinish} className="bg-blue-500 text-white px-4 py-2 rounded">
+              Finish
+            </button>
+          ) : (
+            <button onClick={handleRetry} className="bg-yellow-500 text-white px-4 py-2 rounded">
+              Try Again
+            </button>
+          )}
         </div>
       </div>
     </>
