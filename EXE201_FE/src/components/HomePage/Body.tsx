@@ -9,11 +9,11 @@ import Conjunction from "../../assets/TemplateLogo/Conjunction.jpg";
 import Crossword from "../../assets/TemplateLogo/Crossword.jpg";
 import DragDrop from "../../assets/TemplateLogo/DragDrop.jpg";
 
-import FlashCard from "../../assets/TemplateLogo/Flashcard.jpg";
-import Reading from "../../assets/TemplateLogo/Reading.jpg";
-import SongPuzzle from "../../assets/TemplateLogo/SongPuzzle.jpg";
-import Spelling from "../../assets/TemplateLogo/Spelling.jpg";
-import Quiz from "../../assets/TemplateLogo/Quiz.jpg";
+// import FlashCard from "../../assets/TemplateLogo/Flashcard.jpg";
+// import Reading from "../../assets/TemplateLogo/Reading.jpg";
+// import SongPuzzle from "../../assets/TemplateLogo/SongPuzzle.jpg";
+// import Spelling from "../../assets/TemplateLogo/Spelling.jpg";
+// import Quiz from "../../assets/TemplateLogo/Quiz.jpg";
 // import BodyPic1 from "../../assets/BodyPic1.jpg";
 import BodyPic2 from "../../assets/BodyPic2.jpg";
 
@@ -35,13 +35,13 @@ const Body: React.FC = () => {
     { id: 4, title: "Template 4", views: 100, skill: "Crossword", rating: 4.0, image: Crossword },
     { id: 5, title: "Template 5", views: 300, skill: "Drag&Drop", rating: 4.7, image: DragDrop },
   ];
-  const courses = [
-    { id: 1, title: "Course 1", views: 320, skill: "Flashcard", rating: 4.0, image: FlashCard },
-    { id: 2, title: "Course 2", views: 250, skill: "Reading", rating: 4.3, image: Reading },
-    { id: 3, title: "Course 3", views: 180, skill: "SongPuzzle", rating: 4.1, image: SongPuzzle },
-    { id: 4, title: "Course 4", views: 400, skill: "Spelling", rating: 4.6, image: Spelling },
-    { id: 5, title: "Course 5", views: 210, skill: "Quiz", rating: 4.2, image: Quiz },
-  ];
+  // const courses = [
+  //   { id: 1, title: "Course 1", views: 320, skill: "Flashcard", rating: 4.0, image: FlashCard },
+  //   { id: 2, title: "Course 2", views: 250, skill: "Reading", rating: 4.3, image: Reading },
+  //   { id: 3, title: "Course 3", views: 180, skill: "SongPuzzle", rating: 4.1, image: SongPuzzle },
+  //   { id: 4, title: "Course 4", views: 400, skill: "Spelling", rating: 4.6, image: Spelling },
+  //   { id: 5, title: "Course 5", views: 210, skill: "Quiz", rating: 4.2, image: Quiz },
+  // ];
   const testimonials = [
     {
       name: "Tri Nguyen",
@@ -62,9 +62,9 @@ const Body: React.FC = () => {
   
   
   const [startIndex, setStartIndex] = useState(0);
-  const [courseIndex, setCourseIndex] = useState(0);
+  // const [courseIndex, setCourseIndex] = useState(0);
   const visibleTemplates = templates.slice(startIndex, startIndex + 3);
-  const visibleCourses = courses.slice(courseIndex, courseIndex + 3);
+  // const visibleCourses = courses.slice(courseIndex, courseIndex + 3);
     return(
         <>
         <section className="w-full bg-white py-10 px-4 pt-20 flex flex-col lg:flex-row items-center justify-between gap-8">
@@ -198,10 +198,9 @@ const Body: React.FC = () => {
     </div>
     </FadeInOnView>
 
-    <FadeInOnView delay={0.4}>
+    {/* <FadeInOnView delay={0.4}>
       <div className="text-xl font-semibold border-b mb-4 mt-10">Explore trending courses</div>
       <div className="relative flex items-center justify-center">
-            {/* Left Arrow */}
         <button
           className="absolute left-0 z-10 bg-white border rounded-full p-2 shadow hover:bg-gray-100 disabled:opacity-30"
           onClick={() => setCourseIndex((prev) => Math.max(prev - 1, 0))}
@@ -234,7 +233,6 @@ const Body: React.FC = () => {
           </div>
         ))}
       </div>
-          {/* Right Arrow */}
         <button
           className="absolute right-0 z-10 bg-white border rounded-full p-2 shadow hover:bg-gray-100 disabled:opacity-30"
           onClick={() => setCourseIndex((prev) => Math.min(prev + 1, courses.length - 3))}
@@ -243,7 +241,7 @@ const Body: React.FC = () => {
           <FaChevronRight />
         </button>
       </div>
-      </FadeInOnView>
+      </FadeInOnView> */}
     </section>
 
     {/* AI PROMO SECTION */}

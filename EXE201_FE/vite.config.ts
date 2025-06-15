@@ -8,4 +8,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      '/api-proxy': {
+        target: 'https://hybridelearn-acdwdxa80dmb2fdgm.southeastasia-01.azurewebsites.net',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api-proxy/, ''),
+      }
+    }
+  }
 })

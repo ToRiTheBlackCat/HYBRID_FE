@@ -7,6 +7,7 @@ import { fetchPlayMinigames } from "../../services/authService";
 import EditConjunction from "../Teacher/Template/EditConjunction";
 import { baseImageUrl } from "../../config/base";
 import { toast } from "react-toastify";
+import Conjunction from "../Teacher/RawMinigameInfo/Conjunction";
 
 const ConjunctionReview: React.FC = () => {
   const { minigameId } = useParams<{ minigameId: string }>();
@@ -17,9 +18,10 @@ const ConjunctionReview: React.FC = () => {
   const [dropped, setDropped] = useState<{ [index: number]: string | null }>({});
   const [duration, setDuration] = useState<number>(0);
   const [isTimeUp, setIsTimeUp] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(true);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const handleDrop = (targetIndex: number, keyword: string) => {
     if (!isTimeUp && !isPaused) {
@@ -122,6 +124,9 @@ const ConjunctionReview: React.FC = () => {
   return (
     <>
       <Header />
+      {!isPlaying ? (
+        <Conjunction onStart={() => setIsPlaying(true)}/>
+      ):
       <div className="max-w-3xl mx-auto p-6 space-y-4 mt-20 border rounded-lg shadow-lg bg-white">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Activity Review</h1>
@@ -213,6 +218,7 @@ const ConjunctionReview: React.FC = () => {
           </div>
         )}
       </div>
+}
     </>
   );
 };

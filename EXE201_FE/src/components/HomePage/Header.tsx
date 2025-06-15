@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import Logo from "../../assets/whitecat_logo.jpg"
-import { FiMenu, FiX  } from 'react-icons/fi';
+import Logo from "../../assets/whitecat_logo.jpg";
+import { FiMenu, FiX } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import Cookies from 'js-cookie';
@@ -10,7 +10,6 @@ import { logout } from '../../store/userSlice';
 import DropdownMenu from "./DropdownMenu";
 import { fetchUserProfile } from "../../services/authService";
 import { Profile } from '../../types';
-// import "../../tailwind.css";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -20,25 +19,24 @@ const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState<Profile>();
-  
-  const user = useSelector((state: RootState) => state.user)
-  const isAuthenticated = !!user.userId;
 
-  const menuRef = useRef<HTMLDivElement>(null)
+  const user = useSelector((state: RootState) => state.user);
+  const isAuthenticated = !!user.userId;
   const roleId = user.roleId;
-  
+
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const getFullName = async () => {
-      const isTeacher = user.roleId === "3";
-      try{
+      const isTeacher = user.roleId === "1";
+      try {
         const data = await fetchUserProfile(user.userId, isTeacher);
         setUserData(data ?? undefined);
-      }catch (error){
+      } catch (error) {
         console.log(error);
       }
-    }
-    getFullName()
+    };
+    getFullName();
 
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -46,14 +44,14 @@ const Header: React.FC = () => {
   }, [user.roleId, user.userId]);
 
   useEffect(() => {
-    const handleClickOutside = (e : MouseEvent) => {
-      if(menuRef.current && !menuRef.current.contains(e.target as Node)){
-        setIsMobileMenuOpen(false)
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMobileMenuOpen(false);
       }
     };
-    if(isMobileMenuOpen){
+    if (isMobileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-    } else{
+    } else {
       document.removeEventListener('mousedown', handleClickOutside);
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -61,9 +59,17 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     Cookies.remove('user');
-    dispatch(logout())
+    dispatch(logout());
     navigate('/');
     setIsMobileMenuOpen(false);
+  };
+
+  const handleHomeClick = () => {
+    if (roleId === "2") {
+      navigate('/student');
+    } else {
+      navigate('/');
+    }
   };
 
   const isActiveLink = (path: string) => location.pathname === path;
@@ -76,7 +82,6 @@ const Header: React.FC = () => {
   ];
 
   return (
-    <>
     <motion.header
       initial={{ y: -80 }}
       animate={{ y: 0 }}
@@ -87,31 +92,41 @@ const Header: React.FC = () => {
     >
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <button onClick={handleHomeClick} className="flex items-center gap-2">
           <img src={Logo} alt="Logo" className="h-10 w-auto" />
-        </Link>
+        </button>
 
         {/* Desktop Menu */}
         <div className="hidden lg:flex mr-20 items-center gap-4">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`text-sm px-4 py-2 rounded-full font-medium transition ${
-                isActiveLink(item.path)
-                  ? 'bg-blue-600 text-white shadow'
-                  : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {menuItems.map((item) => {
+            const isHome = item.path === '/';
+            const handleClick = () => {
+              if (isHome && roleId === "2") {
+                navigate('/student');
+              } else {
+                navigate(item.path);
+              }
+            };
+            return (
+              <button
+                key={item.path}
+                onClick={handleClick}
+                className={`text-sm px-4 py-2 rounded-full font-medium transition ${
+                  isActiveLink(item.path)
+                    ? 'bg-blue-600 text-white shadow'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Auth Buttons */}
         <div className="hidden lg:flex items-center gap-4">
           {isAuthenticated ? (
-            <DropdownMenu userName={userData?.fullName} roleId={roleId}/>
+            <DropdownMenu userName={userData?.fullName} roleId={roleId} />
           ) : (
             <>
               <Link to="/login" className="text-sm px-4 py-2 bg-blue-600 rounded-full text-white hover:bg-green-700">
@@ -147,20 +162,30 @@ const Header: React.FC = () => {
             className="lg:hidden bg-white shadow-md"
           >
             <div className="flex flex-col px-4 pb-4 space-y-2">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-sm px-4 py-2 rounded-md ${
-                    isActiveLink(item.path)
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                const isHome = item.path === '/';
+                const handleClick = () => {
+                  setIsMobileMenuOpen(false);
+                  if (isHome && roleId === "2") {
+                    navigate('/student');
+                  } else {
+                    navigate(item.path);
+                  }
+                };
+                return (
+                  <button
+                    key={item.path}
+                    onClick={handleClick}
+                    className={`text-sm px-4 py-2 rounded-md ${
+                      isActiveLink(item.path)
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
 
               {isAuthenticated ? (
                 <>
@@ -201,7 +226,6 @@ const Header: React.FC = () => {
         )}
       </AnimatePresence>
     </motion.header>
-    </>
   );
 };
 

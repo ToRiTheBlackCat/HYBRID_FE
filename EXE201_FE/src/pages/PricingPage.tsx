@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import Logo from "../assets/Logo.jpg";
+import Logo from "../assets/Logo2.jpg";
 import Header from '../components/HomePage/Header';
 import { fetchStudentTier, fetchTeacherTier } from '../services/userService';
 import { RootState } from '../store/store';
@@ -18,7 +18,6 @@ const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   const roleName = useSelector((state: RootState) => state.user.roleName); // Lấy từ Redux
   const [tiers, setTiers] = useState<Tier[]>([]);
-  console.log('Role Name:', roleName); // Kiểm tra giá trị roleName
 
   useEffect(() => {
     const fetchTiers = async () => {
@@ -68,7 +67,7 @@ const PricingPage: React.FC = () => {
                     ))}
                 </div>
                 <button className="mt-4 text-blue-700 border border-blue-700 px-3 py-1 rounded hover:bg-blue-100">
-                  See detail
+                  Upgrade
                 </button>
               </div>
             ))}

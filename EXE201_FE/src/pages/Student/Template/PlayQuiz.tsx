@@ -1,10 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { fetchPlayMinigames } from "../../services/authService";
+import { fetchPlayMinigames } from "../.././../services/authService";
 import { useParams } from "react-router-dom";
-import Header from "../../components/HomePage/Header";
-import EditQuiz from "../Teacher/Template/EditQuiz";
-import { baseImageUrl } from "../../config/base";
-import Quiz from "../Teacher/RawMinigameInfo/Quiz";
+import Header from "../../../components/HomePage/Header";
 
 interface ParsedQuestion {
   text: string;
@@ -12,34 +9,23 @@ interface ParsedQuestion {
   correctIndex: number;
 }
 
-const QuizReview: React.FC = () => {
-  const { minigameId } = useParams<{ minigameId: string }>();
-  const [questions, setQuestions] = useState<ParsedQuestion[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedIndexes, setSelectedIndexes] = useState<(number | null)[]>([]);
-  const [showResult, setShowResult] = useState(false);
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(0); // Khởi tạo bằng 0, sẽ được cập nhật trong loadData
-  const [paused, setPaused] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [activityName, setActivityName] = useState("");
-  const [duration, setDuration] = useState(60);
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+const PlayQuiz : React.FC = () =>{
+    const { minigameId } = useParams<{ minigameId: string }>();
+    const [questions, setQuestions] = useState<ParsedQuestion[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [selectedIndexes, setSelectedIndexes] = useState<(number | null)[]>([]);
+    const [showResult, setShowResult] = useState(false);
+    const [score, setScore] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(0); // Khởi tạo bằng 0, sẽ được cập nhật trong loadData
+    const [paused, setPaused] = useState(false);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const [duration, setDuration] = useState(60);
 
-  const normalizeUrl = (base: string, path: string): string => {
-    return `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
-  };
 
   const loadData = async () => {
     try {
       const res = await fetchPlayMinigames(minigameId!);
       const parsed = parseXMLData(res.dataText);
-      const thumbnailUrl = res.thumbnailImage
-        ? normalizeUrl(baseImageUrl, res.thumbnailImage)
-        : null;
-      setActivityName(res.minigameName);
-      setThumbnailUrl(thumbnailUrl);
       setDuration(res.duration);
       setTimeLeft(res.duration); // Đồng bộ timeLeft với duration
       setQuestions(parsed);
@@ -122,11 +108,7 @@ const QuizReview: React.FC = () => {
 
   return (
     <>
-    <Header />
-    {!isPlaying?(
-      <Quiz onStart={() => setIsPlaying(true)}/>
-    ):
-      
+      <Header />
       <div className="w-[900px] mx-auto mt-25 p-6 border rounded-md shadow-md bg-white">
         <div className="flex justify-between mb-4">
           <div className="text-lg font-medium">⏱ Time left: {timeLeft}s</div>
@@ -137,29 +119,6 @@ const QuizReview: React.FC = () => {
             {paused ? "Resume" : "Pause"}
           </button>
         </div>
-        <EditQuiz
-          initialActivityName={activityName}
-          initialQuestions={questions.map((q) => ({
-            question: q.text,
-            options: q.answer,
-            correctAnswerIndexes: [q.correctIndex + 1], // Chuyển sang 1-based
-          }))}
-          initialDuration={duration}
-          initialThumbnailUrl={thumbnailUrl}
-          onSave={(data) => {
-            setActivityName(data.activityName);
-            setDuration(data.duration);
-            setThumbnailUrl(data.thumbnail ? URL.createObjectURL(data.thumbnail) : thumbnailUrl);
-            setQuestions(
-              data.questions.map((q) => ({
-                text: q.question,
-                answer: q.options,
-                correctIndex: q.correctAnswerIndexes[0] - 1, // Chuyển về 0-based
-              }))
-            );
-          }}
-          onRefresh={loadData} // Truyền hàm loadData
-        />
 
         <div className="bg-gray-300 rounded-2xl h-24 flex items-center justify-center mb-6 text-xl font-semibold px-4 text-center">
           {currentQuestion.text}
@@ -234,9 +193,7 @@ const QuizReview: React.FC = () => {
           </div>
         </div>
       </div>
-}
     </>
   );
-};
-
-export default QuizReview;
+}
+export default PlayQuiz

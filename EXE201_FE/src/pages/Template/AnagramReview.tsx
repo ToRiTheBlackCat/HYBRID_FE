@@ -4,6 +4,8 @@ import Header from "../../components/HomePage/Header";
 import { fetchPlayMinigames } from "../../services/authService";
 import { useParams } from "react-router-dom";
 import EditAnagram from "../Teacher/Template/EditAnagram";
+import { baseImageUrl } from "../../config/base";
+import Anagram from "../Teacher/RawMinigameInfo/Anagram";
 
 const shuffleArray = (array: string[]) => {
   const result = [...array];
@@ -26,7 +28,7 @@ const parseXmlWords = (xml: string): string[] => {
 };
 
 const AnagramReview: React.FC = () => {
-  const { minigameId } = useParams<{ minigameId: string }>();
+  const { minigameId } = useParams();
   const [words, setWords] = useState<string[]>([]);
   const [duration, setDuration] = useState(60);
   const [timer, setTimer] = useState(60);
@@ -37,11 +39,21 @@ const AnagramReview: React.FC = () => {
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
   const [finished, setFinished] = useState(false);
   const [resetCounter, setResetCounter] = useState(0);
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
+  const [activityName, setActivityName] = useState("");
+  // const [teacherName, setTeacherName] = useState("");
+  const [isPlaying, setIsPlaying] = useState(false); // 👈 NEW STATE
+
+  const normalizeUrl = (base: string, path: string): string =>
+    `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
 
   useEffect(() => {
     if (minigameId) {
       fetchPlayMinigames(minigameId).then((res) => {
         const parsedWords = parseXmlWords(res.dataText);
+        const thumbnailUrl = res.thumbnailImage ? normalizeUrl(baseImageUrl, res.thumbnailImage) : null;
+        setActivityName(res.minigameName);
+        setThumbnail(thumbnailUrl);
         setWords(parsedWords);
         setDuration(res.duration || 60);
         setTimer(res.duration || 60);
@@ -60,13 +72,13 @@ const AnagramReview: React.FC = () => {
   }, [words, currentIndex]);
 
   useEffect(() => {
-    if (!isPaused && timer > 0 && !finished) {
+    if (!isPaused && timer > 0 && !finished && isPlaying) {
       const interval = setInterval(() => {
         setTimer((prev) => prev - 1);
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [isPaused, timer, finished]);
+  }, [isPaused, timer, finished, isPlaying]);
 
   const handleDrop = (targetIndex: number, keyword: string) => {
     const updated = { ...droppedLetters, [targetIndex]: keyword };
@@ -76,31 +88,21 @@ const AnagramReview: React.FC = () => {
     const currentWord = words[currentIndex];
 
     if (assembled.length === currentWord.length) {
-      if (assembled === currentWord) {
-        setFeedback("correct");
-      } else {
-        setFeedback("incorrect");
-      }
+      setFeedback(assembled === currentWord ? "correct" : "incorrect");
     } else {
       setFeedback(null);
     }
   };
 
   const handleNext = () => {
-    if (currentIndex < words.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    }
+    if (currentIndex < words.length - 1) setCurrentIndex((prev) => prev + 1);
   };
 
   const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
+    if (currentIndex > 0) setCurrentIndex((prev) => prev - 1);
   };
 
-  const handleFinish = () => {
-    setFinished(true);
-  };
+  const handleFinish = () => setFinished(true);
 
   const handleRetry = () => {
     setDroppedLetters({});
@@ -108,23 +110,48 @@ const AnagramReview: React.FC = () => {
     setFinished(false);
     setTimer(duration);
     setIsPaused(false);
-    setResetCounter(prev => prev + 1);
+    setResetCounter((prev) => prev + 1);
     setFeedback(null);
   };
 
-  const togglePause = () => {
-    setIsPaused((prev) => !prev);
-  };
+  const togglePause = () => setIsPaused((prev) => !prev);
+
+  const currentWord = words[currentIndex];
+
+  // if (!isPlaying) {
+  //   return (
+  //     <>
+  //       <Header />
+  //       <div className="max-w-2xl mx-auto mt-20 border rounded-lg bg-white p-6 shadow">
+  //         <div className="flex gap-6">
+  //           <img src={thumbnail || "/default-thumbnail.png"} alt="thumbnail" className="w-40 h-40 rounded-lg object-cover" />
+  //           <div className="flex flex-col justify-center gap-2">
+  //             <h1 className="text-2xl font-bold">{activityName}</h1>
+  //             <p className="text-gray-600">👨‍🏫 {teacherName}</p>
+  //             <p className="text-gray-600">⏱ Duration: {duration}s</p>
+  //             <button
+  //               className="mt-4 bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+  //               onClick={() => setIsPlaying(true)}
+  //             >
+  //               ▶️ Play Now
+  //             </button>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </>
+  //   );
+  // }
 
   if (words.length === 0) {
     return <div className="text-center mt-10 text-gray-600">Không tìm thấy từ cho hoạt động này.</div>;
   }
 
-  const currentWord = words[currentIndex];
-
   return (
     <>
       <Header />
+      {!isPlaying ? (
+        <Anagram onStart={() => setIsPlaying(true)}/>
+      ):
       <div className="border rounded-lg p-6 w-full max-w-3xl mx-auto mt-20 bg-pink-50">
         <div className="flex justify-between mb-4 text-lg font-medium">
           <div>⏰ Thời gian còn lại: {timer}s</div>
@@ -132,16 +159,17 @@ const AnagramReview: React.FC = () => {
             {isPaused ? "Resume" : "Pause"}
           </button>
         </div>
+
         <EditAnagram
-          initialActivityName="Anagram Review"
+          initialActivityName={activityName}
           initialDuration={duration}
           initialWords={words}
+          initialThumbnailUrl={thumbnail}
           onSave={(data) => {
             setWords(data.words);
             setDuration(data.duration);
-            setTimer(data.duration);
           }}
-          />
+        />
 
         <div className="text-center text-2xl mb-6 font-semibold tracking-wide">
           {currentWord.split("").map((letter, idx) => (
@@ -168,7 +196,7 @@ const AnagramReview: React.FC = () => {
           droppedKeywords={droppedLetters}
           onDrop={handleDrop}
           direction="horizontal"
-          paused={isPaused}              // boolean: true khi nhấn "Finish", false khi bắt đầu lại
+          paused={isPaused}
           resetTrigger={resetCounter}
         />
 
@@ -211,6 +239,7 @@ const AnagramReview: React.FC = () => {
           )}
         </div>
       </div>
+}
     </>
   );
 };

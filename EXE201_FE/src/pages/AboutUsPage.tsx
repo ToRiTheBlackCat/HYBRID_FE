@@ -10,6 +10,7 @@ import ThanhHang from "../assets/TeamMembers/ThanhHang.jpg";
 import Dat from "../assets/TeamMembers/Dat.jpg";
 import Tuan from "../assets/TeamMembers/Tuan.jpg";
 import Tri from "../assets/TeamMembers/Tri.jpg";
+import Thang from "../assets/TeamMembers/Thang.jpg";
 
 const FeatureSection = ({ title, description, imgSrc, index }: { 
     title: string; 
@@ -24,7 +25,7 @@ const FeatureSection = ({ title, description, imgSrc, index }: {
         {name: "Võ Tiến Đạt", role: "Data Scientist", imgSrc: Dat},
         {name: "Châu Anh Tuấn", role: "Software Engineer", imgSrc: Tuan},
         {name: "Nguyễn Huỳnh Minh Trí", role: "Tech Lead", imgSrc: Tri},
-        {name: "Tạ Đức Thắng", role: "Software Engineer", imgSrc: "https://randomuser.me/api/portraits"},
+        {name: "Tạ Đức Thắng", role: "Software Engineer", imgSrc: Thang},
     ]
     return (
         <>
@@ -166,7 +167,7 @@ const AboutUsPage: React.FC = () => {
         <div className="relative overflow-hidden bg-gray-900 pt-16 pb-32 mt-6">
           <div className="text-center px-4 sm:px-6 mb-5">
             <h1 className="text-3xl sm:text-5xl font-extrabold text-white">
-              <AnimatedText text="About Future Aim & Hybrid" />
+              <AnimatedText text="About Hybrid" />
             </h1>
             <p className="mt-4 text-base sm:text-lg text-gray-300 max-w-2xl mx-auto">
               <AnimatedText text="Hybrid - Study and Teach At Once." />

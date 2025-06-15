@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Course } from "../types/index";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
+import { baseImageUrl } from "../config/base";
 
 
 const CoursePage: React.FC = () => {
@@ -19,7 +20,6 @@ const CoursePage: React.FC = () => {
   const roleId = useSelector((state: RootState) => state.user.roleId);
 
   const pageSize = 3;
-  const baseImageUrl = "https://hybridelearn-acdwdxa8dmh2fdgm.southeastasia-01.azurewebsites.net/images/";
 
   const extractThumbnail = (dataText?: string): string => {
     if (!dataText) {

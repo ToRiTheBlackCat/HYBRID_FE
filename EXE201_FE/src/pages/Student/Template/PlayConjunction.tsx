@@ -28,6 +28,7 @@ const PlayConjunction: React.FC = () => {
 
     try {
       const result = await fetchPlayMinigames(minigameId);
+      console.log("Result", result);
       setActivityName(result.minigameName || "");
       setDuration(result.duration || 0);
 

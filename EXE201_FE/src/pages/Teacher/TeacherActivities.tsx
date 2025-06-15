@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { fetchTeacherMinigames } from "../../services/authService";
+import { fetchTeacherMinigames, deleteMinigame } from "../../services/authService";
 import { Minigame } from "../../types";
 import { FaLock } from "react-icons/fa";
 import Header from "../../components/HomePage/Header";
@@ -18,25 +18,25 @@ const TeacherActivities: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("");
-
+  const [isRecycleBinMode, setIsRecycleBinMode] = useState(false); // Track recycle bin mode
+  const [selectedMinigameId, setSelectedMinigameId] = useState<string | null>(null); // Track selected minigame
 
   const navigate = useNavigate();
   const templates = [
-  { label: "All Templates", value: "" },
-  { label: "Conjunction", value: "TP1" },
-  { label: "Quiz", value: "TP2" },
-  { label: "Anagram", value: "TP3" },
-  { label: "Random Card", value: "TP4" },
-  { label: "Spelling", value: "TP5" },
-  { label: "Flash Card", value: "TP6" },
-  { label: "Completion", value: "TP7" },
-  { label: "Pairing", value: "TP8" },
-  { label: "Restoration", value: "TP9" },
-  { label: "Find Word", value: "TP10" },
-  { label: "True/False", value: "TP11" },
-  { label: "Crossword", value: "TP12" },
-];
-
+    { label: "All Templates", value: "" },
+    { label: "Conjunction", value: "TP1" },
+    { label: "Quiz", value: "TP2" },
+    { label: "Anagram", value: "TP3" },
+    { label: "Random Card", value: "TP4" },
+    { label: "Spelling", value: "TP5" },
+    { label: "Flash Card", value: "TP6" },
+    { label: "Completion", value: "TP7" },
+    { label: "Pairing", value: "TP8" },
+    { label: "Restoration", value: "TP9" },
+    { label: "Find Word", value: "TP10" },
+    { label: "True/False", value: "TP11" },
+    { label: "Crossword", value: "TP12" },
+  ];
 
   useEffect(() => {
     const loadMinigames = async () => {
@@ -50,10 +50,11 @@ const TeacherActivities: React.FC = () => {
           pageNum,
           pageSize: PAGE_SIZE,
         });
+        console.log("Fetched minigames:", result);
 
         if (result && Array.isArray(result.minigames)) {
           setMinigames(result.minigames);
-          setTotalPages(result.totalPages ?? 1); // Lấy từ API
+          setTotalPages(result.totalPages ?? 1);
         } else {
           setMinigames([]);
           setTotalPages(1);
@@ -67,24 +68,33 @@ const TeacherActivities: React.FC = () => {
   }, [teacherId, search, pageNum, selectedTemplate]);
 
   const handleMinigameClick = (minigameId: string, templateId: string) => {
-    switch (templateId) {
-      case "TP1":
-        navigate(`/teacher/conjunction-review/${minigameId}`);
-        break;
-      case "TP2":
-        navigate(`/teacher/quiz-review/${minigameId}`);
-        break;
-      case "TP3":
-        navigate(`/teacher/anagram-review/${minigameId}`);
-        break;
-      default:
-        break;
+    if (isRecycleBinMode) {
+      // In recycle bin mode, select/deselect minigame
+      setSelectedMinigameId(minigameId === selectedMinigameId ? null : minigameId);
+    } else {
+      // Normal mode, navigate to review page
+      switch (templateId) {
+        case "TP1":
+          navigate(`/teacher/conjunction-review/${minigameId}`);
+          break;
+        case "TP2":
+          navigate(`/teacher/quiz-review/${minigameId}`);
+          break;
+        case "TP3":
+          navigate(`/teacher/anagram-review/${minigameId}`);
+          break;
+        case "TP4":
+          navigate(`/teacher/random-card-review/${minigameId}`);
+          break;  
+        default:
+          break;
+      }
     }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    setPageNum(1); // Reset về trang đầu khi search
+    setPageNum(1);
   };
 
   const handlePrevPage = () => {
@@ -93,6 +103,38 @@ const TeacherActivities: React.FC = () => {
 
   const handleNextPage = () => {
     if (pageNum < totalPages) setPageNum(pageNum + 1);
+  };
+
+  const handleRecycleBinToggle = () => {
+    setIsRecycleBinMode(!isRecycleBinMode);
+    setSelectedMinigameId(null); // Reset selection when toggling mode
+  };
+
+  const handleDeleteMinigame = async () => {
+    if (!selectedMinigameId) {
+      alert("Please select a minigame to delete.");
+      return;
+    }
+
+    if (window.confirm("Are you sure you want to delete this minigame?")) {
+      try {
+        setLoading(true);
+        const result = await deleteMinigame(selectedMinigameId);
+        if (result) {
+          // Remove deleted minigame from state
+          setMinigames(minigames.filter((game) => game.minigameId !== selectedMinigameId));
+          setSelectedMinigameId(null);
+          alert("Minigame deleted successfully!");
+        } else {
+          alert("Failed to delete minigame.");
+        }
+      } catch (error) {
+        console.error("Error deleting minigame:", error);
+        alert("An error occurred while deleting the minigame.");
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   return (
@@ -104,14 +146,28 @@ const TeacherActivities: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-3">
             <button className="border px-3 py-1 rounded hover:bg-gray-200">➕ New folder</button>
-            <button className="border px-3 py-1 rounded hover:bg-gray-200">🗑️ Recycle bin</button>
+            <button
+              onClick={handleRecycleBinToggle}
+              className={`border px-3 py-1 rounded hover:bg-gray-200 ${isRecycleBinMode ? "bg-red-100" : ""}`}
+            >
+              🗑️ {isRecycleBinMode ? "Cancel" : "Recycle bin"}
+            </button>
+            {isRecycleBinMode && (
+              <button
+                onClick={handleDeleteMinigame}
+                className="border px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
+                disabled={!selectedMinigameId}
+              >
+                Delete Selected
+              </button>
+            )}
           </div>
           <div className="flex gap-3 items-center">
             <select
               value={selectedTemplate}
               onChange={(e) => {
                 setSelectedTemplate(e.target.value);
-                setPageNum(1); // reset page khi filter
+                setPageNum(1);
               }}
               className="border px-3 py-1 rounded"
             >
@@ -142,11 +198,13 @@ const TeacherActivities: React.FC = () => {
                 return (
                   <div
                     key={game.minigameId}
-                    className="border rounded-lg shadow-sm p-3 hover:shadow-md transition cursor-pointer"
+                    className={`border rounded-lg shadow-sm p-3 hover:shadow-md transition cursor-pointer ${
+                      selectedMinigameId === game.minigameId ? "border-red-500 bg-red-50" : ""
+                    }`}
                     onClick={() => handleMinigameClick(game.minigameId, game.templateId)}
                   >
                     <img
-                      src={thumbnail}
+                      src={`${thumbnail}?t=${Date.now()}`}
                       alt={game.minigameName}
                       className="w-full h-40 object-cover rounded"
                     />

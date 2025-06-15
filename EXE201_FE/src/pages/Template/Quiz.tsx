@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,  } from "react";
 import { useNavigate } from "react-router-dom";
-import { MinigameData, Question } from "../../types";
+import { QuizData, Question } from "../../types";
 import { Trash, Copy, Image as ImageIcon } from "lucide-react";
 import VoiceInput from "../../components/Conjunction/VoiceInput";
 import Header from "../../components/HomePage/Header";
@@ -20,52 +20,31 @@ const Quiz: React.FC<QuizProps> = ({ courseId }) => {
     const [duration, setDuration] = useState<number>(60);
 
     const [questions, setQuestions] = useState<Question[]>([
-        { text: "", answer: ["", ""], correctIndexes: [] },
+        { Header: "", Options: ["", ""], AnswerIndexes: [] },
     ]);
-    const [gameDataJson, setGameDataJson] = useState("");
-
-    const generateGameDataJson = (data: Question[]) => {
-        const validEntries = data.filter(e => 
-            e.text && 
-            Array.isArray(e.answer) && 
-            e.answer.length > 0 &&
-            Array.isArray(e.correctIndexes)
-        );
-
-        const jsonArray = validEntries.map(entry => ({
-            Header: entry.text.trim(),
-            Options: entry.answer.map(a => a.trim()),
-            AnswerIndexes: entry.correctIndexes.map(index => index + 1) 
-        }));
-
-        return JSON.stringify(jsonArray, null, 2);
-        };
-      useEffect(() => {
-          setGameDataJson(generateGameDataJson(questions));
-        }, [questions]);
 
     const handleQuestionChange = (index: number, text: string) => {
         const update = [...questions];
-        update[index].text = text;
+        update[index].Header = text;
         setQuestions(update);
     };
 
     const handleAnswerChange = (questionIndex: number, answerIndex: number, text: string) => {
         const update = [...questions];
-        update[questionIndex].answer[answerIndex] = text;
+        update[questionIndex].Options[answerIndex] = text;
         setQuestions(update);
     };
 
     const addAnswer = (qIndex: number) => {
         const update = [...questions];
-        update[qIndex].answer.push("");
+        update[qIndex].Options.push("");
         setQuestions(update);
     };
 
     const addQuestion = () => {
         setQuestions([
             ...questions,
-            { text: "", answer: ["", ""], correctIndexes: [] },
+            { Header: "", Options: ["", ""], AnswerIndexes: [] },
         ]);
     };
 
@@ -78,34 +57,41 @@ const Quiz: React.FC<QuizProps> = ({ courseId }) => {
             ...questions.slice(0, index + 1),
             {
                 ...questions[index],
-                answer: [...questions[index].answer],
-                correctIndexes: [...(questions[index].correctIndexes || [])],
+                Options: [...questions[index].Options],
+                AnswerIndexes: [...(questions[index].AnswerIndexes || [])],
             },
             ...questions.slice(index + 1),
         ]);
     };
 
+    // Sửa đổi hàm toggleCorrectAnswer để lưu trữ index + 1
     const toggleCorrectAnswer = (qIndex: number, aIndex: number) => {
         const update = [...questions];
-        const correct = update[qIndex].correctIndexes || [];
-        if (correct.includes(aIndex)) {
-            update[qIndex].correctIndexes = correct.filter((i) => i !== aIndex);
+        const correct = update[qIndex].AnswerIndexes || [];
+        const answerNumber = aIndex + 1; // Chuyển từ index (0-based) sang number (1-based)
+        
+        if (correct.includes(answerNumber)) {
+            update[qIndex].AnswerIndexes = correct.filter((i) => i !== answerNumber);
         } else {
-            update[qIndex].correctIndexes = [...correct, aIndex];
+            update[qIndex].AnswerIndexes = [...correct, answerNumber];
         }
         setQuestions(update);
     };
 
     const handleSubmit = async () => {
         // Construct MinigameData object
-        const minigameData: MinigameData = {
+        const minigameData: QuizData = {
             MinigameName: activityName,
             TeacherId: teacherId,
-            GameDataJson: gameDataJson,
             Duration: duration,
             TemplateId: "TP2",
             CourseId: courseId || "",
             ImageFile: thumbnail || null,
+            GameData: questions.map((q) => ({
+                Header: q.Header,
+                Options: q.Options,
+                AnswerIndexes: q.AnswerIndexes || [], // Giữ nguyên vì đã được lưu dưới dạng 1-based
+            })),
         };
 
         const result = await createQuiz(minigameData);
@@ -163,7 +149,7 @@ const Quiz: React.FC<QuizProps> = ({ courseId }) => {
                                 <input
                                     className="w-full border rounded px-3 py-2"
                                     placeholder="Question"
-                                    value={q.text}
+                                    value={q.Header}
                                     onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
                                 />
                                 <div className="absolute right-2 top-2 flex gap-2">
@@ -186,13 +172,14 @@ const Quiz: React.FC<QuizProps> = ({ courseId }) => {
                         </div>
 
                         <div className="flex flex-wrap gap-2 pl-6">
-                            {q.answer.map((a, aIndex) => (
+                            {q.Options.map((a, aIndex) => (
                                 <div key={aIndex} className="relative">
                                     <input
-                                        className={`border p-2 rounded w-40 ${q.correctIndexes?.includes(aIndex)
-                                            ? "border-green-500"
-                                            : ""
-                                            }`}
+                                        className={`border p-2 rounded w-40 ${
+                                            q.AnswerIndexes?.includes(aIndex + 1) // Kiểm tra với aIndex + 1
+                                                ? "border-green-500"
+                                                : ""
+                                        }`}
                                         value={a}
                                         onChange={(e) =>
                                             handleAnswerChange(qIndex, aIndex, e.target.value)
@@ -202,7 +189,7 @@ const Quiz: React.FC<QuizProps> = ({ courseId }) => {
                                     <input
                                         type="checkbox"
                                         className="absolute -top-2 -right-2"
-                                        checked={q.correctIndexes?.includes(aIndex)}
+                                        checked={q.AnswerIndexes?.includes(aIndex + 1)} // Kiểm tra với aIndex + 1
                                         onChange={() => toggleCorrectAnswer(qIndex, aIndex)}
                                         title="Mark as correct answer"
                                     />

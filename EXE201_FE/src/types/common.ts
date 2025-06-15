@@ -11,14 +11,14 @@ export type Words = {
 export type Answer = string;
 
 export type Question = {
-  text: string;
-  answer: Answer[];
-  correctIndexes: number[];
+  Header: string;
+  Options: Answer[];
+  AnswerIndexes: number[];
 }
 
 export type RandomCardItem = {
-  keyword: string;
-  imageURL: string;
+  Text: string;
+  Image: File | null | undefined;
 }
 
 export type SpellingItem = {
@@ -65,43 +65,94 @@ export type Conjunction = {
 export type Anagram = {
   MinigameName: string;
   ImageFile: File | null;
-  GameDataJson: string; 
   TeacherId: string;
   Duration: number;
   TemplateId: string;
   CourseId: string;
+  GameData: Words[];
 }
-export type MinigameData = {
+export type QuizData = {
   MinigameName: string;
   ImageFile: File | null;
-  GameDataJson: string; 
   TeacherId: string;
   Duration: number;
   TemplateId: string;
   CourseId: string;
+  GameData: Question[];
 }
+export type UpdateQuizData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile?: File | null; // File ảnh mới (nếu có)
+  ImageUrl?: string | null; // URL ảnh cũ (nếu không có file mới)
+  Duration: number;
+  TemplateId: string;
+  TeacherId: string;
+  GameData: Question[];
+}
+// Type cho UpdateConjunctionData
 export type UpdateConjunctionData = {
   MinigameId: string;
   MinigameName: string;
-  ImageFile?: File;
-  ImageUrl?: string;
+  ImageFile?: File | null; // File ảnh mới (nếu có)
+  ImageUrl?: string | null; // URL ảnh cũ (nếu không có file mới)
   Duration: number;
   TemplateId: string;
   TeacherId: string;
-  GameData: ConjunctionEntry[];
+  GameData: Array<{
+    Term: string;
+    Definition: string;
+  }>;
 }
 export type UpdateAnagramData = {
   MinigameId: string;
   MinigameName: string;
   ImageFile?: File;
+  ImageUrl?: string | null; // URL ảnh cũ (nếu không có file mới)
   Duration: number;
   TemplateId: string;
   TeacherId: string;
-  GameData: Words[]};
+  GameData: Words[]
+};
 export type FetchTeacherMinigamesParams = {
   teacherId: string;
   minigameName?: string;
   templateId?: string;
   pageNum?: number;
   pageSize?: number;
+}
+export type RandomCardData = {
+  MinigameName: string,
+  ImageFile: File,
+  TeacherId: string,
+  Duration: number,
+  TemplateId: string,
+  CourseId: string,
+  GameData: RandomCardItem[],
+}
+export type UpdateRandomCardData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile?: File;
+  ImageUrl?: string | null; // URL ảnh cũ (nếu không có file mới)
+  Duration: number;
+  TemplateId: string;
+  TeacherId: string;
+  GameData: {
+    Text: string,
+    Image?: File | null,
+    ImageUrl: string,
+  }[]
+}
+export type SpellingData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile: File;
+  TeacherId: string;
+  Duration: string;
+  TemplateId: string;
+  CourseId: string;
+  GameData: {
+    Word: string;
+  }[];
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Copy, Trash } from "lucide-react";
 // import Header from "../../components/HomePage/Header";
 import { useSelector } from "react-redux";
@@ -22,23 +22,12 @@ const AnagramTemplate: React.FC<AnagramTemplateProps> = ({courseId}) => {
   const teacherId = useSelector((state: RootState) => state.user.userId);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [duration, setDuration] = useState<number>(60);
-  const [gameDataJson, setGameDataJson] = useState("");
 
   const handleChange = (index: number, value: string) => {
     const updated = [...entries];
     updated[index].word = value;
     setEntries(updated);
   };
-  const generateGameDataJson = (data: AnagramEntry[]) => {
-      const validEntries = data.filter(e => e.word); // Lọc các entry hợp lệ
-      const jsonArray = validEntries.map(entry => ({
-        Word: entry.word.trim() // Chỉ lấy từ đã nhập, loại bỏ khoảng trắng
-      }));
-      return JSON.stringify(jsonArray, null, 2); // Trả về mảng JSON
-    };
-  useEffect(() => {
-      setGameDataJson(generateGameDataJson(entries));
-    }, [entries]);
 
   const addEntry = () => {
     setEntries([...entries, { word: "" }]);
@@ -67,11 +56,11 @@ const AnagramTemplate: React.FC<AnagramTemplateProps> = ({courseId}) => {
     const anagramData: Anagram = {
       MinigameName: activityName,
       ImageFile: imageFile,
-      GameDataJson: gameDataJson,
       TeacherId: teacherId,
       Duration: duration,
       TemplateId: "TP3", 
       CourseId: courseId || "",
+      GameData: entries.map((e) => ({ words: [e.word.trim()] })),
     };
     console.log("Anagram data to be sent:", anagramData);
 

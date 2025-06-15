@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchCourseDetail } from "../services/userService";
-import { fetchCourseMinigame } from "../services/authService";
+import { fetchCourseMinigame, fetchMinigameScore } from "../services/authService";
 import { Course, Minigame } from "../types/index";
 import Header from "../components/HomePage/Header";
 import Footer from "../components/HomePage/Footer";
@@ -16,6 +16,7 @@ const CourseDetail: React.FC = () => {
   const [minigames, setMinigames] = useState<Minigame[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  // const [ratingScore, setRatingScore] = useState(0);
   const navigate = useNavigate();
 
   const parseCourseImages = (dataText: string) => {
@@ -28,9 +29,30 @@ const CourseDetail: React.FC = () => {
 
     return { thumbnail, images };
   };
-  const handleMinigameClick = () => {
-    navigate(`/student/conjunction/${minigames[0].minigameId}`);
-  }
+  const handleMinigameClick = (templateId: string, minigameId: string) => {
+    switch (templateId) {
+      case "TP1":
+        navigate(`/student/conjunction/${minigameId}`);
+        break;
+      case "TP2":
+        navigate(`/student/quiz/${minigameId}`);
+        break;
+      case "TP3":
+        navigate(`/student/anagram/${minigameId}`);
+        break;
+      case "TP4":
+        navigate(`/student/random-card/${minigameId}`);
+        break;
+      case "TP5":
+        navigate(`/student/spelling/${minigameId}`);
+        break;
+      default:
+        console.warn("Unknown templateId:", templateId);
+        break;
+    }
+  };
+
+
 
   useEffect(() => {
     const load = async () => {
@@ -47,8 +69,19 @@ const CourseDetail: React.FC = () => {
         });
 
         const gameResponse = await fetchCourseMinigame(courseId);
+        console.log("List game", gameResponse);
         if (Array.isArray(gameResponse.minigames)) {
-          setMinigames(gameResponse.minigames);
+          const gamesWithScores = await Promise.all(
+          gameResponse.minigames.map(async (game: { minigameId: string; }) => {
+            const scoreData = await fetchMinigameScore(game.minigameId);
+            return {
+              ...game,
+              ratingScore: scoreData?.ratingScore ?? null, // hoặc `scoreData?.ratingScore` tùy theo API
+            };
+          })
+        );
+        console.log("Games with scores:", gamesWithScores); 
+          setMinigames(gamesWithScores);
         } else {
           console.warn("Invalid minigame data", gameResponse);
           setMinigames([]);
@@ -138,11 +171,11 @@ const CourseDetail: React.FC = () => {
 
         {/* Games */}
         <h3 className="text-2xl font-semibold mb-4">Here are some games to practice</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" onClick={handleMinigameClick}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {minigames.map(game => {
             const imageUrl = `${baseImageUrl}${game.thumbnailImage.replace(/^\/+/, "")}`;
             return (
-              <div key={game.minigameId} className="bg-pink-100 rounded-lg p-4 shadow-md">
+              <div key={game.minigameId} className="bg-pink-100 rounded-lg p-4 shadow-md" onClick={() => handleMinigameClick(game.templateId, game.minigameId)}>
                 <img
                   src={imageUrl}
                   alt={game.minigameName}

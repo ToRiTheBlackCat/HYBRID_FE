@@ -1,27 +1,65 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import AnimatedText from "../../components/hooks/AnimatedText";
 import FadeInOnView from "../../components/hooks/FadeInOnView";
 
 import Anagram from "../../assets/TemplateLogo/Anagram.jpg";
-// import Completion from "../../assets/TemplateLogo/Completion.jpg";
 import Conjunction from "../../assets/TemplateLogo/Conjunction.jpg";
 import Crossword from "../../assets/TemplateLogo/Crossword.jpg";
 import DragDrop from "../../assets/TemplateLogo/DragDrop.jpg";
-// import RandomCard from "../assets/TemplateLogo/RandomCard.jpg";
-// import Restoration from "../../assets/TemplateLogo/Restoration.jpg";
-// import Pairing from "../../assets/TemplateLogo/Pairing.jpg";
-// import FindWord from "../../assets/TemplateLogo/FindWord.jpg";
 import TrueFalse from "../../assets/TemplateLogo/TrueFalse.jpg";
-// import FlashCard from "../../assets/TemplateLogo/Flashcard.jpg";
-// import Reading from "../../assets/TemplateLogo/Reading.jpg";
 import SongPuzzle from "../../assets/TemplateLogo/SongPuzzle.jpg";
-// import Spelling from "../..//assets/TemplateLogo/Spelling.jpg";
-// import Quiz from "../../assets/TemplateLogo/Quiz.jpg";
 import Pronunciation from "../../assets/TemplateLogo/Pronunciation.jpg";
 import { FaSearch } from "react-icons/fa";
 import Header from "../../components/HomePage/Header";
+import { fetchCourseList, fetchCourseDetail } from "../../services/userService";
+import CourseCard from "../../components/common/CourseCard";
+import { baseImageUrl } from "../../config/base";
+import { useNavigate } from "react-router-dom";
+import { Course } from "../../types";
 
 const StudentPage: React.FC = () => {
+  const [courses, setCourses] = useState<Course[]>([]);
+const [loading, setLoading] = useState<boolean>(true);
+const navigate = useNavigate();
+
+const extractThumbnail = (dataText?: string): string => {
+  if (!dataText) return "/placeholder-image.jpg";
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(dataText, "text/xml");
+    const thumbnailElement = xmlDoc.querySelector("thumbnail");
+    const path = thumbnailElement?.textContent;
+    return path ? `${baseImageUrl}${path.startsWith("/") ? path.slice(1) : path}` : "/placeholder-image.jpg";
+  } catch {
+    return "/placeholder-image.jpg";
+  }
+};
+
+useEffect(() => {
+  const fetchCourses = async () => {
+    setLoading(true);
+    try {
+      const basicCourses = await fetchCourseList("", "", 1);
+      const detailed = await Promise.all(
+        basicCourses.map(async (course: { courseId: string; }) => {
+          const detail = await fetchCourseDetail(course.courseId);
+          const thumbnail = extractThumbnail(detail.dataText);
+          return { ...course, thumbnail };
+        })
+      );
+      setCourses(detailed);
+    } catch (err) {
+      console.error("Failed to fetch courses:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchCourses();
+}, []);
+
+const handleCourseClick = (id: string) => navigate(`/student/course/${id}`);
+
     const templates = [
     { name: "Conjunction", image: Conjunction },
     { name: "Anagram", image: Anagram },
@@ -148,6 +186,26 @@ const StudentPage: React.FC = () => {
             SEE MORE
           </button>
         </div>
+      </section>
+      </FadeInOnView>
+      <FadeInOnView>
+      <section className="mt-10 px-4 max-w-6xl mx-auto">
+        <h3 className="text-xl font-bold text-center mb-4">Popular Courses</h3>
+        {loading ? (
+          <div className="text-center text-gray-500">Loading...</div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-center">
+            {courses.map((course) => (
+              <CourseCard
+                key={course.courseId}
+                courseName={course.courseName}
+                levelName={course.levelName}
+                thumbnail={course.thumbnail}
+                onClick={() => handleCourseClick(course.courseId)}
+              />
+            ))}
+          </div>
+        )}
       </section>
       </FadeInOnView>
         </>

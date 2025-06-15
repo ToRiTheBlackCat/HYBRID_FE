@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { ConjunctionEntry } from "../../../types/index";
-import { editConjunction, fetchImageUrlAsFile } from "../../../services/authService";
+import { editConjunction } from "../../../services/authService";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { useParams } from "react-router-dom";
@@ -44,7 +44,7 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
   const openModal = () => {
     setActivityName(initialActivityName);
     setDuration(initialDuration);
-    setThumbnail(null);
+    setThumbnail(null); // Reset thumbnail file khi mở modal
     setEntries(initialEntries);
     setIsOpen(true);
   };
@@ -77,56 +77,65 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
       return;
     }
 
-    let finalThumbnailFile: File = new File([], ""); // Default empty file
-    let finalThumbnailUrl: string | null = null;
+    try {
+      // Chuẩn bị data để gửi API
+      const conjunctionData = {
+        MinigameId: minigameId,
+        MinigameName: activityName,
+        ImageFile: thumbnail, // File mới (nếu có)
+        ImageUrl: !thumbnail && initialThumbnailUrl ? initialThumbnailUrl : undefined, // URL ảnh cũ (nếu không có file mới)
+        Duration: duration,
+        TemplateId: "TP1",
+        TeacherId: teacherId,
+        GameData: validEntries.map((entry) => ({
+          Term: entry.Term,
+          Definition: entry.Definition,
+        })),
+      };
+      console.log("Submitting conjunction data:", conjunctionData);
 
-    if (thumbnail) {
-      finalThumbnailFile = thumbnail;
-      finalThumbnailUrl = URL.createObjectURL(thumbnail);
-    } else if (initialThumbnailUrl) {
-      try {
-        const filename = `thumbnail-${minigameId}.jpg`;
-        finalThumbnailFile = await fetchImageUrlAsFile(initialThumbnailUrl, filename);
-        finalThumbnailUrl = initialThumbnailUrl;
-      } catch (error) {
-        console.error("❌ Failed to convert URL to File:", error);
-        toast.error("Thumbnail fetch failed.");
-        return;
+      const result = await editConjunction(conjunctionData);
+
+      if (result) {
+        // Xác định thumbnail URL cuối cùng để trả về
+        // toast.success("Cập nhật thành công")
+        let finalThumbnailUrl: string | null = null;
+        
+        if (result.thumbnailImage) {
+          // Nếu API trả về thumbnail mới
+          finalThumbnailUrl = normalizeUrl(baseImageUrl, result.thumbnailImage);
+        } else if (thumbnail) {
+          // Nếu có upload file mới nhưng API không trả về URL
+          finalThumbnailUrl = URL.createObjectURL(thumbnail);
+        } else {
+          // Giữ nguyên URL cũ
+          finalThumbnailUrl = initialThumbnailUrl ?? null;
+        }
+
+        onSave({
+          activityName,
+          duration,
+          entries: validEntries,
+          thumbnailUrl: finalThumbnailUrl,
+        });
+
+        toast.success("Minigame updated successfully!");
+        setIsOpen(false);
+      } else {
+        toast.error("Failed to update minigame.");
       }
+    } catch (error) {
+      console.error("Error updating minigame:", error);
+      toast.error("An error occurred while updating minigame.");
     }
+  };
 
-    const conjunctionData = {
-      MinigameId: minigameId,
-      MinigameName: activityName,
-      ImageFile: finalThumbnailFile,
-      Duration: duration,
-      TemplateId: "TP1",
-      TeacherId: teacherId,
-      GameData: validEntries.map((entry) => ({
-        Term: entry.Term,
-        Definition: entry.Definition,
-      })),
-    };
-
-    const result = await editConjunction(conjunctionData);
-
-    if (result) {
-      finalThumbnailUrl = result.thumbnailImage
-        ? normalizeUrl(baseImageUrl, result.thumbnailImage)
-        : finalThumbnailUrl;
-
-      onSave({
-        activityName,
-        duration,
-        entries: validEntries,
-        thumbnailUrl: finalThumbnailUrl,
-      });
-
-      toast.success("Minigame updated successfully!");
-      setIsOpen(false);
-    } else {
-      toast.error("Failed to update minigame.");
+  // Xác định ảnh hiển thị trong preview
+  const getPreviewImageSrc = (): string | null => {
+    if (thumbnail) {
+      return URL.createObjectURL(thumbnail);
     }
+    return initialThumbnailUrl ?? null;
   };
 
   return (
@@ -156,31 +165,42 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="block font-semibold mb-1">Thumbnail</label>
-                  {(thumbnail || initialThumbnailUrl) && (
+                  
+                  {/* Preview thumbnail hiện tại */}
+                  {getPreviewImageSrc() && (
                     <div className="mb-2">
-                      <p className="text-sm text-gray-600">Current thumbnail:</p>
+                      <p className="text-sm text-gray-600">
+                        {thumbnail ? "New thumbnail:" : "Current thumbnail:"}
+                      </p>
                       <img
-                        src={thumbnail ? URL.createObjectURL(thumbnail) : initialThumbnailUrl || ""}
-                        alt="Current thumbnail"
-                        className="w-20 h-20 object-cover rounded"
+                        src={getPreviewImageSrc()!}
+                        alt="Thumbnail preview"
+                        className="w-20 h-20 object-cover rounded border"
                       />
                     </div>
                   )}
+                  
                   <input
                     type="file"
-                    accept="image/*"
+                    // accept="image/*"
                     onChange={(e) => setThumbnail(e.target.files?.[0] ?? null)}
                     className="w-full border px-2 py-1 rounded"
                   />
+                  
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave empty to keep current thumbnail
+                  </p>
                 </div>
+                
                 <div className="flex-1">
-                  <label className="block font-semibold mb-1">Duration</label>
+                  <label className="block font-semibold mb-1">Duration (seconds)</label>
                   <input
                     type="number"
                     value={duration}
                     onChange={(e) => setDuration(Number(e.target.value))}
                     placeholder="Enter duration (in seconds)"
                     className="w-full border px-2 py-1 rounded"
+                    min="1"
                   />
                 </div>
               </div>
@@ -205,7 +225,8 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
                     />
                     <button
                       onClick={() => handleRemoveEntry(index)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 px-2"
+                      title="Remove entry"
                     >
                       🗑️
                     </button>
