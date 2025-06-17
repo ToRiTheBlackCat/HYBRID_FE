@@ -3,6 +3,8 @@ import ConjunctionReview from '../pages/Template/ConjunctionReview';
 // import AnagramTemplate from '../pages/Template/Anagram';
 import AnagramReview from '../pages/Template/AnagramReview';
 import CoursePage from '../pages/CoursePage';
+import StudentAccomplishment from '../pages/Student/StudentAccomplishment';
+import TeacherMinigameData from '../pages/Teacher/TeacherMinigameData';
 // import Quiz from '../pages/Template/Quiz';
 import QuizReview from '../pages/Template/QuizReview';
 import RandomCard from '../pages/Template/RandomCard';
@@ -32,6 +34,7 @@ import PlayConjunction from '../pages/Student/Template/PlayConjunction';
 import PlayAnagram from '../pages/Student/Template/PlayAnagram';
 import PlayQuiz from '../pages/Student/Template/PlayQuiz';
 import PlayRandomCard from '../pages/Student/Template/PlayRandomCard';
+import PlaySpelling from '../pages/Student/Template/PlaySpelling';
 
 export const privateRoutes = [
     // {path: "/conjunction", element: <ConjunctionTemplate/>},
@@ -45,7 +48,7 @@ export const privateRoutes = [
     {path: "/teacher/random-card-review/:minigameId", element: <RandomCardReview/>},
     {path: "/spelling", element: <Spelling/>},
     {path: "/profile", element: <ProfilePage/>},
-    {path: "/spelling-review", element: <SpellingReview/>},
+    {path: "/teacher/spelling-review/:minigameId", element: <SpellingReview/>},
     {path: "/completion", element: <CompletionTemplate/>},
     {path: "/completion-review", element: <CompletionReview/>},
     {path: "/pairing", element: <PairingScreen/>},
@@ -68,4 +71,7 @@ export const privateRoutes = [
     {path: "/student/anagram/:minigameId", element: <PlayAnagram/>},
     {path: "/student/quiz/:minigameId", element: <PlayQuiz/>},
     {path: "/student/random-card/:minigameId", element: <PlayRandomCard/>},
+    {path: "/student/spelling/:minigameId", element: <PlaySpelling/>},
+    {path: "/student/accomplishments", element: <StudentAccomplishment/>},
+    {path: "/teacher/minigame-data/:minigameId", element: <TeacherMinigameData/>},
 ]

@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
-import { fetchPlayMinigames } from "../.././../services/authService";
+import { fetchPlayMinigames, submitAccomplishment } from "../.././../services/authService";
 import { useParams } from "react-router-dom";
 import Header from "../../../components/HomePage/Header";
+import { Accomplishment } from "../../../types";
 
 interface ParsedQuestion {
   text: string;
@@ -19,14 +20,14 @@ const PlayQuiz : React.FC = () =>{
     const [timeLeft, setTimeLeft] = useState(0); // Khởi tạo bằng 0, sẽ được cập nhật trong loadData
     const [paused, setPaused] = useState(false);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const [duration, setDuration] = useState(60);
+    const initialDurationRef = useRef<number>(0);
 
 
   const loadData = async () => {
     try {
       const res = await fetchPlayMinigames(minigameId!);
       const parsed = parseXMLData(res.dataText);
-      setDuration(res.duration);
+      initialDurationRef.current = res.duration || 60;
       setTimeLeft(res.duration); // Đồng bộ timeLeft với duration
       setQuestions(parsed);
       setSelectedIndexes(Array(parsed.length).fill(null));
@@ -78,16 +79,29 @@ const PlayQuiz : React.FC = () =>{
     updated[currentIndex] = index;
     setSelectedIndexes(updated);
   };
+  const sendResult = async (correctCnt: number) => {
+    if (!minigameId) return;
+    const percent = Math.round((correctCnt / questions.length) * 100);
+    const used = initialDurationRef.current - timeLeft;
+
+    const payload: Accomplishment = {
+      MinigameId: minigameId,
+      Percent: percent,
+      DurationInSecond: used < 0 ? 0 : used,
+      TakenDate: new Date(),
+    };
+    await submitAccomplishment(payload);
+  };
 
   const handleFinish = () => {
     if (paused) return;
-    let correctCount = 0;
-    questions.forEach((q, i) => {
-      if (selectedIndexes[i] === q.correctIndex) correctCount++;
-    });
-    setScore(correctCount);
+    const correct = questions.reduce((cnt, q, i) => {
+      return cnt + (selectedIndexes[i] === q.correctIndex ? 1 : 0);
+    }, 0);
+    setScore(correct);
     setShowResult(true);
     clearInterval(timerRef.current!);
+    sendResult(correct)
   };
 
   const handleTryAgain = () => {
@@ -95,7 +109,7 @@ const PlayQuiz : React.FC = () =>{
     setCurrentIndex(0);
     setShowResult(false);
     setScore(0);
-    setTimeLeft(duration); // Đặt lại timeLeft bằng duration
+    setTimeLeft(initialDurationRef.current); // Đặt lại timeLeft bằng duration
     setPaused(false);
   };
 

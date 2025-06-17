@@ -85,7 +85,10 @@ const TeacherActivities: React.FC = () => {
           break;
         case "TP4":
           navigate(`/teacher/random-card-review/${minigameId}`);
-          break;  
+          break;
+        case "TP5":
+          navigate(`/teacher/spelling-review/${minigameId}`);
+          break;    
         default:
           break;
       }

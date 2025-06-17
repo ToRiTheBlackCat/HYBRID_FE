@@ -22,8 +22,8 @@ export type RandomCardItem = {
 }
 
 export type SpellingItem = {
-  question?: string;
-  answer?: string;
+  Word: string,
+  Image: File | null,
 }
 
 export type ResetPasswordData = {
@@ -145,14 +145,44 @@ export type UpdateRandomCardData = {
   }[]
 }
 export type SpellingData = {
-  MinigameId: string;
   MinigameName: string;
-  ImageFile: File;
+  ImageFile: File | null;
   TeacherId: string;
   Duration: string;
   TemplateId: string;
   CourseId: string;
+  GameData: SpellingItem[];
+}
+export type UpdateSpellingData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile: File | null;
+  ImageUrl?: string | null;
+  Duration: number;
+  TemplateId: string;
+  TeacherId: string;
   GameData: {
-    Word: string;
+    Word: string,
+    ImageUrl: string,
+    Image?: File | null,
   }[];
+}
+export type Accomplishment = {
+  MinigameId: string;
+  Percent: number;
+  DurationInSecond: number;
+  TakenDate: Date;
+}
+/** Kiểu dữ liệu trả về từ API   */
+export type AccomplishmentData = {
+  studentId: string;
+  minigameId: string;
+  minigameName: string;
+  thumbnailImage: string;
+  score: number;
+  templateId: string;
+  templateName: string;
+  courseId: string;
+  courseName: string;
+  takenDate: string; // ISO string
 }

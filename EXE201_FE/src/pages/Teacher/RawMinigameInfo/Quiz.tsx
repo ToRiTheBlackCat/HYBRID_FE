@@ -6,6 +6,7 @@ import {
 import { Minigame, Question } from "../../../types";
 import { baseImageUrl } from "../../../config/base";
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface QuizProps {
   onStart: () => void;
@@ -17,6 +18,7 @@ const Quiz: React.FC<QuizProps> = ({ onStart }) => {
   const [minigame, setMinigame] = useState<Minigame | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showQuestions, setShowQuestions] = useState(false);
+  const navigate = useNavigate();
   const [ratings, setRatings] = useState<
     {
       studentId: string;
@@ -120,6 +122,12 @@ const Quiz: React.FC<QuizProps> = ({ onStart }) => {
                 onClick={onStart}
               >
                 Play and edit now
+              </button>
+              <button
+                className="bg-yellow-400 hover:bg-yellow-300 px-5 py-2 rounded-full font-semibold shadow"
+                onClick={()=>navigate(`/teacher/minigame-data/${minigameId}`)}
+              >
+                View minigame data
               </button>
             </div>
           </div>

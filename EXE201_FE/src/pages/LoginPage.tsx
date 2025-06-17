@@ -90,6 +90,7 @@ const LoginPage: React.FC = () => {
 
     try {
       const userData = await Login(email, password);
+      console.log("token", userData?.accessToken)
       if (userData) {
         dispatch(setUserRedux(userData));
         Cookies.set('user', JSON.stringify(userData), { expires: 7 });

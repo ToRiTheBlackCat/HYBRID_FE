@@ -4,6 +4,7 @@ import { fetchPlayMinigames, fetchMinigameRating } from "../../../services/authS
 import { Minigame } from "../../../types";
 import { baseImageUrl } from "../../../config/base";
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface AnagramProps {
   
@@ -15,6 +16,7 @@ const Anagram: React.FC<AnagramProps> = ({ onStart }) => {
   const [minigame, setMinigame] = useState<Minigame | null>(null);
   const [words, setWords] = useState<string[]>([]);
   const [showQuestions, setShowQuestions] = useState<boolean>(false);
+  const navigate = useNavigate();
   const [ratings, setRatings] = useState<
   {
     studentId: string;
@@ -94,6 +96,12 @@ const Anagram: React.FC<AnagramProps> = ({ onStart }) => {
                 onClick={onStart}
               >
                 Play and edit now
+              </button>
+              <button
+              className="bg-blue-400 hover:bg-yellow-300 px-5 py-2 rounded-full font-semibold shadow"
+                onClick={() => navigate(`/teacher/minigame-data/${minigameId}`)}
+              >
+                View minigame data
               </button>
             </div>
           </div>

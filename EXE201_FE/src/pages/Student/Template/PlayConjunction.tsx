@@ -1,9 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import KeywordDragDrop from "../../../components/Conjunction/DragDrop";
 import Header from "../../../components/HomePage/Header";
-import { fetchPlayMinigames } from "../../../services/authService";
+import { fetchPlayMinigames, submitAccomplishment } from "../../../services/authService";
+import { Accomplishment } from "../../../types";
 
 const PlayConjunction: React.FC = () => {
   const { minigameId } = useParams<{ minigameId: string }>();
@@ -16,6 +17,7 @@ const PlayConjunction: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
+  const initialDuration = useRef<number>(0);
 
   const handleDrop = (targetIndex: number, keyword: string) => {
     if (!isTimeUp && !isPaused) {
@@ -59,19 +61,42 @@ const PlayConjunction: React.FC = () => {
     loadMinigame();
   }, [minigameId]);
 
-  const calculateScore = () => {
+  const calculateScore = useCallback(() => {
     let correct = 0;
     meanings.forEach((_, index) => {
       if (dropped[index] === keywords[index]) correct++;
     });
     setScore(correct);
     setShowResult(true);
-  };
+    return correct;
+  }, [dropped, keywords, meanings]);
+
+  const submitResult = useCallback(
+    async (_correctCount: number) => {
+      if (!minigameId) return;
+
+      const percent = Math.round((_correctCount / keywords.length) * 100);
+      const used = initialDuration.current - duration; // giây đã dùng
+
+      const payload: Accomplishment = {
+        MinigameId: minigameId,
+        Percent: percent,
+        DurationInSecond: used < 0 ? 0 : used,
+        TakenDate: new Date(),
+      };
+
+      await submitAccomplishment(payload);
+    },
+    [duration, keywords.length, minigameId]
+  );
 
   const finishEarly = useCallback(() => {
     setIsTimeUp(true);
-    calculateScore();
-  }, [calculateScore]);
+    const correct = calculateScore();
+    submitResult(correct);
+  }, [calculateScore, submitResult]);
+
+  
 
   useEffect(() => {
     if (duration <= 0 || isPaused || isTimeUp) return;

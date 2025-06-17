@@ -3,11 +3,9 @@ import { toast } from "react-toastify";
 import { FiVolume2 } from "react-icons/fi";
 import { useParams } from "react-router-dom";
 
-import Header from "../../components/HomePage/Header";
-import EditSpelling from "../Teacher/Template/EditSpelling";
-import { fetchPlayMinigames } from "../../services/authService";
-import { baseImageUrl } from "../../config/base";
-import SpellingRaw from "../Teacher/RawMinigameInfo/Spelling";
+import Header from "../../../components/HomePage/Header";
+import { fetchPlayMinigames } from "../../../services/authService";
+import { baseImageUrl } from "../../../config/base";
 
 interface Question {              // dùng cho gameplay
   word: string;
@@ -19,27 +17,22 @@ interface SpellingItem {          // dùng cho EditSpelling
   ImageUrl: string;
 }
 
-const SpellingReview: React.FC = () => {
-  /* ───────── params / refs ───────── */
-  const { minigameId } = useParams<{ minigameId: string }>();
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+const PlaySpelling: React.FC = () =>{
+    /* ───────── params / refs ───────── */
+    const { minigameId } = useParams<{ minigameId: string }>();
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  /* ───────── gameplay state ───────── */
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [curIdx, setCurIdx] = useState(0);
-  const [letters, setLetters] = useState<string[]>([]);
-  const [remaining, setRemaining] = useState<number>(0);
-  const [paused, setPaused] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false)
+    /* ───────── gameplay state ───────── */
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [curIdx, setCurIdx] = useState(0);
+    const [letters, setLetters] = useState<string[]>([]);
+    const [remaining, setRemaining] = useState<number>(0);
+    const [paused, setPaused] = useState(true);
+    const [loading, setLoading] = useState(true);
 
-  /* ───────── edit dialog state ───────── */
-  const [editItems, setEditItems] = useState<SpellingItem[]>([]);
-  const [activityName, setActivityName] = useState("Spelling Review");
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
+    const [activityName, setActivityName] = useState("");
 
-  /* ───────── helpers ───────── */
-  const normalize = (base: string, path: string) => {
+    const normalize = (base: string, path: string) => {
     const url = `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
     return `${url}?t=${Date.now()}`;
   };
@@ -59,7 +52,6 @@ const SpellingReview: React.FC = () => {
         if (!res) return;
 
         setActivityName(res.minigameName ?? "Spelling Review");
-        setThumbnailUrl(res.thumbnailImage ? normalize(baseImageUrl, res.thumbnailImage) : "");
         setRemaining(res.duration ?? 0);
 
         const xml = new DOMParser().parseFromString(res.dataText, "text/xml");
@@ -91,7 +83,6 @@ const SpellingReview: React.FC = () => {
         }
 
         setQuestions(qs);
-        setEditItems(edits);
         setLetters(Array(qs[0].word.length).fill(""));
       } catch (e) {
         toast.error("Failed to load minigame");
@@ -143,9 +134,6 @@ const SpellingReview: React.FC = () => {
   return (
     <>
       <Header />
-      {!isPlaying ? (
-        <SpellingRaw onStart={() => setIsPlaying(true)} />
-        ) : (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
         <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
           {/* top bar */}
@@ -217,22 +205,8 @@ const SpellingReview: React.FC = () => {
           </form>
         </div>
 
-        {/* ───── Edit dialog ───── */}
-        <EditSpelling
-          initialActivityName={activityName}
-          initialDuration={remaining}
-          initialQuestions={editItems}
-          initialThumbnailUrl={thumbnailUrl}
-          onSave={(newData) => { 
-            setActivityName(newData.activityName);
-            setRemaining(newData.duration);
-            setThumbnailUrl(newData.thumbnailUrl ?? "");
-          }}
-        />
       </div>
-        )}
     </>
   );
 };
-
-export default SpellingReview;
+export default PlaySpelling

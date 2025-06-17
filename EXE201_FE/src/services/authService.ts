@@ -2,7 +2,7 @@
 import axiosInstance from "../config/axios";
 import { Profile, ProfileUpdate, Conjunction, Anagram, QuizData, UpdateConjunctionData,
      FetchTeacherMinigamesParams, UpdateAnagramData, UpdateQuizData, RandomCardData,
-    UpdateRandomCardData, SpellingData } from "../types";
+    UpdateRandomCardData, SpellingData, UpdateSpellingData, Accomplishment } from "../types";
 
 export const fetchUserProfile = async (userId: string, isTeacher: boolean) : Promise<Profile | null> => {
     try{
@@ -92,6 +92,41 @@ export const fetchMinigameScore = async (minigameId: string) => {
 export const fetchMinigameRating = async (minigameId: string) =>{
     try{
         const response = await axiosInstance.get(`/api/Rating/${minigameId}`)
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const fetchStudentAccomplishment = async (minigameId: string, getSelf: boolean) => {
+    try{
+        const response = await axiosInstance.get(`/api/Accomplishment/minigame/${minigameId}`,{
+            params:{
+                getSelf: getSelf,
+            }
+        });
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const fetchAccomplishment = async () =>{
+    try{
+        const response = await axiosInstance.get(`/api/Accomplishment/student`);
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const submitAccomplishment = async (accomplishmentData: Accomplishment) => {
+    try{
+        const response = await axiosInstance.post(`/api/Accomplishment`, accomplishmentData,{
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
         return response.data;
     }catch(error){
         console.log(error);
@@ -474,8 +509,7 @@ export const createSpelling = async (spellingData: SpellingData) => {
     try{
         const formData = new FormData();
 
-        formData.append("MinigameId", spellingData.MinigameId);
-        formData.append("MinigameNameP", spellingData.MinigameName);
+        formData.append("MinigameName", spellingData.MinigameName);
         formData.append("TeacherId", spellingData.TeacherId);
         formData.append("Duration", spellingData.Duration);
         formData.append("TemplateId", spellingData.TemplateId);
@@ -483,13 +517,78 @@ export const createSpelling = async (spellingData: SpellingData) => {
 
         spellingData.GameData.forEach((data, index) =>{
             formData.append(`GameData[${index}].Word`, data.Word);
+            if(data.Image){
+                formData.append(`GameData[${index}].Image`, data.Image);
+            }
         });
+        if(spellingData.ImageFile){
+            formData.append("ImageFile", spellingData.ImageFile);
+        }
 
         const response = await axiosInstance.post(`/api/MiniGame/spelling`, formData, {
             headers:{
                 'Content-Type': 'multipart/form-data',
             }
         })
+        return response.data;
+    }catch(error){
+        console.log(error);
+        throw error;
+    }
+}
+export const updateSpelling = async (updateData: UpdateSpellingData) =>{
+    try{
+        const formData = new FormData();
+
+        formData.append("MinigameId", updateData.MinigameId);
+        formData.append("MinigameName", updateData.MinigameName);
+        formData.append("Duration", updateData.Duration.toString());
+        formData.append("TemplateId", updateData.TemplateId);
+        formData.append("TeacherId", updateData.TeacherId);
+
+        let imageFile: File | null = null;
+        if (updateData.ImageFile) {
+            imageFile = updateData.ImageFile;
+        } else if (updateData.ImageUrl) {
+            try {
+                imageFile = await fetchImageAsFile(updateData.ImageUrl, 'existing-thumbnail.jpg');
+            } catch (corsError) {
+                console.error('CORS error while fetching image:', corsError);
+                console.warn('Skipping image due to CORS restrictions');
+            }
+        }
+        if (imageFile) {
+            formData.append('ImageFile', imageFile);
+            console.log(`Image file attached: ${imageFile.name}, size: ${imageFile.size} bytes`);
+        }
+
+        updateData.GameData.forEach(async (data, index) => {
+            formData.append(`GameData[${index}].Word`, data.Word);
+
+            let picFile : File | null = null
+            if (data.Image) {
+                picFile = data.Image
+                console.log("picFile", picFile)
+            } else if(data.ImageUrl){
+                try{
+                    picFile = await fetchImageAsFile(data.ImageUrl, "existing-picture.jpg");
+                    console.log("picFile with url", picFile);
+                }catch (error){
+                    console.error('CORS error while fetching image:', error)
+                }
+            }
+            if(picFile){
+                formData.append(`GameData[${index}].Image`, picFile)
+            }
+        });
+
+        const response = await axiosInstance.put(`/api/MiniGame/spelling`, formData,{
+                params: {fakeTeacherId: updateData.TeacherId},
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
+        )
         return response.data;
     }catch(error){
         console.log(error);
