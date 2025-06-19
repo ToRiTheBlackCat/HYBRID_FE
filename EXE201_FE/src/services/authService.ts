@@ -2,7 +2,8 @@
 import axiosInstance from "../config/axios";
 import { Profile, ProfileUpdate, Conjunction, Anagram, QuizData, UpdateConjunctionData,
      FetchTeacherMinigamesParams, UpdateAnagramData, UpdateQuizData, RandomCardData,
-    UpdateRandomCardData, SpellingData, UpdateSpellingData, Accomplishment } from "../types";
+    UpdateRandomCardData, SpellingData, UpdateSpellingData, Accomplishment, FlashCardData,
+    UpdateFlashCard, rateMinigameData, CompletionData, UpdateCompletionData } from "../types";
 
 export const fetchUserProfile = async (userId: string, isTeacher: boolean) : Promise<Profile | null> => {
     try{
@@ -127,6 +128,15 @@ export const submitAccomplishment = async (accomplishmentData: Accomplishment) =
                 "Content-Type": "application/json",
             },
         })
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const rateMinigame = async (rateMinigameData: rateMinigameData) => {
+    try{
+        const response = await axiosInstance.post(`/api/Rating`, rateMinigameData);
         return response.data;
     }catch(error){
         console.log(error);
@@ -593,5 +603,166 @@ export const updateSpelling = async (updateData: UpdateSpellingData) =>{
     }catch(error){
         console.log(error);
         throw error;
+    }
+}
+export const createFlashCard = async (flashCardData: FlashCardData) =>{
+    try{
+        const formData = new FormData();
+
+        formData.append("MinigameName", flashCardData.MinigameName);
+        formData.append("TeacherId", flashCardData.TeacherId);
+        formData.append("Duration", flashCardData.Duration.toString());
+        formData.append("TemplateId", flashCardData.TemplateId);
+        formData.append("CourseId", flashCardData.CourseId);
+
+        if(flashCardData.ImageFile){
+            formData.append("ImageFile", flashCardData.ImageFile);
+        }
+        flashCardData.GameData.map((data, index) =>{
+            formData.append(`GameData[${index}].Front`, data.Front);
+            formData.append(`GameData[${index}].Back`, data.Back);
+        })
+        console.log("FormData content:");
+            for (const pair of formData.entries()) {
+            console.log(`${pair[0]}:`, pair[1]);
+        }
+        const response = await axiosInstance.post(`/api/MiniGame/flash-card`, formData,{
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        })
+        return response.data;
+    }catch(error){
+        console.log(error);
+    }
+}
+export const updateFlashCard = async (updateData: UpdateFlashCard) =>{
+    try{
+        const formData = new FormData();
+        formData.append('MinigameId', updateData.MinigameId);
+        formData.append('MinigameName', updateData.MinigameName);
+
+        let imageFile: File | null = null;
+        if (updateData.ImageFile) {
+            imageFile = updateData.ImageFile;
+        } else if (updateData.ImageUrl) {
+            try {
+                imageFile = await fetchImageAsFile(updateData.ImageUrl, 'existing-thumbnail.jpg');
+            } catch (corsError) {
+                console.error('CORS error while fetching image:', corsError);
+                console.warn('Skipping image due to CORS restrictions');
+            }
+        }
+        if (imageFile) {
+            formData.append('ImageFile', imageFile);
+            console.log(`Image file attached: ${imageFile.name}, size: ${imageFile.size} bytes`);
+        }
+
+        formData.append('Duration', updateData.Duration.toString());
+        formData.append('TemplateId', updateData.TemplateId);
+        formData.append('TeacherId', updateData.TeacherId);
+        updateData.GameData.forEach((data, index) => {
+            formData.append(`GameData[${index}].Front`, data.Front);
+            formData.append(`GameData[${index}].Back`, data.Back)
+        });
+
+        const response = await axiosInstance.put(`/api/MiniGame/flash-card/`, formData, {
+            params: {fakeTeacherId: updateData.TeacherId}, // Thêm tham số nếu cần
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
+        return response.data;
+    }catch(error){
+        console.log(error);
+    }
+}
+export const createCompletion = async (completionData: CompletionData) => {
+    try{
+        const formData = new FormData();
+
+        formData.append("MinigameName", completionData.MinigameName);
+        formData.append("TeacherId", completionData.TeacherId);
+        formData.append("Duration", completionData.Duration.toString());
+        formData.append("TemplateId", completionData.TemplateId);
+        formData.append("CourseId", completionData.CourseId);
+
+        if(completionData.ImageFile){
+            formData.append("ImageFile", completionData.ImageFile);
+        }
+        completionData.GameData.forEach((data, sentIdx) => {
+            formData.append(`GameData[${sentIdx}].Sentence`, data.Sentence);
+
+            data.Options.forEach((opt, optIdx) => {
+                formData.append(`GameData[${sentIdx}].Options[${optIdx}]`, opt);
+            });
+
+            data.AnswerIndexes.forEach((ans, ansIdx) => {
+                formData.append(`GameData[${sentIdx}].AnswerIndexes[${ansIdx}]`, ans.toString());
+            });
+        });
+        const response = await axiosInstance.post(`/api/MiniGame/completion`, formData,{
+            headers:{
+                'Content-Type': 'multipart/form-data',
+            }
+        })
+        return response.data;
+    }catch(error){
+        console.log(error);
+    }
+}
+export const UpdateCompletion = async (updateData: UpdateCompletionData) => {
+    try{
+        const formData = new FormData();
+        formData.append('MinigameId', updateData.MinigameId);
+        formData.append('MinigameName', updateData.MinigameName);
+
+        let imageFile: File | null = null;
+        if (updateData.ImageFile) {
+            imageFile = updateData.ImageFile;
+        } else if (updateData.ImageUrl) {
+            try {
+                imageFile = await fetchImageAsFile(updateData.ImageUrl, 'existing-thumbnail.jpg');
+            } catch (corsError) {
+                console.error('CORS error while fetching image:', corsError);
+                console.warn('Skipping image due to CORS restrictions');
+            }
+        }
+        if (imageFile) {
+            formData.append('ImageFile', imageFile);
+            console.log(`Image file attached: ${imageFile.name}, size: ${imageFile.size} bytes`);
+        }
+
+        formData.append('Duration', updateData.Duration.toString());
+        formData.append('TemplateId', updateData.TemplateId);
+        formData.append('TeacherId', updateData.TeacherId);
+        updateData.GameData.forEach((data, sentIdx) => {
+            formData.append(`GameData[${sentIdx}].Sentence`, data.Sentence);
+
+            data.Options.forEach((opt, optIdx) => {
+                formData.append(`GameData[${sentIdx}].Options[${optIdx}]`, opt);
+            });
+
+            data.AnswerIndexes.forEach((ans, ansIdx) => {
+                formData.append(`GameData[${sentIdx}].AnswerIndexes[${ansIdx}]`, ans.toString());
+            });
+        });
+        console.log("FormData content:");
+            for (const pair of formData.entries()) {
+            console.log(`${pair[0]}:`, pair[1]);
+        }
+        const response = await axiosInstance.put(`/api/MiniGame/completion`, formData,{
+            params:{
+                fakeTeacherId: updateData.TeacherId
+            },
+            headers:{
+                'Content-Type': 'multipart/form-data',
+            }
+        })
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
     }
 }

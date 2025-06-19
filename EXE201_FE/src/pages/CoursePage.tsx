@@ -71,7 +71,7 @@ const CoursePage: React.FC = () => {
     fetchCoursesWithDetails();
   }, [searchCourseName, searchLevelId, currentPage]);
   const handleCourseClick = (courseId: string) => {
-    if(roleId === "1") {
+    if(roleId === "3") {
       navigate(`/teacher/course/${courseId}`);
     }
     else if(roleId === "2") {

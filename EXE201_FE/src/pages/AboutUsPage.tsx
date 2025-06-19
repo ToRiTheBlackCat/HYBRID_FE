@@ -21,8 +21,8 @@ const FeatureSection = ({ title, description, imgSrc, index }: {
     const reverse = index % 2 !== 0;
     const sectionId = `feature-${index}`;
     const teamMembers = [
-        {name: "Huỳnh Thị Thành Hằng", role: "AI Specialist", imgSrc: ThanhHang},
-        {name: "Võ Tiến Đạt", role: "Data Scientist", imgSrc: Dat},
+        {name: "Huỳnh Thị Thành Hằng", role: "CEO", imgSrc: ThanhHang},
+        {name: "Võ Tiến Đạt", role: "CEO", imgSrc: Dat},
         {name: "Châu Anh Tuấn", role: "Software Engineer", imgSrc: Tuan},
         {name: "Nguyễn Huỳnh Minh Trí", role: "Tech Lead", imgSrc: Tri},
         {name: "Tạ Đức Thắng", role: "Software Engineer", imgSrc: Thang},

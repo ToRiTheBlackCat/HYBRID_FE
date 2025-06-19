@@ -63,7 +63,7 @@ const UserDropdown: React.FC<Props> = ({ userName, roleId }) => {
             >
               <FiUser /> Edit Profile
             </Link>
-            {roleId === '1' && (
+            {roleId === '3' && (
               <Link
                 to="/teacher/activities"
                 onClick={() => setIsOpen(false)}

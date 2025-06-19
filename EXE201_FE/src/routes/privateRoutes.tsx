@@ -12,7 +12,6 @@ import RandomCardReview from '../pages/Template/RandomCardReview';
 import Spelling from '../pages/Template/Spelling';
 import ProfilePage from '../pages/ProfilePage';
 import SpellingReview from '../pages/Template/SpellingReview';
-import CompletionTemplate from "../pages/Template/Basic/Conpletion";
 import CompletionReview from "../pages/Template/Basic/CompletionReview";
 import PairingScreen from "../pages/Template/Basic/Pairing";
 import PairingReview from "../pages/Template/Basic/PairingReview";
@@ -35,6 +34,7 @@ import PlayAnagram from '../pages/Student/Template/PlayAnagram';
 import PlayQuiz from '../pages/Student/Template/PlayQuiz';
 import PlayRandomCard from '../pages/Student/Template/PlayRandomCard';
 import PlaySpelling from '../pages/Student/Template/PlaySpelling';
+import PlayFlashcard from '../pages/Student/Template/PlayFlashcard';
 
 export const privateRoutes = [
     // {path: "/conjunction", element: <ConjunctionTemplate/>},
@@ -49,8 +49,7 @@ export const privateRoutes = [
     {path: "/spelling", element: <Spelling/>},
     {path: "/profile", element: <ProfilePage/>},
     {path: "/teacher/spelling-review/:minigameId", element: <SpellingReview/>},
-    {path: "/completion", element: <CompletionTemplate/>},
-    {path: "/completion-review", element: <CompletionReview/>},
+    {path: "/teacher/completion-review/:minigameId", element: <CompletionReview/>},
     {path: "/pairing", element: <PairingScreen/>},
     {path: "/pairing-review", element: <PairingReview/>},
     {path: "/restoration", element: <RestorationScreen/>},
@@ -62,7 +61,7 @@ export const privateRoutes = [
     {path: "/crossword", element: <CrosswordEditor/>},
     {path: "/crossword-review", element: <CrosswordReview/>},
     {path: "/flashcard", element: <FlashcardDesigner/>},
-    {path: "/flashcard-review", element: <FlashcardReview/>},
+    {path: "/teacher/flashcard-review/:minigameId", element: <FlashcardReview/>},
     {path: "/course", element: <CoursePage/>},
     {path: "/student/course/:courseId", element: <CourseDetail/>},
     {path: "/teacher/course/:courseId", element: <TeacherCourseDetail/>},
@@ -74,4 +73,5 @@ export const privateRoutes = [
     {path: "/student/spelling/:minigameId", element: <PlaySpelling/>},
     {path: "/student/accomplishments", element: <StudentAccomplishment/>},
     {path: "/teacher/minigame-data/:minigameId", element: <TeacherMinigameData/>},
+    {path: "/student/flashcard/:minigameId", element: <PlayFlashcard/>},
 ]

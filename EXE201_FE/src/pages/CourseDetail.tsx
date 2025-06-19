@@ -46,6 +46,9 @@ const CourseDetail: React.FC = () => {
       case "TP5":
         navigate(`/student/spelling/${minigameId}`);
         break;
+      case "TP6":
+        navigate(`/student/flashcard/${minigameId}`);
+        break;  
       default:
         console.warn("Unknown templateId:", templateId);
         break;

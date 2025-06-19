@@ -1,13 +1,28 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaLink, FaTrash } from "react-icons/fa";
+import { createCompletion } from "../../../services/authService";
+import { CompletionData, Completion } from "../../../types";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store/store";
+import { toast } from "react-toastify";
 
-const CompletionTemplate: React.FC = () => {
+interface CompletionProp {
+  courseId: string;
+}
+
+const CompletionTemplate: React.FC<CompletionProp> = ({ courseId }) => {
   const [activityName, setActivityName] = useState("");
-  const [sentences, setSentences] = useState<string[]>(["", "", ""]);
-  const [options, setOptions] = useState<string[][]>([[], [], []]); // Options for each sentence
-  const [selectedWords, setSelectedWords] = useState<string[][]>([[], [], []]);
+  const [sentences, setSentences] = useState<string[]>([""]);
+  const [options, setOptions] = useState<string[][]>([[]]); // Options for each sentence
+  const [selectedWords, setSelectedWords] = useState<string[][]>([[]]);
   const navigate = useNavigate();
+  const teacherId = useSelector((state: RootState) => state.user.userId);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [duration, setDuration] = useState<number>(0);
+  const [correctIndexes, setCorrectIndexes] = useState<number[]>(
+    sentences.map(() => 0)          // mặc định đáp án đúng là option đầu tiên
+  );
 
   const handleActivityNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setActivityName(e.target.value);
@@ -35,6 +50,9 @@ const CompletionTemplate: React.FC = () => {
     const newOptions = [...options];
     newOptions[sentenceIndex] = newOptions[sentenceIndex].filter((_, i) => i !== optionIndex);
     setOptions(newOptions);
+    if (correctIndexes[sentenceIndex] === optionIndex) {
+      handleCorrectChange(sentenceIndex, 0);
+    }
   };
 
   const handleWordClick = (sentenceIndex: number, word: string) => {
@@ -50,6 +68,7 @@ const CompletionTemplate: React.FC = () => {
 
   const addSentence = () => {
     setSentences([...sentences, ""]);
+    setCorrectIndexes([...correctIndexes, 0]);
     setOptions([...options, [""]]);
     setSelectedWords([...selectedWords, []]);
   };
@@ -60,49 +79,81 @@ const CompletionTemplate: React.FC = () => {
     const newOptions = options.filter((_, i) => i !== index);
     const newSelectedWords = selectedWords.filter((_, i) => i !== index);
     setSentences(newSentences);
+    const newCorrect = correctIndexes.filter((_, i) => i !== index);
+    setCorrectIndexes(newCorrect);
     setOptions(newOptions);
     setSelectedWords(newSelectedWords);
   };
+  const handleCorrectChange = (sentIdx: number, optIdx: number) => {
+    const arr = [...correctIndexes];
+    arr[sentIdx] = optIdx;
+    setCorrectIndexes(arr);
+  };
 
-  const handleFinish = () => {
-    if (!activityName) {
+  const handleFinish = async () => {
+    if (!activityName.trim()) {
       alert("Please enter an activity name.");
       return;
     }
+
+
+    // build modified sentence (___) + options giống như bạn đã làm
     const filledSentences = sentences.filter((s) => s.trim() !== "");
     if (filledSentences.length === 0) {
       alert("Please enter at least one sentence.");
       return;
     }
-    const anyWordsSelected = selectedWords.some((words) => words.length > 0);
-    if (!anyWordsSelected) {
+
+    if (!selectedWords.some((w) => w.length > 0)) {
       alert("Please select at least one word to replace.");
       return;
     }
 
-    const modifiedSentences = sentences.map((sentence, index) => {
+    /* ----- build CompletionData ----- */
+    const gameData = sentences.map((sentence, idx) => {
       if (!sentence.trim()) return null;
-      let modified = sentence;
-      selectedWords[index].forEach((word) => {
-        const regex = new RegExp(`\\b${word}\\b`, "gi");
-        modified = modified.replace(regex, "___");
+
+      // 1) sentence with ___
+      let blanked = sentence;
+      selectedWords[idx].forEach((w) => {
+        const re = new RegExp(`\\b${w}\\b`, "gi");
+        blanked = blanked.replace(re, "___");
       });
-      return modified;
-    }).filter((s) => s !== null) as string[];
 
-    const validOptions = options.map((opts, index) =>
-      opts.filter((opt) => opt.trim() !== "").length > 0 ? opts.filter((opt) => opt.trim() !== "") : ["Option 1", "Option 2"]
-    );
+      // 2) option list (loại rỗng, fallback Option 1/2)
+      const opts = options[idx].filter((o) => o.trim() !== "");
+      const finalOptions = opts.length > 0 ? opts : ["Option 1", "Option 2"];
 
-    const reviewData = {
-      activityName,
-      originalSentences: sentences.filter((s) => s.trim() !== ""),
-      modifiedSentences,
-      options: validOptions,
+      // 3) answerIndexes — ở đây mặc định đáp án đúng là POSITION 0
+      // Nếu có UI chọn đáp án, thay thế cho phù hợp
+      return {
+        Sentence: blanked,
+        Options: finalOptions,
+        AnswerIndexes: [correctIndexes[idx] + 1],
+      };
+    }).filter(Boolean) as Completion[];
+
+    const payload: CompletionData = {
+      MinigameName: activityName,
+      ImageFile: imageFile,
+      TeacherId: teacherId,
+      Duration: duration,
+      TemplateId: "TP7",
+      CourseId: courseId,
+      GameData: gameData,
     };
 
-    navigate("/completion-review", { state: reviewData });
-  };
+    try {
+      const result = await createCompletion(payload);
+      if (result) {
+        toast.success("Tạo completion thành công!");
+        navigate("/teacher/activities");
+      }
+    } catch (err) {
+      toast.error("Có lỗi khi tạo completion. Kiểm tra console!");
+      console.error(err);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
@@ -113,6 +164,21 @@ const CompletionTemplate: React.FC = () => {
           value={activityName}
           onChange={handleActivityNameChange}
           placeholder="Enter activity name"
+          className="w-full p-2 mb-4 border rounded bg-gray-100"
+        />
+        <label className="block font-semibold mb-1">Thumbnail</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+          className="w-full p-2 border rounded mb-4"
+        />
+        <h2 className="text-lg font-bold mb-4">Duration (seconds)</h2>
+        <input
+          type="number"
+          value={duration}
+          onChange={(e) => setDuration(Number(e.target.value))}
+          placeholder="Enter duration in seconds"
           className="w-full p-2 mb-4 border rounded bg-gray-100"
         />
         <h2 className="text-lg font-bold mb-4">Sentence</h2>
@@ -140,11 +206,10 @@ const CompletionTemplate: React.FC = () => {
                   <span
                     key={wordIndex}
                     onClick={() => handleWordClick(index, word)}
-                    className={`cursor-pointer px-2 py-1 rounded ${
-                      selectedWords[index].includes(word)
+                    className={`cursor-pointer px-2 py-1 rounded ${selectedWords[index].includes(word)
                         ? "bg-blue-500 text-white"
                         : "bg-gray-200"
-                    }`}
+                      }`}
                   >
                     {word}
                   </span>
@@ -155,17 +220,24 @@ const CompletionTemplate: React.FC = () => {
               <p className="font-semibold mb-2">Options:</p>
               {options[index].map((opt, optIndex) => (
                 <div key={optIndex} className="flex items-center mb-2">
+                  {/* radio chọn đáp án đúng */}
+                  <input
+                    type="radio"
+                    name={`correct-${index}`}
+                    checked={correctIndexes[index] === optIndex}
+                    onChange={() => handleCorrectChange(index, optIndex)}
+                    className="mr-2"
+                  />
+
                   <input
                     type="text"
                     value={opt}
                     onChange={(e) => handleOptionsChange(index, optIndex, e.target.value)}
                     placeholder={`Option ${optIndex + 1}`}
-                    className="w-full p-2 mb-2 border rounded mr-2"
+                    className="flex-1 p-2 border rounded mr-2"
                   />
-                  <button
-                    onClick={() => deleteOption(index, optIndex)}
-                    className="p-2"
-                  >
+
+                  <button onClick={() => deleteOption(index, optIndex)} className="p-2">
                     <FaTrash className="text-gray-500" />
                   </button>
                 </div>

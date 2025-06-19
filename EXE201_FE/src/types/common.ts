@@ -186,3 +186,63 @@ export type AccomplishmentData = {
   courseName: string;
   takenDate: string; // ISO string
 }
+export type Flashcard = {
+  id: number;
+  front: string;
+  back: string;
+}
+export type FlashCardData = {
+  MinigameName: string;
+  ImageFile: File | null;
+  TeacherId: string;
+  Duration: number;
+  TemplateId: string;
+  CourseId: string;
+  GameData: {
+    Front: string,
+    Back: string,
+  }[];
+}
+export type UpdateFlashCard = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile: File | null;
+  ImageUrl?: string | null;
+  Duration: number;
+  TemplateId: string;
+  TeacherId: string;
+  GameData: {
+    Front: string,
+    Back: string,
+  }[];
+}
+export type rateMinigameData = {
+  StudentId: string,
+  MinigameId: string,
+  Score: number,
+  Comment: string,
+}
+export type Completion = {
+  Sentence: string;
+  Options: string[];
+  AnswerIndexes: number[];
+}
+export type CompletionData = {
+  MinigameName: string;
+  ImageFile: File | null;
+  TeacherId: string;
+  Duration: number;
+  TemplateId: string;
+  CourseId: string;
+  GameData: Completion[];
+}
+export type UpdateCompletionData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile: File | null;
+  ImageUrl?: string | null;
+  Duration: number;
+  TemplateId: string;
+  TeacherId: string;
+  GameData: Completion[];
+}

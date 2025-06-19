@@ -32,11 +32,22 @@ const LoginPage: React.FC = () => {
         const decodeData = jwtDecode(credentialResponse.credential);
         console.log(decodeData);
         const initialUserData = await LoginGoggle(credentialResponse.credential);
-        if (initialUserData && initialUserData.userId) { // Giả định userId có trong response
+        if (initialUserData && initialUserData.userId) { 
           dispatch(setUserRedux(initialUserData));
+
           Cookies.set('user', JSON.stringify(initialUserData), { expires: 7 });
           setUserId(initialUserData.userId); // Lưu userId
-          setShowAdditionalForm(true); // Hiển thị form bổ sung
+          if(initialUserData.roleId === ""){
+             setShowAdditionalForm(true); // Hiển thị form bổ sung
+          }    
+          else{
+            setShowAdditionalForm(false)
+            if(initialUserData.roleId == "3"){
+              navigate("/")
+            } else if(initialUserData.roleId == "2"){
+              navigate("/student")
+            }
+          }
         } else {
           toast.error("Đăng nhập thất bại hoặc không tìm thấy userId");
         }
@@ -90,12 +101,11 @@ const LoginPage: React.FC = () => {
 
     try {
       const userData = await Login(email, password);
-      console.log("token", userData?.accessToken)
       if (userData) {
         dispatch(setUserRedux(userData));
         Cookies.set('user', JSON.stringify(userData), { expires: 7 });
         toast.success("Đăng nhập thành công");
-        if(userData.roleId === "1") {
+        if(userData.roleId === "3") {
           navigate("/");
         } else if (userData.roleId === "2") {
           navigate("/student");

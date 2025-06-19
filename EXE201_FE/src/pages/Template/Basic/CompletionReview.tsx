@@ -1,104 +1,267 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { fetchPlayMinigames } from "../../../services/authService";
+import EditCompletion from "../../Teacher/Template/EditCompletion";   // <– đã import sẵn
+import { baseImageUrl } from "../../../config/base";
+import CompletionRaw from "../../Teacher/RawMinigameInfo/Completion";
+import Header from "../../../components/HomePage/Header";
 
+/* ───────── helpers ───────── */
+type QuestionParsed = { modifiedSentence: string; options: string[]; correctIndex: number };
+
+function parseDataText(xml: string): QuestionParsed[] {
+  const dom = new DOMParser().parseFromString(xml, "application/xml");
+  return Array.from(dom.getElementsByTagName("question")).map((q) => ({
+    modifiedSentence: q.getElementsByTagName("sentence")[0]?.textContent ?? "",
+    options: Array.from(q.getElementsByTagName("options")).map((o) => o.textContent ?? ""),
+    correctIndex: parseInt(q.getElementsByTagName("answers")[0]?.textContent ?? "0", 10) || 0,
+  }));
+}
+
+/* ───────── component ───────── */
 const CompletionReview: React.FC = () => {
-  const { state } = useLocation();
-  const { activityName, originalSentences, modifiedSentences, options } = state || {};
+  const { minigameId } = useParams<{ minigameId: string }>();
   const navigate = useNavigate();
-  const [answers, setAnswers] = useState<string[][]>(options.map(() => []));
+
+  /* -------- state -------- */
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+
+  const [activityName, setActivityName] = useState("");
+  const [questions, setQuestions] = useState<QuestionParsed[]>([]);
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [current, setCurrent] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [score, setScore] = useState<number | null>(null);
 
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [paused, setPaused] = useState(false);
+
+  const [duration, setDuration] = useState<number>(0);            // ★ NEW
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null); // ★ NEW
+
+  /* -------- fetch data -------- */
   useEffect(() => {
-    if (modifiedSentences && options) {
-      setAnswers(options.map(() => [])); // Reset answers on mount
+    if (!minigameId) {
+      setError("Không tìm thấy minigameId trên URL");
+      setLoading(false);
+      return;
     }
-  }, [modifiedSentences, options]);
 
-  const handleAnswerChange = (sentenceIndex: number, word: string) => {
-    const newAnswers = [...answers];
-    newAnswers[sentenceIndex] = [word]; // Only one answer per sentence for simplicity
-    setAnswers(newAnswers);
+    (async () => {
+      try {
+        const data = await fetchPlayMinigames(minigameId);
+
+        setActivityName(data.minigameName ?? "");
+        const fullThumb = data.thumbnailImage ? baseImageUrl + data.thumbnailImage : null;
+        setThumbnailUrl(fullThumb);               // ★ NEW
+
+        const parsed = parseDataText(data.dataText ?? "");
+        setQuestions(parsed);
+        setAnswers(new Array(parsed.length).fill(-1));
+
+        const d = Number(data.duration) || 120;
+        setDuration(d);                                             // ★ NEW
+        setTimeLeft(d);
+
+        setError(null);
+      } catch (e) {
+        console.error(e);
+        setError("Không thể tải dữ liệu minigame.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [minigameId]);
+
+  /* -------- timer -------- */
+  useEffect(() => {
+    if (loading || submitted || paused) return;
+    const id = setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          clearInterval(id);
+          handleSubmit();
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [loading, submitted, paused]);
+
+  /* -------- answer / submit -------- */
+  const handleAnswer = (optIdx: number) => {
+    if (paused || submitted) return;
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[current] = optIdx;
+      return next;
+    });
+    if (current < questions.length - 1) setCurrent(current + 1);
   };
 
   const handleSubmit = () => {
+    if (submitted) return;
+    const pts = answers.reduce(
+      (acc, a, i) => acc + (a === questions[i].correctIndex ? 1 : 0),
+      0
+    );
+    setScore(pts);
     setSubmitted(true);
-    // Add your submission logic here (e.g., validate answers, save to backend)
-    console.log("Submitted answers:", answers);
-    alert("Answers submitted! Implement your submission logic here.");
   };
 
-  const handleTryAgain = () => {
-    navigate("/completion-template");
+  const formatTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
+  /* --------★ Callback khi giáo viên ấn "Finish" trong EditCompletion -------- */
+  const handleSaveEdit = ({
+    activityName: newName,
+    duration: newDur,
+    entries,
+  }: {
+    activityName: string;
+    duration: number;
+    entries: { sentence: string; options: string[]; answerIndex: number }[];
+    thumbnail: File | null;
+  }) => {
+    // cập nhật tiêu đề & thời gian
+    setActivityName(newName);
+    setDuration(newDur);
+    setTimeLeft(newDur);
+
+    // dựng lại questions & reset trạng thái
+    const rebuilt = entries.map((e) => ({
+      modifiedSentence: e.sentence,
+      options: e.options,
+      correctIndex: e.answerIndex,
+    }));
+    setQuestions(rebuilt);
+    setAnswers(new Array(rebuilt.length).fill(-1));
+    setCurrent(0);
+    setSubmitted(false);
+    setScore(null);
   };
 
-  if (!modifiedSentences || !options) {
-    return <div>No data available. Please go back and try again.</div>;
-  }
+  /* -------- UI -------- */
+  if (loading) return <div className="p-4">Đang tải minigame...</div>;
+  if (error)   return <div className="p-4 text-red-600">{error}</div>;
 
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-lg font-bold mb-4">Activity name</h2>
-        <input
-          type="text"
-          value={activityName || ""}
-          readOnly
-          className="w-full p-2 mb-4 border rounded bg-gray-100"
-        />
-        {modifiedSentences.map((sentence, index) => (
-          <div key={index} className="mb-4">
-            <div className="flex items-center">
-              <span className="mr-2">{index + 1}.</span>
-              <span className="flex-1 p-2 border rounded bg-yellow-100 text-gray-700">
-                {sentence.split("___").map((part, partIndex, array) => (
-                  <span key={partIndex}>
-                    {part}
-                    {partIndex < array.length - 1 && (
-                      <span className="bg-yellow-200 p-1 mx-1 rounded">___</span>
-                    )}
-                  </span>
-                ))}
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2 ml-6">
-              {options[index].map((word, wordIndex) => (
-                <button
-                  key={wordIndex}
-                  onClick={() => handleAnswerChange(index, word)}
-                  className={`px-2 py-1 rounded ${
-                    answers[index].includes(word)
-                      ? "bg-green-400 text-white"
-                      : wordIndex === 0 || wordIndex === 1
-                      ? "bg-green-200"
-                      : wordIndex === 2
-                      ? "bg-blue-200"
-                      : "bg-orange-200"
-                  }`}
-                  disabled={submitted}
-                >
-                  {word}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-        <div className="flex justify-between mt-4">
+  /* -- kết quả -- */
+  if (submitted && score !== null)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+          <h2 className="text-xl font-bold mb-4">Kết quả của bạn</h2>
+          <p className="text-3xl font-semibold mb-4">
+            {score} / {questions.length}
+          </p>
           <button
-            onClick={handleTryAgain}
-            className="bg-blue-400 text-white px-4 py-2 rounded-full hover:bg-blue-500"
+            onClick={() => navigate(0)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
-            Try again
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="bg-green-400 text-black px-4 py-2 rounded-full hover:bg-green-500"
-            disabled={submitted}
-          >
-            Submit
+            Chơi lại
           </button>
         </div>
       </div>
+    );
+
+  const q = questions[current];
+
+  return (
+    <>
+    <Header/>
+    {!isPlaying ? (
+      <CompletionRaw onStart={() => setIsPlaying(true)} />
+    ) : (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        {/* ---------- header ---------- */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold">{activityName}</h2>
+
+            {/* ★ Nút EditCompletion chỉ dành cho giáo viên */}
+            <EditCompletion
+              initialActivityName={activityName}
+              initialDuration={duration}
+              initialEntries={questions.map((q) => ({
+                sentence: q.modifiedSentence,
+                options: q.options,
+                answerIndex: q.correctIndex,
+              }))}
+              initialThumbnailUrl={thumbnailUrl}
+              onSave={handleSaveEdit}
+            />
+          </div>
+
+          <span className="font-mono text-sm bg-black text-white px-2 py-1 rounded">
+            {formatTime(timeLeft)}
+          </span>
+        </div>
+
+        {/* ---------- progress ---------- */}
+        <p className="mb-2">
+          Câu {current + 1} / {questions.length}
+        </p>
+
+        {/* ---------- sentence ---------- */}
+        <div className="p-3 border rounded bg-yellow-100 text-gray-700 mb-4">
+          {q.modifiedSentence.split("___").map((part, i, arr) => (
+            <span key={i}>
+              {part}
+              {i < arr.length - 1 && (
+                <span className="bg-yellow-200 px-1 mx-1 rounded">___</span>
+              )}
+            </span>
+          ))}
+        </div>
+
+        {/* ---------- options ---------- */}
+        <div className="flex flex-wrap gap-2">
+          {q.options.map((word, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleAnswer(idx)}
+              className={`px-2 py-1 rounded w-full text-left ${
+                answers[current] === idx ? "bg-green-400 text-white" : "bg-orange-200"
+              }`}
+              disabled={answers[current] !== -1 || paused}
+            >
+              {word}
+            </button>
+          ))}
+        </div>
+
+        {/* ---------- footer ---------- */}
+        <div className="flex justify-between mt-6">
+          <button
+            onClick={() => navigate(0)}
+            className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+          >
+            Thoát
+          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPaused((p) => !p)}
+              className="bg-yellow-400 px-4 py-2 rounded hover:bg-yellow-500"
+            >
+              {paused ? "Resume" : "Pause"}
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-60"
+              disabled={answers.includes(-1) || paused}
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+)}
+    </>
   );
 };
 
