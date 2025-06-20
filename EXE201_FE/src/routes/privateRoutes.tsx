@@ -35,14 +35,14 @@ import PlayQuiz from '../pages/Student/Template/PlayQuiz';
 import PlayRandomCard from '../pages/Student/Template/PlayRandomCard';
 import PlaySpelling from '../pages/Student/Template/PlaySpelling';
 import PlayFlashcard from '../pages/Student/Template/PlayFlashcard';
+import PlayCompletion from '../pages/Student/Template/PlayCompletion';
+import PlayPairing from '../pages/Student/Template/PlayPairing';
+import PlayRestoration from '../pages/Student/Template/PlayRestoration';
 
 export const privateRoutes = [
-    // {path: "/conjunction", element: <ConjunctionTemplate/>},
     {path: "/teacher/conjunction-review/:minigameId", element: <ConjunctionReview/>},
-    // {path: "/anagram", element: <AnagramTemplate/>},
     {path: "/teacher/anagram-review/:minigameId", element: <AnagramReview/>},
     
-    // {path: "/quiz", element: <Quiz/>},
     {path: "/teacher/quiz-review/:minigameId", element: <QuizReview/>},
     {path: "/random-card", element: <RandomCard/>},
     {path: "/teacher/random-card-review/:minigameId", element: <RandomCardReview/>},
@@ -50,14 +50,15 @@ export const privateRoutes = [
     {path: "/profile", element: <ProfilePage/>},
     {path: "/teacher/spelling-review/:minigameId", element: <SpellingReview/>},
     {path: "/teacher/completion-review/:minigameId", element: <CompletionReview/>},
+    {path: "/teacher/pairing-review/:minigameId", element: <PairingReview/>},
+    {path: "/teacher/restoration-review/:minigameId", element: <RestorationReview/>},
     {path: "/pairing", element: <PairingScreen/>},
     {path: "/pairing-review", element: <PairingReview/>},
     {path: "/restoration", element: <RestorationScreen/>},
-    {path: "/restoration-review", element: <RestorationReview/>},
     {path: "/find-word", element: <FindWordsScreen/>},
     {path: "/find-word-review", element: <FindWordsReview/>},
     {path: "/true-false", element: <TrueFalse/>},
-    {path: "/true-false-review", element: <TrueFalseReview/>},
+    {path: "/teacher/true-false-review/:minigameId", element: <TrueFalseReview/>},
     {path: "/crossword", element: <CrosswordEditor/>},
     {path: "/crossword-review", element: <CrosswordReview/>},
     {path: "/flashcard", element: <FlashcardDesigner/>},
@@ -74,4 +75,7 @@ export const privateRoutes = [
     {path: "/student/accomplishments", element: <StudentAccomplishment/>},
     {path: "/teacher/minigame-data/:minigameId", element: <TeacherMinigameData/>},
     {path: "/student/flashcard/:minigameId", element: <PlayFlashcard/>},
+    {path: "/student/completion/:minigameId", element: <PlayCompletion/>},
+    {path: "/student/pairing/:minigameId", element: <PlayPairing/>},
+    {path: "/student/restoration/:minigameId", element: <PlayRestoration/>},
 ]

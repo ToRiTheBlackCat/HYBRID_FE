@@ -1,9 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { fetchPlayMinigames } from "../../../services/authService";
-import EditCompletion from "../../Teacher/Template/EditCompletion";   // <– đã import sẵn
-import { baseImageUrl } from "../../../config/base";
-import CompletionRaw from "../../Teacher/RawMinigameInfo/Completion";
+import { fetchPlayMinigames } from "../../../services/authService";  // <– đã import sẵn
 import Header from "../../../components/HomePage/Header";
 
 /* ───────── helpers ───────── */
@@ -19,14 +16,13 @@ function parseDataText(xml: string): QuestionParsed[] {
 }
 
 /* ───────── component ───────── */
-const CompletionReview: React.FC = () => {
+const PlayCompletion: React.FC = () => {
   const { minigameId } = useParams<{ minigameId: string }>();
   const navigate = useNavigate();
 
   /* -------- state -------- */
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   const [activityName, setActivityName] = useState("");
   const [questions, setQuestions] = useState<QuestionParsed[]>([]);
@@ -37,9 +33,7 @@ const CompletionReview: React.FC = () => {
 
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [paused, setPaused] = useState(true);
-
-  const [duration, setDuration] = useState<number>(0);            // ★ NEW
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null); // ★ NEW
+ // ★ NEW
 
   /* -------- fetch data -------- */
   useEffect(() => {
@@ -53,16 +47,13 @@ const CompletionReview: React.FC = () => {
       try {
         const data = await fetchPlayMinigames(minigameId);
 
-        setActivityName(data.minigameName ?? "");
-        const fullThumb = data.thumbnailImage ? baseImageUrl + data.thumbnailImage : null;
-        setThumbnailUrl(fullThumb);               // ★ NEW
+        setActivityName(data.minigameName ?? "");           // ★ NEW
 
         const parsed = parseDataText(data.dataText ?? "");
         setQuestions(parsed);
         setAnswers(new Array(parsed.length).fill(-1));
 
-        const d = Number(data.duration) || 120;
-        setDuration(d);                                             // ★ NEW
+        const d = Number(data.duration) || 120;                                            // ★ NEW
         setTimeLeft(d);
 
         setError(null);
@@ -74,6 +65,27 @@ const CompletionReview: React.FC = () => {
       }
     })();
   }, [minigameId]);
+
+  /* -------- answer / submit -------- */
+  const handleAnswer = (optIdx: number) => {
+    if (paused || submitted) return;
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[current] = optIdx;
+      return next;
+    });
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleSubmit = useCallback(() => {
+    if (submitted) return;
+    const pts = answers.reduce(
+      (acc, a, i) => acc + (a === questions[i].correctIndex ? 1 : 0),
+      0
+    );
+    setScore(pts);
+    setSubmitted(true);
+  }, [submitted, answers, questions]);
 
   /* -------- timer -------- */
   useEffect(() => {
@@ -89,59 +101,11 @@ const CompletionReview: React.FC = () => {
       });
     }, 1000);
     return () => clearInterval(id);
-  }, [loading, submitted, paused]);
-
-  /* -------- answer / submit -------- */
-  const handleAnswer = (optIdx: number) => {
-    if (paused || submitted) return;
-    setAnswers((prev) => {
-      const next = [...prev];
-      next[current] = optIdx;
-      return next;
-    });
-  };
-
-  const handleSubmit = () => {
-    if (submitted) return;
-    const pts = answers.reduce(
-      (acc, a, i) => acc + (a === questions[i].correctIndex ? 1 : 0),
-      0
-    );
-    setScore(pts);
-    setSubmitted(true);
-  };
+  }, [loading, submitted, paused, handleSubmit]);
 
   const formatTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-  /* --------★ Callback khi giáo viên ấn "Finish" trong EditCompletion -------- */
-  const handleSaveEdit = ({
-    activityName: newName,
-    duration: newDur,
-    entries,
-  }: {
-    activityName: string;
-    duration: number;
-    entries: { sentence: string; options: string[]; answerIndex: number }[];
-    thumbnail: File | null;
-  }) => {
-    // cập nhật tiêu đề & thời gian
-    setActivityName(newName);
-    setDuration(newDur);
-    setTimeLeft(newDur);
-
-    // dựng lại questions & reset trạng thái
-    const rebuilt = entries.map((e) => ({
-      modifiedSentence: e.sentence,
-      options: e.options,
-      correctIndex: e.answerIndex,
-    }));
-    setQuestions(rebuilt);
-    setAnswers(new Array(rebuilt.length).fill(-1));
-    setCurrent(0);
-    setSubmitted(false);
-    setScore(null);
-  };
 
   /* -------- UI -------- */
   if (loading) return <div className="p-4">Đang tải minigame...</div>;
@@ -171,9 +135,6 @@ const CompletionReview: React.FC = () => {
   return (
     <>
     <Header/>
-    {!isPlaying ? (
-      <CompletionRaw onStart={() => setIsPlaying(true)} />
-    ) : (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
         {/* ---------- header ---------- */}
@@ -181,18 +142,6 @@ const CompletionReview: React.FC = () => {
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold">{activityName}</h2>
 
-            {/* ★ Nút EditCompletion chỉ dành cho giáo viên */}
-            <EditCompletion
-              initialActivityName={activityName}
-              initialDuration={duration}
-              initialEntries={questions.map((q) => ({
-                sentence: q.modifiedSentence,
-                options: q.options,
-                answerIndex: q.correctIndex,
-              }))}
-              initialThumbnailUrl={thumbnailUrl}
-              onSave={handleSaveEdit}
-            />
           </div>
 
           <span className="font-mono text-sm bg-black text-white px-2 py-1 rounded">
@@ -276,9 +225,8 @@ const CompletionReview: React.FC = () => {
         </div>
       </div>
     </div>
-)}
     </>
   );
 };
 
-export default CompletionReview;
+export default PlayCompletion;

@@ -4,24 +4,19 @@ import { Minigame } from "../../../types";
 import { baseImageUrl } from "../../../config/base";
 import { useParams, useNavigate } from "react-router-dom";
 
-interface CompletionProps {
+interface RestorationProps {
   onStart: () => void;
 }
 
-type CompletionQuestion = {
-  sentence: string;      
-  options: string[];     
-};
-
-const Completion: React.FC<CompletionProps> = ({ onStart }) => {
+const Restoration: React.FC<RestorationProps> = ({ onStart }) => {
   /* routing */
   const { minigameId } = useParams<{ minigameId: string }>();
   const navigate = useNavigate();
 
   /* main data */
-  const [minigame, setMinigame]   = useState<Minigame | null>(null);
-  const [questions, setQuestions] = useState<CompletionQuestion[]>([]);
-  const [showQ, setShowQ]         = useState(false);
+  const [minigame, setMinigame] = useState<Minigame | null>(null);
+  const [sentences, setSentences] = useState<string[]>([]);
+  const [showQ, setShowQ] = useState(false);
 
   /* ratings */
   const [ratings, setRatings] = useState<
@@ -39,32 +34,24 @@ const Completion: React.FC<CompletionProps> = ({ onStart }) => {
   useEffect(() => {
     if (!minigameId) return;
 
-    const loadMinigame = async () => {
+    (async () => {
       const data = await fetchPlayMinigames(minigameId);
       if (data) {
         setMinigame(data);
-        extractQuestions(data.dataText);
+        extractSentences(data.dataText);
       }
-    };
 
-    const loadRatings = async () => {
-      const data = await fetchMinigameRating(minigameId);
-      if (data) setRatings(data);
-    };
-
-    loadMinigame();
-    loadRatings();
+      const rgs = await fetchMinigameRating(minigameId);
+      if (rgs) setRatings(rgs);
+    })();
   }, [minigameId]);
 
   /* ---------------- parse XML ---------------- */
-  const extractQuestions = (xmlString: string) => {
-    const dom = new DOMParser().parseFromString(xmlString, "application/xml");
-    const qElems = Array.from(dom.getElementsByTagName("question"));
-    const qs = qElems.map((q) => ({
-      sentence: q.getElementsByTagName("sentence")[0]?.textContent ?? "",
-      options:  Array.from(q.getElementsByTagName("options")).map((o) => o.textContent ?? ""),
-    }));
-    setQuestions(qs);
+  const extractSentences = (xml: string) => {
+    const dom = new DOMParser().parseFromString(xml, "application/xml");
+    const nodes = Array.from(dom.getElementsByTagName("words"));
+    const sts = nodes.map((n) => n.textContent?.trim() ?? "").filter(Boolean);
+    setSentences(sts);
   };
 
   /* ---------------- render ---------------- */
@@ -75,10 +62,11 @@ const Completion: React.FC<CompletionProps> = ({ onStart }) => {
       <div className="max-w-4xl mx-auto mt-6 p-4 bg-blue-200 rounded-xl shadow-md">
         {/* ===== Top card ===== */}
         <div className="flex flex-col sm:flex-row items-center gap-4">
+          {/* thumbnail */}
           <div className="w-48 h-32 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
             {minigame.thumbnailImage ? (
               <img
-                src={`${baseImageUrl}${minigame.thumbnailImage}`}
+                src={baseImageUrl + minigame.thumbnailImage}
                 alt="Thumbnail"
                 className="object-cover w-full h-full rounded-lg"
               />
@@ -87,6 +75,7 @@ const Completion: React.FC<CompletionProps> = ({ onStart }) => {
             )}
           </div>
 
+          {/* info */}
           <div className="flex-1">
             <p className="text-sm text-gray-500 mb-1">
               <span className="font-semibold">Teacher:</span> {minigame.teacherName}
@@ -101,7 +90,7 @@ const Completion: React.FC<CompletionProps> = ({ onStart }) => {
             </div>
 
             <div className="text-sm text-gray-600 mt-1">
-              {questions.length} questions • {minigame.duration} sec duration
+              {sentences.length} sentences • {minigame.duration} sec duration
             </div>
 
             <div className="mt-3 flex gap-3">
@@ -121,7 +110,7 @@ const Completion: React.FC<CompletionProps> = ({ onStart }) => {
           </div>
         </div>
 
-        {/* ===== toggle & questions ===== */}
+        {/* ===== toggle & sentences ===== */}
         <div className="mt-6">
           <div className="flex items-center mt-4">
             <label className="relative inline-flex items-center cursor-pointer">
@@ -133,26 +122,19 @@ const Completion: React.FC<CompletionProps> = ({ onStart }) => {
               />
               <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-yellow-400 transition-all duration-300" />
               <span className="ml-3 text-sm font-medium text-gray-700 select-none">
-                Show questions
+                Show sentences
               </span>
             </label>
           </div>
 
           <div
             className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-4 transition-opacity duration-300 ${
-              showQ ? "opacity-100" : "opacity-40 pointer-events-none select-none"
+              showQ ? "opacity-100" : "opacity-5 pointer-events-none select-none"
             }`}
           >
-            {questions.map((q, idx) => (
-              <div key={idx} className="bg-gray-100 rounded-lg p-3 shadow-sm">
-                <p className="font-medium">
-                  {idx + 1}. {q.sentence}
-                </p>
-                <ul className="list-disc list-inside text-sm mt-1 text-gray-700">
-                  {q.options.map((opt, i) => (
-                    <li key={i}>{opt}</li>
-                  ))}
-                </ul>
+            {sentences.map((s, idx) => (
+              <div key={idx} className="bg-gray-100 rounded-lg p-3 shadow-sm font-medium">
+                {idx + 1}. {s}
               </div>
             ))}
           </div>
@@ -189,4 +171,4 @@ const Completion: React.FC<CompletionProps> = ({ onStart }) => {
   );
 };
 
-export default Completion;
+export default Restoration;

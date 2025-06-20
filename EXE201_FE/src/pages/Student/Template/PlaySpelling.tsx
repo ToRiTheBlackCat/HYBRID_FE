@@ -29,6 +29,8 @@ const PlaySpelling: React.FC = () =>{
     const [remaining, setRemaining] = useState<number>(0);
     const [paused, setPaused] = useState(true);
     const [loading, setLoading] = useState(true);
+    const [score, setScore] = useState(0);          
+    const [finished, setFinished] = useState(false);
 
     const [activityName, setActivityName] = useState("");
 
@@ -44,8 +46,8 @@ const PlaySpelling: React.FC = () =>{
   };
 
   /* ───────── fetch data ───────── */
-  useEffect(() => {
-    const load = async () => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const initGame = async () => {
       if (!minigameId) return;
       try {
         const res = await fetchPlayMinigames(minigameId);
@@ -72,7 +74,7 @@ const PlaySpelling: React.FC = () =>{
               edits.push({
                 Word: word,
                 Image: file,
-                ImageUrl: normalize(baseImageUrl, img), // 👈 thêm dòng này
+                ImageUrl: normalize(baseImageUrl, img), 
               });
             } catch {
               edits.push({ Word: word, Image: null, ImageUrl:"" });
@@ -84,6 +86,10 @@ const PlaySpelling: React.FC = () =>{
 
         setQuestions(qs);
         setLetters(Array(qs[0].word.length).fill(""));
+        setCurIdx(0);         
+        setScore(0);          
+        setFinished(false);   
+        setPaused(true);
       } catch (e) {
         toast.error("Failed to load minigame");
         console.log(e)
@@ -91,15 +97,17 @@ const PlaySpelling: React.FC = () =>{
         setLoading(false);
       }
     };
-    load();
-  }, [minigameId]);
+    useEffect(() => {
+      initGame();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
   /* ───────── countdown ───────── */
   useEffect(() => {
     if (paused || remaining <= 0) return;
     const t = setInterval(() => setRemaining((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
-  }, [paused, remaining]);
+  }, [paused, remaining, initGame]);
 
   /* ───────── gameplay handlers ───────── */
   const curQ = questions[curIdx];
@@ -112,14 +120,24 @@ const PlaySpelling: React.FC = () =>{
   };
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (letters.join("") === curQ.word) {
+    const isCorrect = letters.join("") === curQ.word;
+
+    if (isCorrect) {
       toast.success("Correct!");
-      if (curIdx < questions.length - 1) {
-        const next = curIdx + 1;
-        setCurIdx(next);
-        setLetters(Array(questions[next].word.length).fill(""));
-      } else toast.success("Finished!");
-    } else toast.error("Incorrect!");
+      setScore((s) => s + 1);
+    } else {
+      toast.error("Incorrect!");
+    }
+
+    if (curIdx < questions.length - 1) {
+      const next = curIdx + 1;
+      setCurIdx(next);
+      setLetters(Array(questions[next].word.length).fill(""));
+    } else {
+      setFinished(true);
+      setPaused(true);
+      toast.success("🎉 Finished!");
+    }
   };
 
   /* ───────── UI ───────── */
@@ -194,15 +212,21 @@ const PlaySpelling: React.FC = () =>{
             </button>
             <button
               type="button"
-              onClick={() => setLetters(Array(curQ.word.length).fill(""))}
+              onClick={initGame}
               className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded disabled:opacity-50"
-              disabled={paused || remaining === 0}
             >
               Try Again
             </button>
 
             {remaining === 0 && <p className="text-red-600 font-semibold mt-3">⏰ Time's up!</p>}
           </form>
+          {finished && (
+            <div className="text-center mt-6">
+              <p className="text-lg font-bold text-green-600">
+                ✅ You scored {score} / {questions.length}
+              </p>
+            </div>
+          )}
         </div>
 
       </div>

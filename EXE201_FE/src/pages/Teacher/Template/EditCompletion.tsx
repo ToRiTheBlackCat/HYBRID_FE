@@ -8,9 +8,9 @@ import { toast } from "react-toastify";
 
 /* ────────── types ────────── */
 type CompletionEntry = {
-  sentence: string;       // “I am a ___”
-  options: string[];      // ["Fruit", "monkey", "cat"]
-  answerIndex: number;    // 0‑based
+  sentence: string;       
+  options: string[];      
+  answerIndex: number;    
 };
 
 type EditCompletionProps = {

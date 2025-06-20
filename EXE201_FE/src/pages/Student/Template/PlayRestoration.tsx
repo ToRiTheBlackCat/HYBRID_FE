@@ -5,9 +5,7 @@ import Header from "../../../components/HomePage/Header";
 import Footer from "../../../components/HomePage/Footer";
 import { fetchPlayMinigames } from "../../../services/authService";
 import { useParams } from "react-router-dom";
-import EditRestoration from "../../Teacher/Template/EditRestoration";
 import { baseImageUrl } from "../../../config/base";
-import RestorationRaw from "../../Teacher/RawMinigameInfo/Restoration";
 
 const ItemTypes = { WORD: "WORD" } as const;
 const shuffle = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
@@ -47,7 +45,7 @@ const DropArea: React.FC<{ answer: Word[]; onDropWord: (w: Word) => void; disabl
   );
 };
 
-const RestorationReview: React.FC = () => {
+const PlayRestoration: React.FC = () => {
   const { minigameId } = useParams<{ minigameId: string }>();
   const [questions, setQuestions] = useState<string[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -55,10 +53,7 @@ const RestorationReview: React.FC = () => {
   const [answer, setAnswer] = useState<Word[]>([]);
   const [remaining, setRemaining] = useState<number>(0);
   const [paused, setPaused] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
 
-  const [activityName, setActivityName] = useState("Restoration Activity");
-  const [duration, setDuration] = useState<number>(60);
   const [thumb, setThumb] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,8 +67,6 @@ const RestorationReview: React.FC = () => {
       if (!list.length) return;
       setQuestions(list);
       setCurrentIdx(0);
-      setActivityName(data.minigameName ?? "Restoration Activity");
-      setDuration(data.duration ?? 60);
       setThumb(data.thumbnailImage ?? null);
       setRemaining(data.duration ?? 60);
       setPaused(true);
@@ -93,21 +86,16 @@ const RestorationReview: React.FC = () => {
     const id = setInterval(() => setRemaining((t) => (t > 0 ? t - 1 : 0)), 1000);
     return () => clearInterval(id);
   }, [paused, remaining]);
-  const getFullThumbUrl = (url: string): string =>
-  url.startsWith("http") ? url : baseImageUrl + url;
 
   const dropWord = useCallback((w: Word) => { if (!paused) { setPool((p) => p.filter((x) => x.id !== w.id)); setAnswer((a) => [...a, w]); } }, [paused]);
   const tryAgain = () => { const s = questions[currentIdx] ?? ""; setPool(shuffle(s.split(" ").map((t, i) => ({ id: i, text: t })))); setAnswer([]); };
   const submit = () => { alert(answer.map((w) => w.text).join(" ") === questions[currentIdx] ? "✅ Correct!" : "❌ Incorrect."); };
-  const saveEdit = (d: { activityName: string; duration: number; words: string[]; thumbnailUrl: string | null; }) => { setActivityName(d.activityName); setDuration(d.duration); setThumb(d.thumbnailUrl); setQuestions(d.words); setCurrentIdx(0); setRemaining(d.duration); setPaused(true); };
+
 
   return (
     <>
       <DndProvider backend={HTML5Backend}>
         <Header />
-        {!isPlaying ? (
-          <RestorationRaw onStart={() => setIsPlaying(true)} />
-        ) : (
           <>
             <div className="min-h-screen flex flex-col items-center gap-6 bg-white px-4 py-12 mt-20">
               {thumb && <img src={baseImageUrl + thumb} alt="thumb" className="w-64 h-36 rounded object-cover border shadow" />}
@@ -124,15 +112,13 @@ const RestorationReview: React.FC = () => {
                 <button onClick={tryAgain} className="px-5 py-2 bg-blue-200 rounded hover:bg-blue-300">Try Again</button>
                 <button onClick={submit} className="px-5 py-2 bg-green-200 rounded hover:bg-green-300">Submit</button>
                 <button onClick={() => setPaused((p) => !p)} className="px-5 py-2 bg-yellow-200 rounded hover:bg-yellow-300">{paused ? "▶️ Play" : "⏸ Pause"}</button>
-                <EditRestoration initialActivityName={activityName} initialDuration={duration} initialWords={questions} initialThumbnailUrl={getFullThumbUrl(thumb ?? "")} onSave={saveEdit} />
               </div>
             </div>
             <Footer />
           </>
-        )}
       </DndProvider>
     </>
   );
 };
 
-export default RestorationReview;
+export default PlayRestoration;

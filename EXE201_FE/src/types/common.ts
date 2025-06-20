@@ -246,3 +246,63 @@ export type UpdateCompletionData = {
   TeacherId: string;
   GameData: Completion[];
 }
+export type PairingData = {
+  MinigameName: string;
+  ImageFile: File | null;
+  TeacherId: string;
+  Duration: number;
+  TemplateId: string;
+  CourseId: string;
+  GameData: Words[];
+}
+export type UpdatePairingData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile: File | null;
+  ImageUrl?: string | null;
+  Duration: number;
+  TemplateId: string;
+  TeacherId: string;
+  GameData: Words[];
+}
+export type RestorationData = {
+  MinigameName: string;
+  ImageFile: File | null;
+  TeacherId: string;
+  Duration: number;
+  TemplateId: string;
+  CourseId: string;
+  GameData: Words[];
+}
+export type UpdateRestorationData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile: File | null;
+  ImageUrl?: string | null;
+  Duration: number;
+  TeacherId: string;
+  GameData: Words[];
+}
+export type TrueFalse = {
+  MinigameName: string;
+  ImageFile: File | null;
+  TeacherId: string;
+  Duration: number;
+  CourseId: string;
+  GameData: {
+    Statement: string[],
+    Answer: boolean,
+  }[]
+}
+export type UpdateTrueFalseData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile: File | null;
+  ImageUrl?: string | null;
+  Duration: number;
+  TeacherId: string;
+  GameData: {
+    Statement: string[],
+    Answer: boolean,
+  }[]
+}

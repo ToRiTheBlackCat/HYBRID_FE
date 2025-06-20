@@ -28,7 +28,7 @@ import RandomCardTemplate from "./Template/RandomCard";
 import SpellingTemplate from "./Template/Spelling";
 import FlashcardDesigner from "./Template/Flashcard";
 
-import CompletionTemplate from "./Template/Basic/Conpletion";
+import CompletionTemplate from "./Template/Basic/Completion";
 import PairingScreen from "./Template/Basic/Pairing";
 import RestorationScreen from "./Template/Basic/Restoration";
 import FindWordsScreen from "./Template/Basic/FindWords";

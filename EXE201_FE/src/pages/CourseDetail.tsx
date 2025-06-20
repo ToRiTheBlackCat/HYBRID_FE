@@ -48,7 +48,18 @@ const CourseDetail: React.FC = () => {
         break;
       case "TP6":
         navigate(`/student/flashcard/${minigameId}`);
-        break;  
+        break;
+      case "TP7":
+        navigate(`/student/completion/${minigameId}`);
+        break;
+      case "TP8":{
+        navigate(`/student/pairing/${minigameId}`);
+        break;
+      }     
+      case "TP9":{
+        navigate(`/student/restoration/${minigameId}`);
+        break;
+      } 
       default:
         console.warn("Unknown templateId:", templateId);
         break;
