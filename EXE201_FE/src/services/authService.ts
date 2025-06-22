@@ -33,15 +33,26 @@ export const updateUserProfile = async (profileData: Partial<ProfileUpdate>) => 
         return null;
     }
 }
-export const fetchCourseMinigame = async (courseId: string) => {
-    try{
-        const response = await axiosInstance.get(`/api/MiniGame/course/${courseId}`);
-        return response.data;
-    }catch (error) {
-        console.log(error);
-        return null;
-    }
-}
+export const fetchCourseMinigame = async (
+  courseId: string,
+  filters?: {
+    MinigameName?: string;
+    TemplateId?: string;
+    PageNum?: number;
+    PageSize?: number;
+  }
+) => {
+  try {
+    const response = await axiosInstance.get(`/api/MiniGame/course/${courseId}`, {
+      params: filters,
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
 export const fetchTeacherMinigames = async ({
   teacherId,
   minigameName,
@@ -124,8 +135,14 @@ export const fetchAccomplishment = async () =>{
     }
 }
 export const submitAccomplishment = async (accomplishmentData: Accomplishment) => {
+    const apiPayload = {
+        minigameId: accomplishmentData.MinigameId,
+        percent: accomplishmentData.Percent,
+        durationInSeconds: accomplishmentData.DurationInSecond,
+        takenDate: accomplishmentData.TakenDate.toISOString(),
+    };
     try{
-        const response = await axiosInstance.post(`/api/Accomplishment`, accomplishmentData,{
+        const response = await axiosInstance.post(`/api/Accomplishment`, apiPayload,{
             headers: {
                 "Content-Type": "application/json",
             },
@@ -323,8 +340,6 @@ export const editConjunction = async (updateData: UpdateConjunctionData) => {
             formData.append(`GameData[${index}].Term`, entry.Term);
             formData.append(`GameData[${index}].Definition`, entry.Definition);
         });
-
-        // console.log('🚀 Sending edit conjunction request...');
         const response = await axiosInstance.put(`/api/MiniGame/conjunction/`, formData, {
             params: { fakeTeacherId: updateData.TeacherId },
             headers: {

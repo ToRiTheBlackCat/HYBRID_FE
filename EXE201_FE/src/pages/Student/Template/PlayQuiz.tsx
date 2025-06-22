@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
-import { fetchPlayMinigames, submitAccomplishment } from "../.././../services/authService";
-import { useParams } from "react-router-dom";
+import { fetchPlayMinigames, submitAccomplishment, fetchCourseMinigame } from "../.././../services/authService";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Header from "../../../components/HomePage/Header";
-import { Accomplishment } from "../../../types";
+import { Accomplishment, Minigame } from "../../../types";
+import { baseImageUrl } from "../../../config/base";
 
 interface ParsedQuestion {
   text: string;
@@ -10,17 +11,43 @@ interface ParsedQuestion {
   correctIndex: number;
 }
 
-const PlayQuiz : React.FC = () =>{
-    const { minigameId } = useParams<{ minigameId: string }>();
-    const [questions, setQuestions] = useState<ParsedQuestion[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [selectedIndexes, setSelectedIndexes] = useState<(number | null)[]>([]);
-    const [showResult, setShowResult] = useState(false);
-    const [score, setScore] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(0); // Khởi tạo bằng 0, sẽ được cập nhật trong loadData
-    const [paused, setPaused] = useState(false);
-    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const initialDurationRef = useRef<number>(0);
+const normalize = (base: string, path: string) =>
+  `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}?t=${Date.now()}`;
+
+const PAGE_SIZE = 50;
+
+// Map templateId → route segment; keep in sync with router
+const paths: Record<string, string> = {
+  TP1: "conjunction",
+  TP2: "quiz",
+  TP3: "anagram",
+  TP4: "random-card",
+  TP5: "spelling",
+  TP6: "flashcard",
+  TP7: "completion",
+  TP8: "pairing",
+  TP9: "restoration",
+  TP10: "find-word",
+  TP11: "true-false",
+  TP12: "crossword",
+};
+
+const PlayQuiz: React.FC = () => {
+  const { minigameId } = useParams<{ minigameId: string }>();
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const courseIdFromState: string | undefined = (location.state as { courseId?: string })?.courseId;
+  const [courseMinigames, setCourseMinigames] = useState<Minigame[]>([]);
+  const [questions, setQuestions] = useState<ParsedQuestion[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedIndexes, setSelectedIndexes] = useState<(number | null)[]>([]);
+  const [showResult, setShowResult] = useState(false);
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0); // Khởi tạo bằng 0, sẽ được cập nhật trong loadData
+  const [paused, setPaused] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const initialDurationRef = useRef<number>(0);
 
 
   const loadData = async () => {
@@ -39,6 +66,22 @@ const PlayQuiz : React.FC = () =>{
   useEffect(() => {
     loadData();
   }, [minigameId]);
+
+  useEffect(() => {
+    if (!courseIdFromState) return;
+    const load = async () => {
+      try {
+        const res = await fetchCourseMinigame(courseIdFromState, {
+          PageNum: 1,
+          PageSize: PAGE_SIZE,
+        });
+        setCourseMinigames(res?.minigames ?? []);
+      } catch (err) {
+        console.error("Error loading course minigames", err);
+      }
+    };
+    load();
+  }, [courseIdFromState]);
 
   useEffect(() => {
     if (paused || showResult || timeLeft === 0) return; // Không chạy timer nếu chưa có duration
@@ -124,6 +167,38 @@ const PlayQuiz : React.FC = () =>{
     <>
       <Header />
       <div className="w-[900px] mx-auto mt-25 p-6 border rounded-md shadow-md bg-white">
+        {courseMinigames.length > 0 && (
+          <aside className="absolute top-24 right-4 w-60 bg-white border rounded-lg shadow-md overflow-auto max-h-[80vh]">
+            <h3 className="font-bold text-center py-2 border-b">Other games</h3>
+            {courseMinigames.map((mg) => {
+              const isActive = mg.minigameId === minigameId;
+              const path = paths[mg.templateId];
+              return (
+                <button
+                  key={mg.minigameId}
+                  onClick={() =>
+                    navigate(`/student/${path}/${mg.minigameId}`, {
+                      state: { courseId: courseIdFromState },
+                    })
+                  }
+                  className={`w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-blue-50 ${isActive ? "bg-blue-100 font-semibold" : ""
+                    }`}
+                  disabled={isActive}
+                >
+                  <img
+                    src={normalize(baseImageUrl, mg.thumbnailImage)}
+                    alt={mg.minigameName}
+                    className="w-10 h-10 object-cover rounded"
+                  />
+                  <div className="flex flex-col">
+                    <span className="line-clamp-2">{mg.minigameName}</span>
+                    <span className="line-clamp-2 text-gray-500 text-xs">{mg.templateName}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </aside>
+        )}
         <div className="flex justify-between mb-4">
           <div className="text-lg font-medium">⏱ Time left: {timeLeft}s</div>
           <button
@@ -148,8 +223,8 @@ const PlayQuiz : React.FC = () =>{
                   ? "bg-green-500 text-white"
                   : "bg-red-400 text-white"
                 : isSelected
-                ? "bg-blue-400 text-white"
-                : "bg-pink-50 hover:bg-pink-100";
+                  ? "bg-blue-400 text-white"
+                  : "bg-pink-50 hover:bg-pink-100";
 
             return (
               <button

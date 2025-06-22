@@ -8,7 +8,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { baseImageUrl } from "../config/base";
 
-
 const CoursePage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [searchCourseName, setSearchCourseName] = useState<string>("");
@@ -27,14 +26,16 @@ const CoursePage: React.FC = () => {
       return "/placeholder-image.jpg";
     }
     try {
+      // Replace standalone '&' with '&amp;' to ensure valid XML
+      const sanitizedDataText = dataText.replace(/&(?!amp;)/g, "&amp;");
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(dataText, "text/xml");
+      const xmlDoc = parser.parseFromString(sanitizedDataText, "text/xml");
       const thumbnailElement = xmlDoc.querySelector("thumbnail");
       const thumbnailPath = thumbnailElement?.textContent;
       if (thumbnailPath) {
         console.log("Extracted thumbnail path:", thumbnailPath);
         return `${baseImageUrl}${thumbnailPath.startsWith("/") ? thumbnailPath.slice(1) : thumbnailPath}`;
-      }else{
+      } else {
         console.warn("No thumbnail found in dataText, returning placeholder image.");
         return "/placeholder-image.jpg";
       }
@@ -49,6 +50,7 @@ const CoursePage: React.FC = () => {
       setLoading(true);
       try {
         const initialCourses = await fetchCourseList(searchCourseName, searchLevelId, currentPage);
+        console.log(initialCourses);
         const detailedCourses = await Promise.all(
           initialCourses.map(async (course: Course) => {
             const detail = await fetchCourseDetail(course.courseId);
@@ -57,7 +59,6 @@ const CoursePage: React.FC = () => {
           })
         );
         setCourses(detailedCourses);
-        
 
         const totalCourses = 10; // Replace with actual value from API
         setTotalPages(Math.ceil(totalCourses / pageSize));
@@ -70,11 +71,11 @@ const CoursePage: React.FC = () => {
 
     fetchCoursesWithDetails();
   }, [searchCourseName, searchLevelId, currentPage]);
+
   const handleCourseClick = (courseId: string) => {
-    if(roleId === "3") {
+    if (roleId === "3") {
       navigate(`/teacher/course/${courseId}`);
-    }
-    else if(roleId === "2") {
+    } else if (roleId === "2") {
       navigate(`/student/course/${courseId}`);
     }
   };
@@ -90,14 +91,14 @@ const CoursePage: React.FC = () => {
     thumbnail?: string;
     onClick?: () => void;
   }) => (
-    <div 
-    onClick={onClick}
-    className="bg-pink-50 p-4 rounded-xl shadow-md text-center w-[200px] h-[250px]">
+    <div
+      onClick={onClick}
+      className="bg-pink-50 p-4 rounded-xl shadow-md text-center w-[200px] h-[250px]"
+    >
       <img
         src={encodeURI(thumbnail ?? "/placeholder-image.jpg")}
         alt={`${courseName} thumbnail`}
         className="w-full h-[120px] object-cover rounded-md mb-2"
-        // onError={(e) => (e.currentTarget.src = "/placeholder-image.jpg")}
       />
       <h3 className="text-lg font-semibold">{courseName}</h3>
       <p className="text-sm text-gray-500">{levelName}</p>
@@ -126,8 +127,6 @@ const CoursePage: React.FC = () => {
           className="relative bg-cover bg-center h-[650px] flex items-center justify-center"
           style={{ backgroundImage: `url(${BG})` }}
         >
-          {/* <div className="absolute top-1/4 text-white text-xl font-semibold">Choose a course</div>
-          <div className="absolute top-1/3 text-white text-3xl font-bold">text</div> */}
           <div className="flex bg-white rounded-md overflow-hidden mt-40 shadow-md">
             <select
               className="px-4 py-2 border-r border-gray-300 text-gray-600"

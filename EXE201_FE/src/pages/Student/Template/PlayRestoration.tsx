@@ -3,9 +3,9 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Header from "../../../components/HomePage/Header";
 import Footer from "../../../components/HomePage/Footer";
-import { fetchPlayMinigames, submitAccomplishment } from "../../../services/authService";
-import { useParams } from "react-router-dom";
-import { Accomplishment } from "../../../types";
+import { fetchPlayMinigames, submitAccomplishment, fetchCourseMinigame } from "../../../services/authService";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Accomplishment, Minigame } from "../../../types";
 import { baseImageUrl } from "../../../config/base";
 import { toast } from "react-toastify";
 
@@ -15,6 +15,26 @@ const shuffle = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
 const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
 type Word = { id: number; text: string };
+const normalize = (base: string, path: string) =>
+  `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}?t=${Date.now()}`;
+
+const PAGE_SIZE = 50;
+
+// Map templateId → route segment; keep in sync with router
+const paths: Record<string, string> = {
+  TP1: "conjunction",
+  TP2: "quiz",
+  TP3: "anagram",
+  TP4: "random-card",
+  TP5: "spelling",
+  TP6: "flashcard",
+  TP7: "completion",
+  TP8: "pairing",
+  TP9: "restoration",
+  TP10: "find-word",
+  TP11: "true-false",
+  TP12: "crossword",
+};
 
 /* ─── draggable card ─── */
 const WordCard: React.FC<{ word: Word; disabled: boolean }> = ({ word, disabled }) => {
@@ -61,9 +81,8 @@ const DropArea: React.FC<{
         if (node) drop(node);
         ref.current = node;
       }}
-      className={`w-full min-h-14 border-2 rounded flex items-center flex-wrap gap-2 p-3 transition-colors ${
-        canDrop && isOver ? "border-green-500" : "border-gray-400"
-      }`}
+      className={`w-full min-h-14 border-2 rounded flex items-center flex-wrap gap-2 p-3 transition-colors ${canDrop && isOver ? "border-green-500" : "border-gray-400"
+        }`}
     >
       {answer.length ? (
         answer.map((w) => (
@@ -82,6 +101,10 @@ const DropArea: React.FC<{
 const PlayRestoration: React.FC = () => {
   const { minigameId } = useParams<{ minigameId: string }>();
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const courseIdFromState: string | undefined = (location.state as { courseId?: string })?.courseId;
+  const [courseMinigames, setCourseMinigames] = useState<Minigame[]>([]);
   const [questions, setQuestions] = useState<string[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [pool, setPool] = useState<Word[]>([]);
@@ -131,6 +154,21 @@ const PlayRestoration: React.FC = () => {
     setPool(shuffle(words.filter((w) => !usedIds.has(w.id))));
     setAnswer(savedAnswer);
   }, [questions, currentIdx, answersMap]);
+  useEffect(() => {
+    if (!courseIdFromState) return;
+    const load = async () => {
+      try {
+        const res = await fetchCourseMinigame(courseIdFromState, {
+          PageNum: 1,
+          PageSize: PAGE_SIZE,
+        });
+        setCourseMinigames(res?.minigames ?? []);
+      } catch (err) {
+        console.error("Error loading course minigames", err);
+      }
+    };
+    load();
+  }, [courseIdFromState]);
 
   useEffect(() => {
     if (paused || remaining <= 0) return;
@@ -196,9 +234,42 @@ const PlayRestoration: React.FC = () => {
   };
 
   return (
+
     <DndProvider backend={HTML5Backend}>
       <Header />
       <div className="min-h-screen flex flex-col items-center gap-6 bg-white px-4 py-12 mt-20">
+        {courseMinigames.length > 0 && (
+          <aside className="absolute top-24 right-4 w-60 bg-white border rounded-lg shadow-md overflow-auto max-h-[80vh]">
+            <h3 className="font-bold text-center py-2 border-b">Other games</h3>
+            {courseMinigames.map((mg) => {
+              const isActive = mg.minigameId === minigameId;
+              const path = paths[mg.templateId];
+              return (
+                <button
+                  key={mg.minigameId}
+                  onClick={() =>
+                    navigate(`/student/${path}/${mg.minigameId}`, {
+                      state: { courseId: courseIdFromState },
+                    })
+                  }
+                  className={`w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-blue-50 ${isActive ? "bg-blue-100 font-semibold" : ""
+                    }`}
+                  disabled={isActive}
+                >
+                  <img
+                    src={normalize(baseImageUrl, mg.thumbnailImage)}
+                    alt={mg.minigameName}
+                    className="w-10 h-10 object-cover rounded"
+                  />
+                  <div className="flex flex-col">
+                    <span className="line-clamp-2">{mg.minigameName}</span>
+                    <span className="line-clamp-2 text-gray-500 text-xs">{mg.templateName}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </aside>
+        )}
         {thumb && (
           <img
             src={baseImageUrl + thumb}

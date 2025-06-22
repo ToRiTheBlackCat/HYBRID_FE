@@ -271,3 +271,14 @@ export const getTeacherTierById = async (tierId: string) =>{
         throw error;
     }
 }
+export const getTopMinigame = async (count: number) =>{
+    try{
+        const response = await axiosInstance.get(`/api/MiniGame/Top`,{
+            params:{count: count}
+        });
+        return response.data;
+    }catch(error){
+        console.log(error);
+        throw error
+    }
+}

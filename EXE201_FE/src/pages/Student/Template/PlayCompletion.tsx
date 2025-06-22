@@ -1,12 +1,21 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { fetchPlayMinigames, submitAccomplishment } from "../../../services/authService";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import {
+  fetchPlayMinigames,
+  submitAccomplishment,
+  fetchCourseMinigame,
+} from "../../../services/authService";
 import Header from "../../../components/HomePage/Header";
-import { Accomplishment } from "../../../types";
+import { Accomplishment, Minigame } from "../../../types";
 import { toast } from "react-toastify";
+import { baseImageUrl } from "../../../config/base";
 
 /* ───────── helpers ───────── */
-type QuestionParsed = { modifiedSentence: string; options: string[]; correctIndex: number };
+type QuestionParsed = {
+  modifiedSentence: string;
+  options: string[];
+  correctIndex: number;
+};
 
 function parseDataText(xml: string): QuestionParsed[] {
   const dom = new DOMParser().parseFromString(xml, "application/xml");
@@ -17,11 +26,35 @@ function parseDataText(xml: string): QuestionParsed[] {
   }));
 }
 
+const normalize = (base: string, path: string) =>
+  `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}?t=${Date.now()}`;
+
+const PAGE_SIZE = 50;
+
+// Map templateId → route segment, must keep in sync with router definitions
+const paths: Record<string, string> = {
+  TP1: "conjunction",
+  TP2: "quiz",
+  TP3: "anagram",
+  TP4: "random-card",
+  TP5: "spelling",
+  TP6: "flashcard",
+  TP7: "completion",
+  TP8: "pairing",
+  TP9: "restoration",
+  TP10: "find-word",
+  TP11: "true-false",
+  TP12: "crossword",
+};
+
 /* ───────── component ───────── */
 const PlayCompletion: React.FC = () => {
   const { minigameId } = useParams<{ minigameId: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
+  const courseIdFromState: string | undefined = (location.state as { courseId?: string })?.courseId;
 
+  /* ───────── state ───────── */
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activityName, setActivityName] = useState("");
@@ -33,7 +66,10 @@ const PlayCompletion: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [paused, setPaused] = useState(true);
   const [duration, setDuration] = useState<number>(0);
+  const [courseMinigames, setCourseMinigames] = useState<Minigame[]>([]);
 
+  /* ───────── effects ───────── */
+  // Load minigame data
   useEffect(() => {
     if (!minigameId) {
       setError("Không tìm thấy minigameId trên URL");
@@ -61,6 +97,24 @@ const PlayCompletion: React.FC = () => {
     })();
   }, [minigameId]);
 
+  // Load list of course minigames for the sidebar
+  useEffect(() => {
+    if (!courseIdFromState) return;
+    const load = async () => {
+      try {
+        const res = await fetchCourseMinigame(courseIdFromState, {
+          PageNum: 1,
+          PageSize: PAGE_SIZE,
+        });
+        setCourseMinigames(res?.minigames ?? []);
+      } catch (err) {
+        console.error("Error loading course minigames", err);
+      }
+    };
+    load();
+  }, [courseIdFromState]);
+
+  /* ───────── handlers ───────── */
   const handleAnswer = (optIdx: number) => {
     if (paused || submitted) return;
     setAnswers((prev) => {
@@ -72,10 +126,7 @@ const PlayCompletion: React.FC = () => {
 
   const handleSubmit = useCallback(async () => {
     if (submitted || !minigameId) return;
-    const pts = answers.reduce(
-      (acc, a, i) => acc + (a === questions[i].correctIndex ? 1 : 0),
-      0
-    );
+    const pts = answers.reduce((acc, a, i) => acc + (a === questions[i].correctIndex ? 1 : 0), 0);
     setScore(pts);
     setSubmitted(true);
 
@@ -83,22 +134,21 @@ const PlayCompletion: React.FC = () => {
     const durationUsed = duration - timeLeft;
 
     const payload: Accomplishment = {
-      MinigameId: minigameId,
-      Percent: percent,
-      DurationInSecond: durationUsed,
-      TakenDate: new Date(),
-    };
+      minigameId,
+      percent,
+      durationInSeconds: durationUsed,
+      takenDate: new Date().toISOString(),
+    } as unknown as Accomplishment;
 
     try {
-      const result = await submitAccomplishment(payload);
-      if(result){
-        toast.success("Submit successfully");
-      }
+      await submitAccomplishment(payload);
+      toast.success("✅ Result submitted");
     } catch (e) {
       console.error("submitAccomplishment error", e);
     }
   }, [submitted, answers, questions, minigameId, timeLeft, duration]);
 
+  // Countdown timer
   useEffect(() => {
     if (loading || submitted || paused) return;
     const id = setInterval(() => {
@@ -114,12 +164,13 @@ const PlayCompletion: React.FC = () => {
     return () => clearInterval(id);
   }, [loading, submitted, paused, handleSubmit]);
 
-  const formatTime = (s: number) =>
-    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  const formatTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+  /* ───────── early returns ───────── */
   if (loading) return <div className="p-4">Đang tải minigame...</div>;
   if (error) return <div className="p-4 text-red-600">{error}</div>;
 
+  /* ───────── submitted view ───────── */
   if (submitted && score !== null)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -138,12 +189,48 @@ const PlayCompletion: React.FC = () => {
       </div>
     );
 
+  /* ───────── playing view ───────── */
   const q = questions[current];
 
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 relative">
+        {/* ───────── Aside: other minigames ───────── */}
+        {courseMinigames.length > 0 && (
+          <aside className="absolute top-24 right-4 w-60 bg-white border rounded-lg shadow-md overflow-auto max-h-[80vh]">
+            <h3 className="font-bold text-center py-2 border-b">Other games</h3>
+            {courseMinigames.map((mg) => {
+              const isActive = mg.minigameId === minigameId;
+              const path = paths[mg.templateId];
+              return (
+                <button
+                  key={mg.minigameId}
+                  onClick={() =>
+                    navigate(`/student/${path}/${mg.minigameId}`, {
+                      state: { courseId: courseIdFromState },
+                    })
+                  }
+                  className={`w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-blue-50 ${isActive ? "bg-blue-100 font-semibold" : ""
+                    }`}
+                  disabled={isActive}
+                >
+                  <img
+                    src={normalize(baseImageUrl, mg.thumbnailImage)}
+                    alt={mg.minigameName}
+                    className="w-10 h-10 object-cover rounded"
+                  />
+                  <div className="flex flex-col">
+                    <span className="line-clamp-2">{mg.minigameName}</span>
+                    <span className="line-clamp-2 text-gray-500 text-xs">{mg.templateName}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </aside>
+        )}
+
+        {/* ───────── Main card ───────── */}
         <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold">{activityName}</h2>
@@ -172,9 +259,8 @@ const PlayCompletion: React.FC = () => {
               <button
                 key={idx}
                 onClick={() => handleAnswer(idx)}
-                className={`px-2 py-1 rounded w-full text-left ${
-                  answers[current] === idx ? "bg-green-400 text-white" : "bg-orange-200"
-                }`}
+                className={`px-2 py-1 rounded w-full text-left ${answers[current] === idx ? "bg-green-400 text-white" : "bg-orange-200"
+                  }`}
                 disabled={paused}
               >
                 {word}

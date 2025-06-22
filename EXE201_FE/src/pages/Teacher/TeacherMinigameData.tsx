@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchStudentAccomplishment } from "../../services/authService";
+import Header from "../../components/HomePage/Header";
 
 /* Kiểu dữ liệu bản ghi trả về */
 interface StudentAccomplishment {
@@ -48,7 +49,7 @@ const TeacherMinigameData: React.FC = () => {
 
   /* ──────────────────────────────────────────────────────────── */
   if (!minigameId) return <p className="text-center mt-10">❗ URL thiếu minigameId.</p>;
-  if (loading)    return <p className="text-center mt-10">Đang tải dữ liệu...</p>;
+  if (loading) return <p className="text-center mt-10">Đang tải dữ liệu...</p>;
 
   if (data.length === 0)
     return (
@@ -59,38 +60,41 @@ const TeacherMinigameData: React.FC = () => {
 
   /* ──────────────────────────────────────────────────────────── */
   return (
-    <div className="max-w-4xl mx-auto mt-14 px-4 font-sans">
-      <h1 className="text-2xl font-bold mb-6 text-center">
-        Danh sách học sinh – Minigame <span className="text-indigo-600">{minigameId}</span>
-      </h1>
+    <>
+      <Header />
+      <div className="max-w-4xl mx-auto mt-25 px-4 font-sans ">
+        <h1 className="text-2xl font-bold mb-6 text-center">
+          Danh sách học sinh – Minigame <span className="text-indigo-600">{minigameId}</span>
+        </h1>
 
-      <div className="overflow-auto rounded-lg shadow">
-        <table className="min-w-full bg-white divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-100 text-gray-700">
-            <tr>
-              <th className="px-4 py-2 text-left">#</th>
-              <th className="px-4 py-2 text-left">Học sinh</th>
-              <th className="px-4 py-2 text-center">Điểm</th>
-              <th className="px-4 py-2 text-center">Thời gian&nbsp;(mm:ss)</th>
-              <th className="px-4 py-2 text-center">Ngày chơi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data.map((row, idx) => (
-              <tr key={row.studentId} className="hover:bg-gray-50">
-                <td className="px-4 py-2">{idx + 1}</td>
-                <td className="px-4 py-2 font-medium">{row.studentName}</td>
-                <td className="px-4 py-2 text-center font-semibold text-blue-700">
-                  {row.score}
-                </td>
-                <td className="px-4 py-2 text-center">{formatDuration(row.duration)}</td>
-                <td className="px-4 py-2 text-center">{formatDate(row.takenDate)}</td>
+        <div className="overflow-auto rounded-lg shadow">
+          <table className="min-w-full bg-white divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-100 text-gray-700">
+              <tr>
+                <th className="px-4 py-2 text-left">#</th>
+                <th className="px-4 py-2 text-left">Học sinh</th>
+                <th className="px-4 py-2 text-center">Điểm</th>
+                <th className="px-4 py-2 text-center">Thời gian&nbsp;(mm:ss)</th>
+                <th className="px-4 py-2 text-center">Ngày chơi</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map((row, idx) => (
+                <tr key={row.studentId} className="hover:bg-gray-50">
+                  <td className="px-4 py-2">{idx + 1}</td>
+                  <td className="px-4 py-2 font-medium">{row.studentName}</td>
+                  <td className="px-4 py-2 text-center font-semibold text-blue-700">
+                    {row.score}
+                  </td>
+                  <td className="px-4 py-2 text-center">{formatDuration(row.duration)}</td>
+                  <td className="px-4 py-2 text-center">{formatDate(row.takenDate)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
