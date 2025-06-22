@@ -16,7 +16,7 @@ type Tier = {
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
-  const roleName = useSelector((state: RootState) => state.user.roleName); 
+  const roleName = useSelector((state: RootState) => state.user.roleName);
   const userId = useSelector((state: RootState) => state.user.userId);
   const [tiers, setTiers] = useState<Tier[]>([]);
 
@@ -24,7 +24,7 @@ const PricingPage: React.FC = () => {
     const fetchTiers = async () => {
       try {
         let data: Tier[] = [];
-        if (roleName === 'User') {
+        if (roleName === 'Student') {
           data = await fetchStudentTier();
         } else if (roleName === 'Teacher') {
           data = await fetchTeacherTier();
@@ -68,13 +68,18 @@ const PricingPage: React.FC = () => {
                     ))}
                 </div>
                 <div className="text-lg font-bold text-blue-700 mt-2">
-                  {Number(tier.tierId === "2" ? 70000 : 30000).toLocaleString('vi-VN')} VND
+                  {(tier.tierId === "2"
+                    ? (roleName === "Student" ? 70000 : 30000)
+                    : 0
+                  ).toLocaleString('vi-VN')} VND
                 </div>
-                {(tier.tierId === "2" || tier.tierId === "3") && (
-                   <button
+                {(tier.tierId === "2") && (
+                  <button
                     className="mt-4 text-blue-700 border border-blue-700 px-3 py-1 rounded hover:bg-blue-100"
                     onClick={() => {
-                      // const price = tier.tierId === "2" ? 70000 : 30000;
+                      // const price = tier.tierId === "2"
+                      //   ? (roleName === "Student" ? 70000 : 30000)
+                      //   : 30000;
                       const months = 1; // hoặc có thể thay đổi giá trị này tùy thuộc vào lựa chọn của người dùng
                       navigate("/payment", {
                         state: {

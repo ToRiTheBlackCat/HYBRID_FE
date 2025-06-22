@@ -109,7 +109,7 @@ const PlayAnagram: React.FC = () => {
         const durationUsed = duration - timer;
 
         const payload: Accomplishment = {
-            MinigameId: minigameId ?? "",   // chắc chắn khác undefined
+            MinigameId: minigameId ?? "",  
             Percent: percent,
             DurationInSecond: durationUsed,
             TakenDate: new Date(),          // sẽ tự chuyển thành ISO khi stringify

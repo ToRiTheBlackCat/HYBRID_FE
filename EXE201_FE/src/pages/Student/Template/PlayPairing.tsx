@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../../components/HomePage/Header";
 import Footer from "../../../components/HomePage/Footer";
-import { fetchPlayMinigames } from "../../../services/authService";
+import { fetchPlayMinigames, submitAccomplishment } from "../../../services/authService";
+import { Accomplishment } from "../../../types";
 
+// ─── Types ───────────────────────────────────────────────────────
 type Card = { id: number; word: string; isFlipped: boolean; isMatched: boolean };
 
+// ─── Helpers ─────────────────────────────────────────────────────
 const shuffle = <T,>(arr: T[]): T[] => {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -16,10 +19,8 @@ const shuffle = <T,>(arr: T[]): T[] => {
 };
 
 const parseWords = (xml: string): string[] =>
-  Array.from(new DOMParser().parseFromString(xml, "application/xml").getElementsByTagName("words")).map(
-    (w) => w.textContent?.trim() ?? ""
-  );
-
+  Array.from(new DOMParser().parseFromString(xml, "application/xml").getElementsByTagName("words"))
+    .map((w) => w.textContent?.trim() ?? "");
 
 const getColorClass = (word: string) => {
   const colors: Record<string, string> = {
@@ -33,21 +34,21 @@ const getColorClass = (word: string) => {
   return colors[word] || "bg-gray-500";
 };
 
+// ─── Component ────────────────────────────────────────────────────
 const PlayPairing: React.FC = () => {
   const { minigameId } = useParams<{ minigameId: string }>();
 
   const [cards, setCards] = useState<Card[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
-
   const [duration, setDuration] = useState<number>(0);
-
   const [remaining, setRemaining] = useState<number | null>(null);
   const [paused, setPaused] = useState(true);
   const [finished, setFinished] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [startTime, setStartTime] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!minigameId) return;
@@ -66,6 +67,7 @@ const PlayPairing: React.FC = () => {
         }));
         setCards(initCards);
         setRemaining(Number(data.duration));
+        setStartTime(new Date());
       } catch {
         setError("Không tải được minigame.");
       } finally {
@@ -118,6 +120,35 @@ const PlayPairing: React.FC = () => {
     }
   }, [matchedPairs, cards.length, finished]);
 
+  const handleSubmit = useCallback(async () => {
+    if (!minigameId || !startTime || submitted) return;
+
+    const durationUsed = Math.floor((Date.now() - startTime.getTime()) / 1000);
+    const correct = matchedPairs.length / 2;
+    const total = cards.length / 2;
+    const percent = Math.round((correct / total) * 100);
+
+    const payload: Accomplishment = {
+      MinigameId: minigameId,
+      Percent: percent,
+      DurationInSecond: durationUsed,
+      TakenDate: new Date(),
+    };
+
+    try {
+      await submitAccomplishment(payload);
+      setSubmitted(true);
+    } catch (err) {
+      console.error("submitAccomplishment error:", err);
+    }
+  }, [minigameId, cards.length, matchedPairs.length, startTime, submitted]);
+
+  useEffect(() => {
+    if (finished && !submitted) {
+      handleSubmit();
+    }
+  }, [finished, submitted, handleSubmit]);
+
   const handleCardClick = (id: number) => {
     if (paused || finished || flippedCards.length === 2 || cards[id].isFlipped || cards[id].isMatched) return;
     setCards((prev) => prev.map((c) => (c.id === id ? { ...c, isFlipped: true } : c)));
@@ -133,12 +164,8 @@ const PlayPairing: React.FC = () => {
     setRemaining(duration);
     setPaused(false);
     setFinished(false);
-  };
-
-
-  const handleSubmit = () => {
-    setPaused(true);
-    setFinished(true);
+    setSubmitted(false);
+    setStartTime(new Date());
   };
 
   const formatTime = (s: number) =>
@@ -185,14 +212,13 @@ const PlayPairing: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full max-w-[700px] flex justify-between items-center">
-          <button onClick={resetGame} className="px-6 py-2 bg-blue-200 text-blue-800 font-semibold rounded-full hover:bg-blue-300 transition">
-            Try again
-          </button>
-          <button onClick={handleSubmit} className="px-6 py-2 bg-green-200 text-green-800 font-semibold rounded-full hover:bg-green-300 transition">
-            Submit
-          </button>
-        </div>
+        {finished && (
+          <div className="w-full max-w-[700px] flex justify-center">
+            <button onClick={resetGame} className="px-6 py-2 bg-blue-200 text-blue-800 font-semibold rounded-full hover:bg-blue-300 transition">
+              Try again
+            </button>
+          </div>
+        )}
 
         {finished && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center">

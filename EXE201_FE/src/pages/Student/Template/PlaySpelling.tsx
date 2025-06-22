@@ -1,41 +1,41 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { FiVolume2 } from "react-icons/fi";
 import { useParams } from "react-router-dom";
 
 import Header from "../../../components/HomePage/Header";
-import { fetchPlayMinigames } from "../../../services/authService";
+import { fetchPlayMinigames, submitAccomplishment } from "../../../services/authService";
 import { baseImageUrl } from "../../../config/base";
+import { Accomplishment } from "../../../types";
 
-interface Question {              // dùng cho gameplay
+interface Question {
   word: string;
   imagePath: string;
 }
-interface SpellingItem {          // dùng cho EditSpelling
-  Word: string;
-  Image: File | null;
-  ImageUrl: string;
-}
 
-const PlaySpelling: React.FC = () =>{
-    /* ───────── params / refs ───────── */
-    const { minigameId } = useParams<{ minigameId: string }>();
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+const PlaySpelling: React.FC = () => {
+  /* ───────── params / refs ───────── */
+  const { minigameId } = useParams<{ minigameId: string }>();
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-    /* ───────── gameplay state ───────── */
-    const [questions, setQuestions] = useState<Question[]>([]);
-    const [curIdx, setCurIdx] = useState(0);
-    const [letters, setLetters] = useState<string[]>([]);
-    const [remaining, setRemaining] = useState<number>(0);
-    const [paused, setPaused] = useState(true);
-    const [loading, setLoading] = useState(true);
-    const [score, setScore] = useState(0);          
-    const [finished, setFinished] = useState(false);
+  /* ───────── gameplay state ───────── */
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [curIdx, setCurIdx] = useState(0);
+  const [letters, setLetters] = useState<string[]>([]);
+  const [remaining, setRemaining] = useState<number>(0);
+  const [initialDuration, setInitialDuration] = useState<number>(0);
+  const [paused, setPaused] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [score, setScore] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-    const [activityName, setActivityName] = useState("");
+  const [activityName, setActivityName] = useState("");
 
-    const normalize = (base: string, path: string) => {
-    const url = `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
+  /* ───────── helpers ───────── */
+  const normalize = (base: string, path: string) => {
+    const url = `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/,
+ "")}`;
     return `${url}?t=${Date.now()}`;
   };
 
@@ -45,72 +45,91 @@ const PlaySpelling: React.FC = () =>{
     window.speechSynthesis.speak(ut);
   };
 
-  /* ───────── fetch data ───────── */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const initGame = async () => {
-      if (!minigameId) return;
+  /* ───────── submit result ───────── */
+  const submitResult = useCallback(
+    async (finalScore: number = score) => {
+      if (submitted || !questions.length || !minigameId) return;
+
+      const percent = Math.round((finalScore / questions.length) * 100);
+      const durationUsed = initialDuration - remaining;
+
+      const payload: Accomplishment = {
+        MinigameId: minigameId,
+        Percent: percent,
+        DurationInSecond: durationUsed,
+        TakenDate: new Date(),
+      };
+
       try {
-        const res = await fetchPlayMinigames(minigameId);
-        if (!res) return;
-
-        setActivityName(res.minigameName ?? "Spelling Review");
-        setRemaining(res.duration ?? 0);
-
-        const xml = new DOMParser().parseFromString(res.dataText, "text/xml");
-        const qs: Question[] = [];
-        const edits: SpellingItem[] = [];
-
-        for (const q of Array.from(xml.getElementsByTagName("question"))) {
-          const word = q.getElementsByTagName("word")[0]?.textContent?.trim().toUpperCase() ?? "";
-          const img = q.getElementsByTagName("image")[0]?.textContent?.trim() ?? "";
-
-          qs.push({ word, imagePath: img });
-
-          if (img) {
-            try {
-              const resp = await fetch(normalize(baseImageUrl, img));
-              const blob = await resp.blob();
-              const file = new File([blob], "image.jpg", { type: blob.type });
-              edits.push({
-                Word: word,
-                Image: file,
-                ImageUrl: normalize(baseImageUrl, img), 
-              });
-            } catch {
-              edits.push({ Word: word, Image: null, ImageUrl:"" });
-            }
-          } else {
-            edits.push({ Word: word, Image: null, ImageUrl: ""  });
-          }
-        }
-
-        setQuestions(qs);
-        setLetters(Array(qs[0].word.length).fill(""));
-        setCurIdx(0);         
-        setScore(0);          
-        setFinished(false);   
-        setPaused(true);
+        await submitAccomplishment(payload);
+        toast.success(`✅ Result submitted: ${percent}%`);
+        setSubmitted(true);
       } catch (e) {
-        toast.error("Failed to load minigame");
-        console.log(e)
-      } finally {
-        setLoading(false);
+        toast.error("❌ Failed to submit result");
+        console.error(e);
       }
-    };
-    useEffect(() => {
-      initGame();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    },
+    [submitted, questions.length, score, minigameId, initialDuration, remaining]
+  );
+
+  /* ───────── fetch data ───────── */
+  const initGame = useCallback(async () => {
+    if (!minigameId) return;
+    setLoading(true);
+    try {
+      const res = await fetchPlayMinigames(minigameId);
+      if (!res) return;
+
+      setActivityName(res.minigameName ?? "Spelling Review");
+      setRemaining(res.duration ?? 0);
+      setInitialDuration(res.duration ?? 0);
+
+      const xml = new DOMParser().parseFromString(res.dataText, "text/xml");
+      const qs: Question[] = [];
+
+      for (const q of Array.from(xml.getElementsByTagName("question"))) {
+        const word = q.getElementsByTagName("word")[0]?.textContent?.trim().toUpperCase() ?? "";
+        const img = q.getElementsByTagName("image")[0]?.textContent?.trim() ?? "";
+        qs.push({ word, imagePath: img });
+      }
+
+      setQuestions(qs);
+      setLetters(Array(qs[0]?.word.length || 0).fill(""));
+      setCurIdx(0);
+      setScore(0);
+      setFinished(false);
+      setPaused(true);
+      setSubmitted(false);
+    } catch (e) {
+      toast.error("Failed to load minigame");
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [minigameId]);
+
+  useEffect(() => {
+    initGame();
+  }, [initGame]);
 
   /* ───────── countdown ───────── */
   useEffect(() => {
     if (paused || remaining <= 0) return;
     const t = setInterval(() => setRemaining((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
-  }, [paused, remaining, initGame]);
+  }, [paused, remaining]);
+
+  /* ───────── time up submit ───────── */
+  useEffect(() => {
+    if (remaining === 0 && !paused && !submitted) {
+      setFinished(true);
+      submitResult(score); // use current score
+    }
+  }, [remaining, paused, submitted, submitResult, score]);
 
   /* ───────── gameplay handlers ───────── */
   const curQ = questions[curIdx];
+
   const onType = (i: number, v: string) => {
     if (paused || !/^[A-Za-z]?$/.test(v)) return;
     const up = [...letters];
@@ -118,18 +137,23 @@ const PlaySpelling: React.FC = () =>{
     setLetters(up);
     if (v && i < letters.length - 1) inputRefs.current[i + 1]?.focus();
   };
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const isCorrect = letters.join("") === curQ.word;
 
+    let nextScore = score;
     if (isCorrect) {
       toast.success("Correct!");
-      setScore((s) => s + 1);
+      nextScore = score + 1;
+      setScore(nextScore);
     } else {
       toast.error("Incorrect!");
     }
 
-    if (curIdx < questions.length - 1) {
+    const lastQuestion = curIdx === questions.length - 1;
+
+    if (!lastQuestion) {
       const next = curIdx + 1;
       setCurIdx(next);
       setLetters(Array(questions[next].word.length).fill(""));
@@ -137,6 +161,7 @@ const PlaySpelling: React.FC = () =>{
       setFinished(true);
       setPaused(true);
       toast.success("🎉 Finished!");
+      submitResult(nextScore); // ensure final score is used
     }
   };
 
@@ -173,15 +198,14 @@ const PlaySpelling: React.FC = () =>{
 
           {/* image / speaker */}
           <div className="flex justify-center mb-6">
-            {curQ.imagePath ? (
+            {curQ?.imagePath ? (
               <img
                 src={normalize(baseImageUrl, curQ.imagePath)}
                 alt="img"
-                
                 className="w-32 h-32 object-cover rounded"
               />
             ) : (
-              <button onClick={() => speakWord(curQ.word)} className="text-4xl text-blue-600">
+              <button onClick={() => speakWord(curQ?.word || "")} className="text-4xl text-blue-600">
                 <FiVolume2 />
               </button>
             )}
@@ -193,7 +217,9 @@ const PlaySpelling: React.FC = () =>{
               {letters.map((ch, i) => (
                 <input
                   key={i}
-                  ref={(el) => { inputRefs.current[i] = el; }}
+                  ref={(el) => {
+                    inputRefs.current[i] = el;
+                  }}
                   value={ch}
                   onChange={(e) => onType(i, e.target.value)}
                   className="w-10 h-10 text-center uppercase border text-xl font-bold rounded"
@@ -218,8 +244,11 @@ const PlaySpelling: React.FC = () =>{
               Try Again
             </button>
 
-            {remaining === 0 && <p className="text-red-600 font-semibold mt-3">⏰ Time's up!</p>}
+            {remaining === 0 && (
+              <p className="text-red-600 font-semibold mt-3">⏰ Time's up!</p>
+            )}
           </form>
+
           {finished && (
             <div className="text-center mt-6">
               <p className="text-lg font-bold text-green-600">
@@ -228,9 +257,9 @@ const PlaySpelling: React.FC = () =>{
             </div>
           )}
         </div>
-
       </div>
     </>
   );
 };
-export default PlaySpelling
+
+export default PlaySpelling;

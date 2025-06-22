@@ -36,6 +36,7 @@ import PlayFlashcard from '../pages/Student/Template/PlayFlashcard';
 import PlayCompletion from '../pages/Student/Template/PlayCompletion';
 import PlayPairing from '../pages/Student/Template/PlayPairing';
 import PlayRestoration from '../pages/Student/Template/PlayRestoration';
+import PlayTrueFalse from '../pages/Student/Template/PlayTrueFalse';
 
 export const privateRoutes = [
     {path: "/teacher/conjunction-review/:minigameId", element: <ConjunctionReview/>},
@@ -76,4 +77,5 @@ export const privateRoutes = [
     {path: "/student/completion/:minigameId", element: <PlayCompletion/>},
     {path: "/student/pairing/:minigameId", element: <PlayPairing/>},
     {path: "/student/restoration/:minigameId", element: <PlayRestoration/>},
+    {path: "/student/true-false/:minigameId", element: <PlayTrueFalse/>},
 ]
