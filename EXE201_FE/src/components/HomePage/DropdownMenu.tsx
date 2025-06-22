@@ -11,9 +11,10 @@ import { FaTicketAlt, FaBriefcase } from 'react-icons/fa';
 interface Props {
   userName?: string;
   roleId?: string;
+  isUpdated: boolean;
 }
 
-const UserDropdown: React.FC<Props> = ({ userName, roleId }) => {
+const UserDropdown: React.FC<Props> = ({ userName, roleId, isUpdated }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch();
@@ -82,6 +83,7 @@ const UserDropdown: React.FC<Props> = ({ userName, roleId }) => {
                 <FaBriefcase /> My Accomplishments
               </Link>
             )}
+            {isUpdated===false && (
             <Link
               to="/upgrade"
               onClick={() => setIsOpen(false)}
@@ -89,6 +91,7 @@ const UserDropdown: React.FC<Props> = ({ userName, roleId }) => {
             >
               <MdUpgrade className="rotate-90" /> Upgrade
             </Link>
+            )}
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 hover:bg-red-500 rounded text-white w-full mt-1"

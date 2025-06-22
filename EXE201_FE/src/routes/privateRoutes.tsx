@@ -1,11 +1,9 @@
-// import ConjunctionTemplate from '../pages/Template/Conjunction';
+
 import ConjunctionReview from '../pages/Template/ConjunctionReview';
-// import AnagramTemplate from '../pages/Template/Anagram';
 import AnagramReview from '../pages/Template/AnagramReview';
 import CoursePage from '../pages/CoursePage';
 import StudentAccomplishment from '../pages/Student/StudentAccomplishment';
 import TeacherMinigameData from '../pages/Teacher/TeacherMinigameData';
-// import Quiz from '../pages/Template/Quiz';
 import QuizReview from '../pages/Template/QuizReview';
 import RandomCard from '../pages/Template/RandomCard';
 import RandomCardReview from '../pages/Template/RandomCardReview';

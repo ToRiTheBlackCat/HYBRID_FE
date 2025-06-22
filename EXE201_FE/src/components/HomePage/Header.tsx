@@ -9,6 +9,7 @@ import { RootState } from '../../store/store';
 import { logout } from '../../store/userSlice';
 import DropdownMenu from "./DropdownMenu";
 import { fetchUserProfile } from "../../services/authService";
+import { checkSupscription } from '../../services/userService';
 import { Profile } from '../../types';
 
 const Header: React.FC = () => {
@@ -19,16 +20,18 @@ const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState<Profile>();
+  const [isUpdate, setIsUpdate] = useState<boolean>(false);
 
   const user = useSelector((state: RootState) => state.user);
   const isAuthenticated = !!user.userId;
   const roleId = user.roleId;
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const isTeacher = user.roleId === "3";
+  
 
   useEffect(() => {
     const getFullName = async () => {
-      const isTeacher = user.roleId === "1";
       try {
         const data = await fetchUserProfile(user.userId, isTeacher);
         setUserData(data ?? undefined);
@@ -36,6 +39,19 @@ const Header: React.FC = () => {
         console.log(error);
       }
     };
+    const checkSupscriptionData = async () =>{
+      const data = {
+        userId: user.userId,
+        isTeacher: isTeacher,
+      }
+      try{
+        const response = await checkSupscription(data);
+        setIsUpdate(response.isUpdated);
+      }catch(error){
+        console.log(error)
+      }
+    }
+    checkSupscriptionData();
     getFullName();
 
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -126,7 +142,7 @@ const Header: React.FC = () => {
         {/* Auth Buttons */}
         <div className="hidden lg:flex items-center gap-4">
           {isAuthenticated ? (
-            <DropdownMenu userName={userData?.fullName} roleId={roleId} />
+            <DropdownMenu userName={userData?.fullName} roleId={roleId} isUpdated={isUpdate} />
           ) : (
             <>
               <Link to="/login" className="text-sm px-4 py-2 bg-blue-600 rounded-full text-white hover:bg-green-700">

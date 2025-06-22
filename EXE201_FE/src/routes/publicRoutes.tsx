@@ -8,6 +8,7 @@ import VerifyCode from "../pages/VerifyCode";
 import PricingPage from "../pages/PricingPage";
 import PaymentPage from "../pages/PaymentPage";
 import StudentPage from "../pages/Student/StudentPage";
+import ProcessingPayment from "../pages/ProcessingPayment";
 
 
 export const publicRoutes = [
@@ -20,6 +21,7 @@ export const publicRoutes = [
     {path: "/verify-code",element: <VerifyCode/>},
     {path: "/pricing", element: <PricingPage/>},
     {path: "/payment", element: <PaymentPage/>},
-    {path: "/student", element: <StudentPage/>}
+    {path: "/student", element: <StudentPage/>},
+    {path: "/processing-payment",element: <ProcessingPayment/>}
     
 ];

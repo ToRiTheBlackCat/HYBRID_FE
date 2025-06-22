@@ -16,7 +16,8 @@ type Tier = {
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
-  const roleName = useSelector((state: RootState) => state.user.roleName); // Lấy từ Redux
+  const roleName = useSelector((state: RootState) => state.user.roleName); 
+  const userId = useSelector((state: RootState) => state.user.userId);
   const [tiers, setTiers] = useState<Tier[]>([]);
 
   useEffect(() => {
@@ -66,9 +67,29 @@ const PricingPage: React.FC = () => {
                       </li>
                     ))}
                 </div>
-                <button className="mt-4 text-blue-700 border border-blue-700 px-3 py-1 rounded hover:bg-blue-100">
-                  Upgrade
-                </button>
+                <div className="text-lg font-bold text-blue-700 mt-2">
+                  {Number(tier.tierId === "2" ? 70000 : 30000).toLocaleString('vi-VN')} VND
+                </div>
+                {(tier.tierId === "2" || tier.tierId === "3") && (
+                   <button
+                    className="mt-4 text-blue-700 border border-blue-700 px-3 py-1 rounded hover:bg-blue-100"
+                    onClick={() => {
+                      // const price = tier.tierId === "2" ? 70000 : 30000;
+                      const months = 1; // hoặc có thể thay đổi giá trị này tùy thuộc vào lựa chọn của người dùng
+                      navigate("/payment", {
+                        state: {
+                          price: 3000,
+                          tierId: tier.tierId,
+                          days: months * 30,
+                          userId,
+                        },
+                      });
+                    }}
+                  >
+                    Upgrade
+                  </button>
+                )}
+
               </div>
             ))}
           </div>

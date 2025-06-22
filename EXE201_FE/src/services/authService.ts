@@ -182,7 +182,6 @@ export const deleteMinigame = async (minigameId: string) => {
 }
 
 
-
 //template
 export const createConjunction = async (conjunctionData: Conjunction) => {
     try{

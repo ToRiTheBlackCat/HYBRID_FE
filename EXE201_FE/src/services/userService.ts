@@ -1,10 +1,95 @@
 import axiosInstance from '../config/axios';
-import {User, Account, StudentAccount, TeacherAccount} from '../types/user';
+import {User, Account, StudentAccount, TeacherAccount, SupscriptionExtention, UpgradeTierData} from '../types';
 import { ResetPasswordData } from '../types';
 
-export const fetchImage = async () => {
-
+//payment
+export const checkSupscription = async (body: {userId: string, isTeacher: boolean}) =>{
+    console.log(body);
+    try{
+        const response = await axiosInstance.post(`/api/Auth/check-supscription`, body);
+        return response.data;
+    }catch(error){
+        console.log(error);
+    }
 }
+export const createHistory = async (body: {amount: number, methodId: string}) =>{
+    try{
+        const response = await axiosInstance.post(`/api/Transaction/create-history`,body);
+        return response.data;
+    }catch(error){
+        console.log(error);
+    }
+}
+export const acceptHistory = async (transactionHistoryId: string) =>{
+    try{
+        const response = await axiosInstance.post(`/api/Transaction/accept-history`,{
+            params:{
+                transactionHistoryId: transactionHistoryId
+            }
+        })
+        return response.data;
+    }catch(error){
+        console.log(error);
+    }
+}
+export const cancelHistory = async (transactionHistoryId: string) =>{
+    try{
+        const response = await axiosInstance.post(`/api/Transaction/cancel-history`,{
+            params:{
+                transactionHistoryId: transactionHistoryId
+            }
+        })
+        return response.data;
+    }catch(error){
+        console.log(error);
+    }
+}
+export const createPaymentRequest = async (body:{transactionId: string, amount: number, buyerName: string}) =>{
+    try{
+        const response = await axiosInstance.post(`/api/Payment/payment-requests`,body);
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const checkPayment = async (id: number) =>{
+    try{
+        const response = await axiosInstance.post(`/api/Payment/check-payment/${id}`);
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const createStudentSupscription = async (data: SupscriptionExtention) =>{
+    try{
+        const response = await axiosInstance.post(`/api/SupscriptionExtention/create-student`, data);
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const createTeacherSupscription = async (data: SupscriptionExtention) =>{
+    try{
+        const response =await axiosInstance.post(`/api/SupscriptionExtention/create-teacher`, data);
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const upgradeTier = async (data: UpgradeTierData) =>{
+    try{
+        const response = await axiosInstance.post(`/api/Tier/upgrade`, data);
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+
 
 export const LoginGoggle = async (credential: string) => {
     try{
@@ -152,7 +237,7 @@ export const fetchCourseDetail = async (courseId: string) => {
 }
 export const fetchStudentTier = async () => {
     try{
-        const response = await axiosInstance.get(`api/Tier/tier-student`);
+        const response = await axiosInstance.get(`/api/Tier/tier-student`);
         return response.data;
     }catch (error) {
         console.log(error);
@@ -161,9 +246,27 @@ export const fetchStudentTier = async () => {
 }
 export const fetchTeacherTier = async () => {
     try{
-        const response = await axiosInstance.get(`api/Tier/tier-teacher`);
+        const response = await axiosInstance.get(`/api/Tier/tier-teacher`);
         return response.data;
     }catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+export const getStudentTierById = async (tierId: string) =>{
+    try{
+        const response = await axiosInstance.get(`/api/Tier/tier-student/${tierId}`);
+        return response.data;
+    }catch(error){
+        console.log(error);
+        throw error;
+    }
+}
+export const getTeacherTierById = async (tierId: string) =>{
+    try{
+        const response = await axiosInstance.get(`/api/Tier/tier-teacher/${tierId}`);
+        return response.data;
+    }catch(error){
         console.log(error);
         throw error;
     }

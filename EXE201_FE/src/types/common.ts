@@ -306,3 +306,15 @@ export type UpdateTrueFalseData = {
     Answer: boolean,
   }[]
 }
+export type SupscriptionExtention ={
+  userId: string;
+  tierId: string;
+  transactionId: string;
+  days: number;
+}
+export type UpgradeTierData = {
+  userId: string;
+  orderCode: number;
+  isTeacher: boolean;
+  tierId: string;
+}
