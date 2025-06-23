@@ -46,11 +46,12 @@ const PlaySpelling: React.FC = () => {
     const durationUsed = initialDuration - remaining;
 
     const payload: Accomplishment = {
-      minigameId,
-      percent,
-      durationInSeconds: durationUsed,
-      takenDate: new Date().toISOString(),
+      MinigameId: minigameId,
+      Percent: percent,
+      DurationInSeconds: durationUsed,
+      TakenDate: new Date(),
     } as unknown as Accomplishment;
+    console.log(payload);
 
     try {
       await submitAccomplishment(payload);

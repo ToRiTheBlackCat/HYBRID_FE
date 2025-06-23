@@ -4,6 +4,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Header from "../../../components/HomePage/Header";
 import { Accomplishment, Minigame } from "../../../types";
 import { baseImageUrl } from "../../../config/base";
+import { toast } from "react-toastify";
 
 interface ParsedQuestion {
   text: string;
@@ -133,7 +134,10 @@ const PlayQuiz: React.FC = () => {
       DurationInSecond: used < 0 ? 0 : used,
       TakenDate: new Date(),
     };
-    await submitAccomplishment(payload);
+    const result = await submitAccomplishment(payload);
+    if(result){
+      toast.success(`Submit successfully. You got ${percent} points`);
+    }
   };
 
   const handleFinish = () => {

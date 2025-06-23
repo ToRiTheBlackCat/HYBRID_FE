@@ -7,6 +7,8 @@ import Header from "../../components/HomePage/Header";
 import Footer from "../../components/HomePage/Footer";
 import ImageModal from "../../components/common/ImageModal";
 import { baseImageUrl } from "../../config/base";
+import TemplatePage from "../TemplatePage";
+import TemplateModal from "../../components/common/TemplateModal";
 
 const TEMPLATE_OPTIONS = [
   { id: "", name: "All Types" },
@@ -38,6 +40,7 @@ const CourseDetail: React.FC = () => {
   const [nameFilter, setNameFilter] = useState("");
   const [pageNum, setPageNum] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   const parseCourseImages = (dataText: string) => {
     const sanitized = dataText.replace(/&(?!amp;)/g, "&amp;");
@@ -120,6 +123,12 @@ const CourseDetail: React.FC = () => {
               ))}
               <button disabled={carouselIndex + 4 >= imageUrls.length} onClick={() => setCarouselIndex((i) => (i + 4 < imageUrls.length ? i + 1 : i))} className="px-2">→</button>
             </div>
+            <button
+              onClick={() => setShowTemplateModal(true)}
+              className="bg-red-400 mt-6 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            >
+              ➕ Create minigame
+            </button>
           </div>
         </div>
 
@@ -160,6 +169,11 @@ const CourseDetail: React.FC = () => {
           </div>
         )}
       </div>
+      {showTemplateModal && (
+        <TemplateModal onClose={() => setShowTemplateModal(false)}>
+          <TemplatePage courseId={courseId ?? ""} />
+        </TemplateModal>
+      )}
 
       {selectedImageIndex !== null && (
         <ImageModal

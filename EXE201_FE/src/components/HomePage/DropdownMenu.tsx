@@ -85,7 +85,7 @@ const UserDropdown: React.FC<Props> = ({ userName, roleId, isUpdated }) => {
             )}
             {isUpdated===false && (
             <Link
-              to="/upgrade"
+              to="/pricing"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2 px-4 py-2 hover:bg-blue-400 rounded"
             >

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { SpellingItem } from "../../types/common";
 import { useNavigate } from "react-router-dom";
-import Header from "../../components/HomePage/Header";
+// import Header from "../../components/HomePage/Header";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { createSpelling } from "../../services/authService";
@@ -79,7 +79,7 @@ const Spelling: React.FC<SpellingProps> = ({ courseId }) => {
 
     return (
         <>
-        <Header />
+        {/* <Header /> */}
 
         <div className="w-[900px] mx-auto mt-25 p-6 border rounded-md shadow-md bg-white">
             <h2 className="text-2xl font-bold mb-4">Spelling Activity</h2>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { QuizData, Question } from "../../types";
 import { Trash, Copy, Image as ImageIcon } from "lucide-react";
 import VoiceInput from "../../components/Conjunction/VoiceInput";
-import Header from "../../components/HomePage/Header";
+// import Header from "../../components/HomePage/Header";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { createQuiz } from "../../services/authService";
@@ -104,7 +104,7 @@ const Quiz: React.FC<QuizProps> = ({ courseId }) => {
 
     return (
         <>
-            <Header />
+            {/* <Header /> */}
             <div className="w-[900px] mx-auto mt-25 p-6 space-y-6 bg-white border shadow rounded-md">
                 <label className="text-2xl font-bold">Activity name</label>
                 <input

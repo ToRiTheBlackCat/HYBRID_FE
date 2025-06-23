@@ -138,7 +138,7 @@ const PlayTrueFalse: React.FC = () => {
 
     const res = await submitAccomplishment(payload);
     if (res) {
-      toast.success(`Đã lưu điểm thành công! Bạn đúng ${correct}/${questions.length}.`);
+      toast.success(`Submit successfully! You got ${correct}/${questions.length}.`);
     } else {
       toast.error("Lưu điểm thất bại, vui lòng thử lại.");
     }

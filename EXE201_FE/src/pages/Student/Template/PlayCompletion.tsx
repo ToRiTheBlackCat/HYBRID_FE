@@ -134,15 +134,15 @@ const PlayCompletion: React.FC = () => {
     const durationUsed = duration - timeLeft;
 
     const payload: Accomplishment = {
-      minigameId,
-      percent,
-      durationInSeconds: durationUsed,
-      takenDate: new Date().toISOString(),
+      MinigameId: minigameId,
+      Percent: percent,
+      DurationInSeconds: durationUsed,
+      TakenDate: new Date(),
     } as unknown as Accomplishment;
 
     try {
       await submitAccomplishment(payload);
-      toast.success("✅ Result submitted");
+      toast.success(`✅ Result submitted. You got ${percent}`);
     } catch (e) {
       console.error("submitAccomplishment error", e);
     }

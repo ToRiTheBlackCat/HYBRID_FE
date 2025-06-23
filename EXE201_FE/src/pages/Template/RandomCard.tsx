@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Trash, Image, Copy } from "lucide-react";
 import { RandomCardItem } from "../../types/index";
-import Header from "../../components/HomePage/Header";
+// import Header from "../../components/HomePage/Header";
 import { createRandomCard } from "../../services/authService";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
@@ -80,7 +80,7 @@ const RandomCard: React.FC<RandomCardProps> = ({ courseId }) => {
 
     return (
         <>
-            <Header />
+            {/* <Header /> */}
             <div className="w-[900px] mx-auto mt-25 p-6 border rounded-md shadow-md bg-white">
                 <div>
                     <label className="font-bold text-lg">Activity name</label>

@@ -5,6 +5,7 @@ import Footer from "../../../components/HomePage/Footer";
 import { fetchPlayMinigames, submitAccomplishment, fetchCourseMinigame } from "../../../services/authService";
 import { Accomplishment, Minigame } from "../../../types";
 import { baseImageUrl } from '../../../config/base';
+import { toast } from "react-toastify";
 
 // ─── Types ───────────────────────────────────────────────────────
 type Card = { id: number; word: string; isFlipped: boolean; isMatched: boolean };
@@ -177,8 +178,12 @@ const PlayPairing: React.FC = () => {
     };
 
     try {
-      await submitAccomplishment(payload);
-      setSubmitted(true);
+      const result = await submitAccomplishment(payload);
+      if(result){
+        setSubmitted(true);
+        toast.success(`You got ${percent} points`);
+      }
+      
     } catch (err) {
       console.error("submitAccomplishment error:", err);
     }

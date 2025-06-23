@@ -11,6 +11,7 @@ import FadeInOnView from "../../components/hooks/FadeInOnView";
 // import Pronunciation from "../../assets/TemplateLogo/Pronunciation.jpg";
 // import { FaSearch } from "react-icons/fa";
 import Header from "../../components/HomePage/Header";
+import Footer from "../../components/HomePage/Footer";
 import { fetchCourseList, fetchCourseDetail } from "../../services/userService";
 import CourseCard from "../../components/common/CourseCard";
 import { baseImageUrl } from "../../config/base";
@@ -204,6 +205,10 @@ const StudentPage: React.FC = () => {
           )}
         </section>
       </FadeInOnView>
+      <div className="mt-50">
+          <Footer/>
+      </div>
+      
     </>
   )
 }

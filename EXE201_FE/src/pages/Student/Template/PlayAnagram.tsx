@@ -163,10 +163,10 @@ const PlayAnagram: React.FC = () => {
     const durationUsed = duration - timer;
 
     const payload: Accomplishment = {
-      minigameId: minigameId ?? "",
-      percent,
-      durationInSeconds: durationUsed,
-      takenDate: new Date().toISOString(),
+      MinigameId: minigameId ?? "",
+      Percent: percent,
+      DurationInSeconds: durationUsed,
+      TakenDate: new Date(),
     } as unknown as Accomplishment;
 
     try {

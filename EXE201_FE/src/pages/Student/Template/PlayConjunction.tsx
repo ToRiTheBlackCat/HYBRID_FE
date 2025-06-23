@@ -132,10 +132,10 @@ const PlayConjunction: React.FC = () => {
       const used = initialDuration.current - duration;
 
       const payload: Accomplishment = {
-        minigameId,
-        percent,
-        durationInSeconds: used < 0 ? 0 : used,
-        takenDate: new Date().toISOString(),
+        MinigameId: minigameId,
+        Percent: percent,
+        DurationInSecond: used,
+        TakenDate: new Date(),
       } as unknown as Accomplishment;
 
       await submitAccomplishment(payload);
