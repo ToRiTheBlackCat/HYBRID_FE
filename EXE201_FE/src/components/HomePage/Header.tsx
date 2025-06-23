@@ -46,7 +46,7 @@ const Header: React.FC = () => {
       }
       try{
         const response = await checkSupscription(data);
-        setIsUpdate(response.isUpdated);
+        setIsUpdate(response.isTeacher);
       }catch(error){
         console.log(error)
       }

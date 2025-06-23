@@ -5,12 +5,15 @@ import Logo from "../assets/whitecat_logo2.jpg";
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import Cookies from 'js-cookie';
-import { Login, LoginGoggle, StudentSignUp, TeacherSignUp } from '../services/userService';
+import { Login, LoginGoggle, StudentSignUp, TeacherSignUp, } from '../services/userService';
+import { fetchUserProfile } from '../services/authService';
 import { setUserRedux } from '../store/userSlice';
 import { toast } from 'react-toastify';
 import { GoogleLogin, CredentialResponse, GoogleOAuthProvider } from '@react-oauth/google';
 import "react-toastify/dist/ReactToastify.css";
-import { jwtDecode } from "jwt-decode";
+import { Dialog } from '@headlessui/react';
+import { User } from '../types';
+// import { jwtDecode } from "jwt-decode";
 
 const LoginPage: React.FC = () => {
   const dispatch = useDispatch();
@@ -25,35 +28,60 @@ const LoginPage: React.FC = () => {
   const [birthYear, setBirthYear] = useState('');
   const [role, setRole] = useState('2'); // Mặc định là "student" với giá trị 2
   const [userId, setUserId] = useState(''); // Lưu userId từ LoginGoggle
+  const [pendingToken, setPendingToken] = useState<string | null>(null);   // token từ Google
+  const [roleModalOpen, setRoleModalOpen] = useState(false);
+  const [isLoginGoogle, setIsLoginGoogle] = useState<boolean>(false);
+  const [userData, setUserData] = useState<User>();
 
-  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
-    if (credentialResponse.credential) {
-      try {
-        const decodeData = jwtDecode(credentialResponse.credential);
-        console.log(decodeData);
-        const initialUserData = await LoginGoggle(credentialResponse.credential);
-        if (initialUserData && initialUserData.userId) { 
-          dispatch(setUserRedux(initialUserData));
+  const handleGoogleLogin = (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) return;
 
-          Cookies.set('user', JSON.stringify(initialUserData), { expires: 7 });
-          setUserId(initialUserData.userId); // Lưu userId
-          if(initialUserData.roleId === ""){
-             setShowAdditionalForm(true); // Hiển thị form bổ sung
-          }    
-          else{
-            setShowAdditionalForm(false)
-            if(initialUserData.roleId == "3"){
+    // Lưu token để dùng sau, mở modal chọn vai trò
+    setPendingToken(credentialResponse.credential);
+    setRoleModalOpen(true);
+    setIsLoginGoogle(true)
+  };
+
+  const loginWithGoogle = async (roleId: "2" | "3") => {
+
+    if (!pendingToken) return;
+    setRoleModalOpen(false);
+    try {
+      const body = {
+        token: pendingToken,
+        roleId: roleId
+      }
+      const initialUserData = await LoginGoggle(body);
+      const isTeacher = roleId === "3";
+      console.log(initialUserData);
+      if (initialUserData && initialUserData.userId) {
+        dispatch(setUserRedux(initialUserData));
+
+        Cookies.set('user', JSON.stringify(initialUserData), { expires: 7 });
+        setUserId(initialUserData.userId); // Lưu userId
+        if (!roleId) {
+          setShowAdditionalForm(true); // Hiển thị form bổ sung
+        }
+        else {
+          const checkProfile = await fetchUserProfile(initialUserData.userId, isTeacher);
+          if (!checkProfile) {
+            setShowAdditionalForm(true)
+          } else {
+            initialUserData.roleId = roleId;
+            console.log(initialUserData);
+            dispatch(setUserRedux(initialUserData));
+            if (roleId === "3") {
               navigate("/")
-            } else if(initialUserData.roleId == "2"){
+            } else if (roleId === "2") {
               navigate("/student")
             }
           }
-        } else {
-          toast.error("Đăng nhập thất bại hoặc không tìm thấy userId");
         }
-      } catch (error) {
-        console.error('Login error:', error);
+      } else {
+        toast.error("Đăng nhập thất bại hoặc không tìm thấy userId");
       }
+    } catch (error) {
+      console.error('Login error:', error);
     }
   };
 
@@ -80,9 +108,16 @@ const LoginPage: React.FC = () => {
 
       // Gọi API phù hợp dựa trên role
       if (role === '2') {
-        await StudentSignUp(additionalData);
+        const result = await StudentSignUp(additionalData);
+        if (result) {
+          navigate("/student");
+        }
+
       } else if (role === '3') {
-        await TeacherSignUp(additionalData);
+        const result = await TeacherSignUp(additionalData);
+        if (result) {
+          navigate("/");
+        }
       }
 
       toast.success("Thông tin đã được lưu");
@@ -93,7 +128,33 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleSelectRole = async (roleId: "2" | "3") => {
+    setRoleModalOpen(false);
+    if (userData) {
+      // console.log(userData);
+      setUserId(userData.userId);
+      userData.roleId = roleId;
+      dispatch(setUserRedux(userData));
+      console.log("UserData", userData);
+      const isTeacher = roleId === "3";
+      const checkProfile = await fetchUserProfile(userData.userId, isTeacher);
+      if (!checkProfile) {
+        setShowAdditionalForm(true)
+      } else {
+        // userData.roleId = roleId;
+        // dispatch(setUserRedux(userData));
+        // // console.log("UserData", userData);
+        if (roleId === "3") {
+          navigate("/")
+        } else if (roleId === "2") {
+          navigate("/student")
+        }
+      }
+    }
+  }
+
   const handleLoginClick = async () => {
+    setIsLoginGoogle(false)
     if (!email || !password) {
       toast.error("Vui lòng nhập đầy đủ thông tin");
       return;
@@ -101,15 +162,24 @@ const LoginPage: React.FC = () => {
 
     try {
       const userData = await Login(email, password);
+
       if (userData) {
+        setUserData(userData)
+
         dispatch(setUserRedux(userData));
         Cookies.set('user', JSON.stringify(userData), { expires: 7 });
+
         toast.success("Đăng nhập thành công");
-        if(userData.roleId === "3") {
-          navigate("/");
-        } else if (userData.roleId === "2") {
-          navigate("/student");
-        }
+        //open 
+        setRoleModalOpen(true);
+
+
+
+        // if (userData.roleId === "3") {
+        //   navigate("/");
+        // } else if (userData.roleId === "2") {
+        //   navigate("/student");
+        // }
       } else {
         toast.error("Đăng nhập thất bại");
       }
@@ -252,6 +322,29 @@ const LoginPage: React.FC = () => {
           )}
         </div>
       </div>
+      <Dialog open={roleModalOpen} onClose={() => setRoleModalOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white rounded-lg max-w-sm w-full p-6 space-y-4 text-center">
+            <Dialog.Title className="text-xl font-bold">You are…</Dialog.Title>
+
+            <div className="flex flex-col gap-4">
+              <button
+                onClick={() => isLoginGoogle ? loginWithGoogle("2") : handleSelectRole("2")}      // Student = 2
+                className="py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
+                👩‍🎓 Student
+              </button>
+              <button
+                onClick={() => isLoginGoogle ? loginWithGoogle("3") : handleSelectRole("3")}      // Teacher = 3
+                className="py-2 rounded bg-green-600 text-white hover:bg-green-700 transition"
+              >
+                👨‍🏫 Teacher
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </GoogleOAuthProvider>
   );
 };

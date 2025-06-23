@@ -91,10 +91,10 @@ export const upgradeTier = async (data: UpgradeTierData) =>{
 }
 
 
-export const LoginGoggle = async (credential: string) => {
+export const LoginGoggle = async (body:{token: string, roleId: string}) => {
     try{
-        console.log('LoginGoggle credential:', credential);
-        const response = await axiosInstance.post('/api/Auth/login-google', credential,
+        console.log('LoginGoggle credential:', body);
+        const response = await axiosInstance.post('/api/Auth/login-google', body,
             {
                 headers: {
                     'Content-Type': 'application/json',

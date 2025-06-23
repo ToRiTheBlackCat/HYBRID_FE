@@ -19,7 +19,7 @@ const HomePage: React.FC = () => {
     } else if(roleId==="1"){
       navigate("/admin");
     }
-  })
+  },[navigate, roleId])
 
   return (
     <>
