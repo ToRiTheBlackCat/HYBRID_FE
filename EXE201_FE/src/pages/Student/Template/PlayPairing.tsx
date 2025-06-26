@@ -6,6 +6,7 @@ import { fetchPlayMinigames, submitAccomplishment, fetchCourseMinigame } from ".
 import { Accomplishment, Minigame } from "../../../types";
 import { baseImageUrl } from '../../../config/base';
 import { toast } from "react-toastify";
+import { getLocalISOTime } from "../../../services/userService";
 
 // ─── Types ───────────────────────────────────────────────────────
 type Card = { id: number; word: string; isFlipped: boolean; isMatched: boolean };
@@ -174,8 +175,8 @@ const PlayPairing: React.FC = () => {
       MinigameId: minigameId,
       Percent: percent,
       DurationInSecond: durationUsed,
-      TakenDate: new Date(),
-    };
+      TakenDate: getLocalISOTime(),
+    }as unknown as Accomplishment;
 
     try {
       const result = await submitAccomplishment(payload);

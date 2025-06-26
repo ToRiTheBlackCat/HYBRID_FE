@@ -5,6 +5,7 @@ import Header from "../../../components/HomePage/Header";
 import { Accomplishment, Minigame } from "../../../types";
 import { baseImageUrl } from "../../../config/base";
 import { toast } from "react-toastify";
+import { getLocalISOTime } from "../../../services/userService";
 
 interface ParsedQuestion {
   text: string;
@@ -132,8 +133,8 @@ const PlayQuiz: React.FC = () => {
       MinigameId: minigameId,
       Percent: percent,
       DurationInSecond: used < 0 ? 0 : used,
-      TakenDate: new Date(),
-    };
+      TakenDate: getLocalISOTime(),
+    }as unknown as Accomplishment;
     const result = await submitAccomplishment(payload);
     if(result){
       toast.success(`Submit successfully. You got ${percent} points`);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import Logo from '../../assets/Logo.jpg';
+import Logo from '../../assets/CatLogo_noBR.png';
 
 const AdminSidebar: React.FC = () => {
   const location = useLocation();
@@ -22,11 +22,11 @@ const AdminSidebar: React.FC = () => {
       {/* Logo và Toggle button */}
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3 overflow-hidden">
-          <img src={Logo} alt="Logo" className="h-8 w-8" />
+          <img src={Logo} alt="Logo" className="h-20 w-20" />
           <span className={`font-bold text-xl whitespace-nowrap transition-opacity duration-300 ${
             isExpanded ? 'opacity-100' : 'opacity-0'
           }`}>
-            Smart Enrol
+            Hybrid
           </span>
         </div>
         <button 

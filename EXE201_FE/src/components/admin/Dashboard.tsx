@@ -130,14 +130,6 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg p-6 shadow-sm">
-          <h3 className="text-gray-500 text-sm font-medium">Cuộc trò chuyện</h3>
-          <p className="text-3xl font-semibold mt-2">5,678</p>
-          <span className="text-green-500 text-sm">
-            ↑ 8% so với tháng trước
-          </span>
-        </div>
-
-        <div className="bg-white rounded-lg p-6 shadow-sm">
           <h3 className="text-gray-500 text-sm font-medium">Người dùng mới</h3>
           <p className="text-3xl font-semibold mt-2">145</p>
           <span className="text-green-500 text-sm">

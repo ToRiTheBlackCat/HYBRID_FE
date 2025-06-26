@@ -6,6 +6,7 @@ import Header from "../../../components/HomePage/Header";
 import { Accomplishment, Minigame } from "../../../types";
 import { toast } from "react-toastify";
 import { baseImageUrl } from "../../../config/base";
+import { getLocalISOTime } from "../../../services/userService";
 
 interface QuestionAnswer {
   question: string;
@@ -133,8 +134,8 @@ const PlayTrueFalse: React.FC = () => {
       MinigameId: minigameId ?? "",
       Percent: percent,
       DurationInSecond: durationUsed,
-      TakenDate: new Date(),
-    };
+      TakenDate: getLocalISOTime(),
+    }as unknown as Accomplishment;
 
     const res = await submitAccomplishment(payload);
     if (res) {

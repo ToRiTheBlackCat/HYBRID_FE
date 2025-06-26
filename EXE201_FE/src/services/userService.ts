@@ -2,6 +2,12 @@ import axiosInstance from '../config/axios';
 import {User, Account, StudentAccount, TeacherAccount, SupscriptionExtention, UpgradeTierData} from '../types';
 import { ResetPasswordData } from '../types';
 
+export const getLocalISOTime = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset(); // in minutes
+    const localTime = new Date(now.getTime() - offset * 60 * 1000);
+    return localTime.toISOString().slice(0, -1); // remove the 'Z'
+};
 //payment
 export const checkSupscription = async (body: {userId: string, isTeacher: boolean}) =>{
     console.log(body);

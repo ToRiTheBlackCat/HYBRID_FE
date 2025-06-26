@@ -5,6 +5,7 @@ import { Flashcard, Accomplishment, Minigame } from '../../../types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '../../../components/HomePage/Header';
 import { baseImageUrl } from '../../../config/base';
+import { getLocalISOTime } from '../../../services/userService';
 
 const normalize = (base: string, path: string) =>
   `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}?t=${Date.now()}`;
@@ -125,8 +126,8 @@ const PlayFlashcard: React.FC = () => {
       MinigameId: minigameId,
       Percent: percent,
       DurationInSecond: durationUsed,
-      TakenDate: new Date(),
-    };
+      TakenDate: getLocalISOTime(),
+    } as unknown as Accomplishment;
 
     try {
       await submitAccomplishment(payload);

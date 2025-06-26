@@ -10,6 +10,7 @@ import {
 import { Accomplishment, Minigame } from "../../../types";
 import { baseImageUrl } from "../../../config/base";
 import { toast } from "react-toastify";
+import { getLocalISOTime } from "../../../services/userService";
 
 /* ───────── helpers ───────── */
 const shuffleArray = (array: string[]) => {
@@ -166,7 +167,7 @@ const PlayAnagram: React.FC = () => {
       MinigameId: minigameId ?? "",
       Percent: percent,
       DurationInSeconds: durationUsed,
-      TakenDate: new Date(),
+      TakenDate: getLocalISOTime(),
     } as unknown as Accomplishment;
 
     try {

@@ -9,6 +9,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { baseImageUrl } from "../../../config/base";
 import { Accomplishment } from "../../../types/index";
 import { toast } from "react-toastify";
+import { getLocalISOTime } from "../../../services/userService";
 
 const normalize = (base: string, path: string) =>
     `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}?t=${Date.now()}`;
@@ -88,8 +89,8 @@ const PlayRandomCard: React.FC = () => {
             MinigameId: minigameId,
             Percent: percent,
             DurationInSecond: 0,
-            TakenDate: new Date(),
-        };
+            TakenDate: getLocalISOTime(),
+        }as unknown as Accomplishment;
 
         try {
             await submitAccomplishment(payload);

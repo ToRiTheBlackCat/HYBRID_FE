@@ -44,12 +44,18 @@ const PlaySpelling: React.FC = () => {
 
     const percent = Math.round((finalScore / questions.length) * 100);
     const durationUsed = initialDuration - remaining;
+    const getLocalISOTime = () => {
+      const now = new Date();
+      const offset = now.getTimezoneOffset(); // in minutes
+      const localTime = new Date(now.getTime() - offset * 60 * 1000);
+      return localTime.toISOString().slice(0, -1); // remove the 'Z'
+    };
 
     const payload: Accomplishment = {
       MinigameId: minigameId,
       Percent: percent,
       DurationInSeconds: durationUsed,
-      TakenDate: new Date(),
+      TakenDate: getLocalISOTime(),
     } as unknown as Accomplishment;
     console.log(payload);
 

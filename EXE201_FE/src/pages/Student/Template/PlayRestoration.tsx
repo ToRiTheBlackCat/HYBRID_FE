@@ -8,6 +8,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Accomplishment, Minigame } from "../../../types";
 import { baseImageUrl } from "../../../config/base";
 import { toast } from "react-toastify";
+import { getLocalISOTime } from "../../../services/userService";
 
 /* ─── constants & helpers ─── */
 const ItemTypes = { WORD: "WORD" } as const;
@@ -220,8 +221,8 @@ const PlayRestoration: React.FC = () => {
       MinigameId: minigameId,
       Percent: percent,
       DurationInSecond: durationUsed,
-      TakenDate: new Date(),
-    };
+      TakenDate: getLocalISOTime(),
+    }as unknown as Accomplishment;
 
     try {
       await submitAccomplishment(payload);

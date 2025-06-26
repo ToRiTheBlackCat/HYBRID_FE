@@ -4,23 +4,19 @@ import Footer from '../../../components/HomePage/Footer';
 import { fetchPlayMinigames } from '../../../services/authService';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import EditFindWord from '../../Teacher/Template/EditFindWord';
-import { baseImageUrl } from '../../../config/base';
-import FindWordPreview from '../../Teacher/RawMinigameInfo/FindWord';
 
 interface Position {
   row: number;
   col: number;
 }
 
-const FindWordReview: React.FC = () => {
+const PlayFindWord: React.FC = () => {
   const [gridSize, setGridSize] = useState<number>(10);
   const [grid, setGrid] = useState<string[][]>(() => Array(10).fill(null).map(() => Array(10).fill('')));
   const [selectedPositions, setSelectedPositions] = useState<Position[]>([]);
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [startPos, setStartPos] = useState<Position | null>(null);
   const { minigameId } = useParams<{ minigameId: string }>();
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
 
   const [timeLeft, setTimeLeft] = useState<number>(60);
   const [initialDuration, setInitialDuration] = useState<number>(60);
@@ -28,7 +24,6 @@ const FindWordReview: React.FC = () => {
   const [targetWords, setTargetWords] = useState<string[]>([]);
   const [hint, setHint] = useState<string>("");
   const [correctPositions, setCorrectPositions] = useState<Position[]>([]);
-  const [isPlaying, setIsPlaying] = useState<boolean>();
 
 
   useEffect(() => {
@@ -133,7 +128,6 @@ const FindWordReview: React.FC = () => {
         const wordsNodeList = question?.querySelectorAll("words");
         const words = wordsNodeList ? Array.from(wordsNodeList).map(w => w.textContent?.toUpperCase().trim() || "") : [];
         const hint = question?.querySelector("hint")?.textContent ?? "";
-        setThumbnailUrl(res.thumbnailImage);
 
         // Convert 1D array string to 2D grid
         const newGrid = Array.from({ length: dimension }, (_, row) =>
@@ -295,91 +289,77 @@ const FindWordReview: React.FC = () => {
   return (
     <>
       <Header />
-      {!isPlaying ? (
-          <FindWordPreview onStart={() => setIsPlaying(true)}/>
-      ) : (
-      <><div className="min-h-screen flex flex-col justify-center items-center bg-white px-4 py-8 mt-20">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-white px-4 py-8 mt-20">
 
-            <h2 className="text-xl font-bold mb-4">Topic: {hint}</h2>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="text-lg font-semibold">
-                ⏳ Time Left: {timeLeft}s
-              </div>
-              <button
-                onClick={() => setIsRunning(prev => !prev)}
-                className={`px-4 py-1 rounded text-white font-semibold transition ${isRunning ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'}`}
-              >
-                {isRunning ? '⏸ Pause' : '▶ Play'}
-              </button>
-              <EditFindWord
-                initialActivityName={"Find Word Activity"}
-                initialDuration={initialDuration}
-                initialHint={hint}
-                initialWords={targetWords}
-                initialDimension={gridSize}
-                initialThumbnailUrl={baseImageUrl + thumbnailUrl}
-                onSave={({ duration, hint, words, dimension }) => {
-                  setInitialDuration(duration);
-                  setTimeLeft(duration);
-                  setHint(hint);
-                  setTargetWords(words);
-                  setGridSize(dimension);
-                } } />
-            </div>
-            <div className="bg-pink-100 border rounded-lg p-6 mb-12 overflow-auto">
-              <div
-                className="grid gap-1 mx-auto"
-                style={{ gridTemplateColumns: `repeat(${gridSize}, 3rem)` }} // mỗi cột ~48px
-              >
-                {grid.map((row, i) => row.map((letter, j) => {
-                  const isSelected = selectedPositions.some(pos => pos.row === i && pos.col === j);
-                  const isCorrect = correctPositions.some(pos => pos.row === i && pos.col === j);
+        <h2 className="text-xl font-bold mb-4">Topic: {hint}</h2>
+        <div className="flex items-center gap-4 mb-6">
+          <div className="text-lg font-semibold">
+            ⏳ Time Left: {timeLeft}s
+          </div>
+          <button
+            onClick={() => setIsRunning(prev => !prev)}
+            className={`px-4 py-1 rounded text-white font-semibold transition ${isRunning ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
+              }`}
+          >
+            {isRunning ? '⏸ Pause' : '▶ Play'}
+          </button>
+        </div>
+        <div className="bg-pink-100 border rounded-lg p-6 mb-12 overflow-auto">
+          <div
+            className="grid gap-1 mx-auto"
+            style={{ gridTemplateColumns: `repeat(${gridSize}, 3rem)` }} // mỗi cột ~48px
+          >
+            {grid.map((row, i) =>
+              row.map((letter, j) => {
+                const isSelected = selectedPositions.some(pos => pos.row === i && pos.col === j);
+                const isCorrect = correctPositions.some(pos => pos.row === i && pos.col === j);
 
-                  return (
-                    <div
-                      key={`${i}-${j}`}
-                      onClick={() => handleCellClick(i, j)}
-                      className={`w-12 h-12 text-white flex items-center justify-center text-lg font-bold rounded cursor-pointer transition-colors
+                return (
+                  <div
+                    key={`${i}-${j}`}
+                    onClick={() => handleCellClick(i, j)}
+                    className={`w-12 h-12 text-white flex items-center justify-center text-lg font-bold rounded cursor-pointer transition-colors
           ${isCorrect ? 'bg-green-500' : isSelected ? 'bg-yellow-400' : 'bg-gray-700 hover:bg-gray-600'}`}
-                    >
-                      {letter}
-                    </div>
-                  );
-                })
-                )}
-              </div>
-            </div>
+                  >
+                    {letter}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
 
-            <div className="w-[500px] flex flex-col space-y-2 mb-12">
-              {targetWords.map(word => (
-                <button
-                  key={word}
-                  className={`px-4 py-2 rounded-full text-white font-semibold transition-colors ${foundWords.includes(word) ? 'bg-green-500' : 'bg-green-400 hover:bg-green-500'}`}
-                >
-                  {word} {foundWords.includes(word) ? '✓' : ''}
-                </button>
-              ))}
-            </div>
+        <div className="w-[500px] flex flex-col space-y-2 mb-12">
+          {targetWords.map(word => (
+            <button
+              key={word}
+              className={`px-4 py-2 rounded-full text-white font-semibold transition-colors ${foundWords.includes(word) ? 'bg-green-500' : 'bg-green-400 hover:bg-green-500'
+                }`}
+            >
+              {word} {foundWords.includes(word) ? '✓' : ''}
+            </button>
+          ))}
+        </div>
 
-            <div className="w-full max-w-[700px] flex justify-between items-center px-4">
-              <button
-                onClick={handleTryAgain}
-                className="px-6 py-2 bg-blue-200 text-blue-800 font-semibold rounded-full hover:bg-blue-300 transition"
-              >
-                Try again
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="px-6 py-2 bg-green-200 text-green-800 font-semibold rounded-full hover:bg-green-300 transition"
-              >
-                Submit
-              </button>
-            </div>
+        <div className="w-full max-w-[700px] flex justify-between items-center px-4">
+          <button
+            onClick={handleTryAgain}
+            className="px-6 py-2 bg-blue-200 text-blue-800 font-semibold rounded-full hover:bg-blue-300 transition"
+          >
+            Try again
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-6 py-2 bg-green-200 text-green-800 font-semibold rounded-full hover:bg-green-300 transition"
+          >
+            Submit
+          </button>
+        </div>
 
-          </div><Footer /></>
-        )}
+      </div>
+      <Footer />
     </>
   );
 };
 
-export default FindWordReview;
+export default PlayFindWord;

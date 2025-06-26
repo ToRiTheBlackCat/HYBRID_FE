@@ -9,6 +9,7 @@ import Header from "../../../components/HomePage/Header";
 import { Accomplishment, Minigame } from "../../../types";
 import { toast } from "react-toastify";
 import { baseImageUrl } from "../../../config/base";
+import { getLocalISOTime } from "../../../services/userService";
 
 /* ───────── helpers ───────── */
 type QuestionParsed = {
@@ -137,7 +138,7 @@ const PlayCompletion: React.FC = () => {
       MinigameId: minigameId,
       Percent: percent,
       DurationInSeconds: durationUsed,
-      TakenDate: new Date(),
+      TakenDate: getLocalISOTime(),
     } as unknown as Accomplishment;
 
     try {

@@ -26,7 +26,7 @@ const LoginPage: React.FC = () => {
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [birthYear, setBirthYear] = useState('');
-  const [role, setRole] = useState('2'); // Mặc định là "student" với giá trị 2
+  // const [role, setRole] = useState('2'); // Mặc định là "student" với giá trị 2
   const [userId, setUserId] = useState(''); // Lưu userId từ LoginGoggle
   const [pendingToken, setPendingToken] = useState<string | null>(null);   // token từ Google
   const [roleModalOpen, setRoleModalOpen] = useState(false);
@@ -86,7 +86,7 @@ const LoginPage: React.FC = () => {
   };
 
   const handleSaveAdditionalInfo = async () => {
-    if (!fullName || !address || !phone || !birthYear || !role) {
+    if (!fullName || !address || !phone || !birthYear) {
       toast.error("Vui lòng nhập đầy đủ thông tin");
       return;
     }
@@ -107,13 +107,13 @@ const LoginPage: React.FC = () => {
       };
 
       // Gọi API phù hợp dựa trên role
-      if (role === '2') {
+      if (userData?.roleId === '2') {
         const result = await StudentSignUp(additionalData);
         if (result) {
           navigate("/student");
         }
 
-      } else if (role === '3') {
+      } else if (userData?.roleId === '3') {
         const result = await TeacherSignUp(additionalData);
         if (result) {
           navigate("/");
@@ -301,7 +301,7 @@ const LoginPage: React.FC = () => {
                   className="mt-1 p-2 w-full border rounded"
                 />
               </div>
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">Role</label>
                 <select
                   value={role}
@@ -311,7 +311,7 @@ const LoginPage: React.FC = () => {
                   <option value="2">Student</option>
                   <option value="3">Teacher</option>
                 </select>
-              </div>
+              </div> */}
               <button
                 onClick={handleSaveAdditionalInfo}
                 className="w-full bg-[#3d6fc2] text-white p-2 rounded-full hover:bg-blue-700 transition"

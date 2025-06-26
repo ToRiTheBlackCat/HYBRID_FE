@@ -37,6 +37,7 @@ import PlayCompletion from '../pages/Student/Template/PlayCompletion';
 import PlayPairing from '../pages/Student/Template/PlayPairing';
 import PlayRestoration from '../pages/Student/Template/PlayRestoration';
 import PlayTrueFalse from '../pages/Student/Template/PlayTrueFalse';
+import PlayFindWord from '../pages/Student/Template/PlayFindWord';
 
 export const privateRoutes = [
     {path: "/teacher/conjunction-review/:minigameId", element: <ConjunctionReview/>},
@@ -55,7 +56,7 @@ export const privateRoutes = [
     {path: "/pairing-review", element: <PairingReview/>},
     {path: "/restoration", element: <RestorationScreen/>},
     {path: "/find-word", element: <FindWordsScreen/>},
-    {path: "/find-word-review", element: <FindWordsReview/>},
+    {path: "/teacher/find-word-review/:minigameId", element: <FindWordsReview/>},
     {path: "/true-false", element: <TrueFalse/>},
     {path: "/teacher/true-false-review/:minigameId", element: <TrueFalseReview/>},
     {path: "/crossword", element: <CrosswordEditor/>},
@@ -78,4 +79,5 @@ export const privateRoutes = [
     {path: "/student/pairing/:minigameId", element: <PlayPairing/>},
     {path: "/student/restoration/:minigameId", element: <PlayRestoration/>},
     {path: "/student/true-false/:minigameId", element: <PlayTrueFalse/>},
+    {path: "/student/find-word/:minigameId", element: <PlayFindWord/>},
 ]

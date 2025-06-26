@@ -64,6 +64,7 @@ const CourseDetail: React.FC = () => {
     if (paths[templateId]) navigate(`/student/${paths[templateId]}/${minigameId}`,{state:{courseId: courseId}});
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const loadCourse = async () => {
     if (!courseId) return;
     const detail = await fetchCourseDetail(courseId);
@@ -71,6 +72,7 @@ const CourseDetail: React.FC = () => {
     setCourse({ ...detail, thumbnail, images });
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const loadMinigames = async () => {
     if (!courseId) return;
     const res = await fetchCourseMinigame(courseId, {
@@ -91,8 +93,8 @@ const CourseDetail: React.FC = () => {
     setTotalPages(res.totalPages);
   };
 
-  useEffect(() => { loadCourse(); }, [courseId]);
-  useEffect(() => { loadMinigames(); }, [courseId, templateFilter, nameFilter, pageNum]);
+  useEffect(() => { loadCourse(); }, [courseId, loadCourse]);
+  useEffect(() => { loadMinigames(); }, [courseId, templateFilter, nameFilter, pageNum, loadMinigames]);
 
   if (!course) return <div>Loading...</div>;
 

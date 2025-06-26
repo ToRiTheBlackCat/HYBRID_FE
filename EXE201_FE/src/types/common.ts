@@ -318,3 +318,28 @@ export type UpgradeTierData = {
   isTeacher: boolean;
   tierId: string;
 }
+export type FindWordData = {
+  MinigameName: string;
+  ImageFile: File | null;
+  TeacherId: string;
+  Duration: number;
+  CourseId: string;
+  GameData: {
+    Hint: string,
+    Words: string[],
+    DimensionSize: number,
+  }[]
+}
+export type UpdateFindWordData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile: File | null;
+  ImageUrl?: string | null;
+  Duration: number;
+  TeacherId: string;
+  GameData: {
+    Hint: string,
+    Words: string[],
+    DimensionSize: number,
+  }[]
+}

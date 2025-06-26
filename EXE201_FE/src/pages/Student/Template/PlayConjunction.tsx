@@ -10,6 +10,7 @@ import {
 } from "../../../services/authService";
 import { Accomplishment, Minigame } from "../../../types";
 import { baseImageUrl } from "../../../config/base";
+import { getLocalISOTime } from "../../../services/userService";
 
 /* ───────── helpers ───────── */
 const normalize = (base: string, path: string) =>
@@ -135,7 +136,7 @@ const PlayConjunction: React.FC = () => {
         MinigameId: minigameId,
         Percent: percent,
         DurationInSecond: used,
-        TakenDate: new Date(),
+        TakenDate: getLocalISOTime(),
       } as unknown as Accomplishment;
 
       await submitAccomplishment(payload);

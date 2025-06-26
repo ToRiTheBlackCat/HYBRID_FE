@@ -5,7 +5,7 @@ import { Profile, ProfileUpdate, Conjunction, Anagram, QuizData, UpdateConjuncti
     UpdateRandomCardData, SpellingData, UpdateSpellingData, Accomplishment, FlashCardData,
     UpdateFlashCard, rateMinigameData, CompletionData, UpdateCompletionData,
     PairingData, UpdatePairingData, RestorationData,  UpdateRestorationData,
-    TrueFalse, UpdateTrueFalseData } from "../types";
+    TrueFalse, UpdateTrueFalseData, FindWordData, UpdateFindWordData } from "../types";
 
 export const fetchUserProfile = async (userId: string, isTeacher: boolean) : Promise<Profile | null> => {
     try{
@@ -139,7 +139,7 @@ export const submitAccomplishment = async (accomplishmentData: Accomplishment) =
         minigameId: accomplishmentData.MinigameId,
         percent: accomplishmentData.Percent,
         durationInSeconds: accomplishmentData.DurationInSecond,
-        takenDate: accomplishmentData.TakenDate.toISOString(),
+        takenDate: accomplishmentData.TakenDate,
     };
     try{
         const response = await axiosInstance.post(`/api/Accomplishment`, apiPayload,{
@@ -981,6 +981,81 @@ export const UpdateTrueFalse = async (updateData: UpdateTrueFalseData) =>{
         })
 
         const response = await axiosInstance.put(`/api/MiniGame/true-false`, formData,{
+            params:{fakeTeacherId: updateData.TeacherId},
+            headers:{
+                'Content-Type': 'multipart/form-data',
+            }
+        })
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const createFindWord = async (findWordData: FindWordData) =>{
+    try{
+        const formData = new FormData();
+
+        formData.append("MinigameName", findWordData.MinigameName);
+        formData.append("TeacherId", findWordData.TeacherId);
+        formData.append("Duration", findWordData.Duration.toString());
+        formData.append("CourseId", findWordData.CourseId);
+
+        if(findWordData.ImageFile){
+            formData.append("ImageFile", findWordData.ImageFile);
+        }
+
+        findWordData.GameData.forEach((data, index)=>{
+            formData.append(`GameData[${index}].Hint`, data.Hint);
+            formData.append(`GameData[${index}].DimensionSize`, data.DimensionSize.toString());
+            data.Words.forEach((wordData, wordIndex)=>{
+                formData.append(`GameData[${index}].Words[${wordIndex}]`, wordData)
+            })
+        })
+
+        const response = await axiosInstance.post(`/api/MiniGame/word-find`, formData,{
+            headers:{
+                'Content-Type': 'multipart/form-data',
+            }
+        })
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const updateFindWord = async (updateData: UpdateFindWordData) =>{
+    try{
+        const formData = new FormData();
+
+        formData.append('MinigameId', updateData.MinigameId);
+        formData.append('MinigameName', updateData.MinigameName);
+        formData.append('Duration', updateData.Duration.toString());
+        formData.append('TeacherId', updateData.TeacherId);
+
+        let imageFile: File | null = null;
+        if (updateData.ImageFile) {
+            imageFile = updateData.ImageFile;
+        } else if (updateData.ImageUrl) {
+            try {
+                imageFile = await fetchImageAsFile(updateData.ImageUrl, 'existing-thumbnail.jpg');
+            } catch (corsError) {
+                console.error('CORS error while fetching image:', corsError);
+                console.warn('Skipping image due to CORS restrictions');
+            }
+        }
+        if (imageFile) {
+            formData.append('ImageFile', imageFile);
+        }
+        updateData.GameData.forEach((data, index)=>{
+            formData.append(`GameData[${index}].Hint`, data.Hint);
+            formData.append(`GameData[${index}].DimensionSize`, data.DimensionSize.toString());
+            data.Words.forEach((wordData, wordIndex)=>{
+                formData.append(`GameData[${index}].Words[${wordIndex}]`, wordData)
+            })
+        })
+
+        const response = await axiosInstance.put(`/api/MiniGame/word-find`, formData,{
             params:{fakeTeacherId: updateData.TeacherId},
             headers:{
                 'Content-Type': 'multipart/form-data',

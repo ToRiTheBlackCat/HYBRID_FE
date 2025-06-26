@@ -101,6 +101,9 @@ const TeacherActivities: React.FC = () => {
         case "TP9":
           navigate(`/teacher/restoration-review/${minigameId}`);
           break;
+        case "TP10":
+          navigate(`/teacher/find-word-review/${minigameId}`);
+          break;  
         case"TP11":
           navigate(`/teacher/true-false-review/${minigameId}`);
           break;    

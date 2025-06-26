@@ -26,6 +26,7 @@ const TeacherMinigameData: React.FC = () => {
 
     const load = async () => {
       const res = await fetchStudentAccomplishment(minigameId, false); // false = lấy tất cả HS
+      console.log("Result", res);
       if (res) setData(res);
       setLoading(false);
     };
