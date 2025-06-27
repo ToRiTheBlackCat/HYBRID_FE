@@ -4,6 +4,7 @@ import Footer from '../../../components/HomePage/Footer';
 import { fetchPlayMinigames } from '../../../services/authService';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import GameTutorialModal from '../GameTutorial/GameTutorialModal';
 
 interface Position {
   row: number;
@@ -17,6 +18,7 @@ const PlayFindWord: React.FC = () => {
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [startPos, setStartPos] = useState<Position | null>(null);
   const { minigameId } = useParams<{ minigameId: string }>();
+  const [showTutorial, setShowTutorial] = useState<boolean>(true);
 
   const [timeLeft, setTimeLeft] = useState<number>(60);
   const [initialDuration, setInitialDuration] = useState<number>(60);
@@ -289,6 +291,10 @@ const PlayFindWord: React.FC = () => {
   return (
     <>
       <Header />
+      <GameTutorialModal
+      isOpen={showTutorial}
+      onClose={()=>setShowTutorial(false)}
+      />
       <div className="min-h-screen flex flex-col justify-center items-center bg-white px-4 py-8 mt-20">
 
         <h2 className="text-xl font-bold mb-4">Topic: {hint}</h2>

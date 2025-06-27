@@ -20,8 +20,8 @@ export const publicRoutes = [
     {path: "/template", element : <TemplatePage/>},
     {path: "/verify-code",element: <VerifyCode/>},
     {path: "/pricing", element: <PricingPage/>},
-    {path: "/payment", element: <PaymentPage/>},
+    {path: "/payment", element: <ProcessingPayment/>},
     {path: "/student", element: <StudentPage/>},
-    {path: "/processing-payment",element: <ProcessingPayment/>}
+    {path: "/payment-page",element: <PaymentPage/>}
     
 ];

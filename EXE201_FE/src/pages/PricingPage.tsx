@@ -81,7 +81,7 @@ const PricingPage: React.FC = () => {
                       //   ? (roleName === "Student" ? 70000 : 30000)
                       //   : 30000;
                       const months = 1; // hoặc có thể thay đổi giá trị này tùy thuộc vào lựa chọn của người dùng
-                      navigate("/payment", {
+                      navigate("/payment-page", {
                         state: {
                           price: 3000,
                           tierId: tier.tierId,

@@ -56,7 +56,7 @@ const PaymentPage: React.FC = () => {
             }
             const result = await createHistory(data);
             if (result.isSuccess === true) {
-                navigate("/processing-payment", {
+                navigate("/payment", {
                     state: { transactionId: result.transactionId, amount: totalPrice, userId: userId },
                 });
             }else{
