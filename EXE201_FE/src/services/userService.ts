@@ -10,7 +10,6 @@ export const getLocalISOTime = () => {
 };
 //payment
 export const checkSupscription = async (body: {userId: string, isTeacher: boolean}) =>{
-    console.log(body);
     try{
         const response = await axiosInstance.post(`/api/Auth/check-supscription`, body);
         return response.data;
@@ -61,7 +60,7 @@ export const createPaymentRequest = async (body:{transactionId: string, amount: 
 }
 export const checkPayment = async (id: number) =>{
     try{
-        const response = await axiosInstance.post(`/api/Payment/check-payment/${id}`);
+        const response = await axiosInstance.get(`/api/Payment/check-payment/${id}`);
         return response.data;
     }catch(error){
         console.log(error);

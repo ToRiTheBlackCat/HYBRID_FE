@@ -57,7 +57,7 @@ const PaymentPage: React.FC = () => {
             const result = await createHistory(data);
             if (result.isSuccess === true) {
                 navigate("/payment", {
-                    state: { transactionId: result.transactionId, amount: totalPrice, userId: userId },
+                    state: { transactionId: result.transactionId, amount: totalPrice, userId: userId, days: months * 30},
                 });
             }else{
                 toast.error(result.message)

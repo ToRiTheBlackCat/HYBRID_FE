@@ -343,3 +343,28 @@ export type UpdateFindWordData = {
     DimensionSize: number,
   }[]
 }
+export type CrosswordData = {
+  MinigameName: string;
+  ImageFile: File | null;
+  TeacherId: string;
+  Duration: number;
+  CourseId: string;
+  GameData: {
+    Words: string[],
+    Clues: string[],
+    DimensionSize: number,
+  }[]
+}
+export type UpdateCrosswordData = {
+  MinigameId: string;
+  MinigameName: string;
+  ImageFile: File | null;
+  ImageUrl?: string | null;
+  Duration: number;
+  TeacherId: string;
+  GameData: {
+    Words: string[],
+    Clues: string[],
+    DimensionSize: number,
+  }[]
+}

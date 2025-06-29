@@ -38,6 +38,7 @@ import PlayPairing from '../pages/Student/Template/PlayPairing';
 import PlayRestoration from '../pages/Student/Template/PlayRestoration';
 import PlayTrueFalse from '../pages/Student/Template/PlayTrueFalse';
 import PlayFindWord from '../pages/Student/Template/PlayFindWord';
+import PlayCrossword from '../pages/Student/Template/PlayCrossword';
 
 export const privateRoutes = [
     {path: "/teacher/conjunction-review/:minigameId", element: <ConjunctionReview/>},
@@ -53,14 +54,13 @@ export const privateRoutes = [
     {path: "/teacher/pairing-review/:minigameId", element: <PairingReview/>},
     {path: "/teacher/restoration-review/:minigameId", element: <RestorationReview/>},
     {path: "/pairing", element: <PairingScreen/>},
-    {path: "/pairing-review", element: <PairingReview/>},
     {path: "/restoration", element: <RestorationScreen/>},
     {path: "/find-word", element: <FindWordsScreen/>},
     {path: "/teacher/find-word-review/:minigameId", element: <FindWordsReview/>},
     {path: "/true-false", element: <TrueFalse/>},
     {path: "/teacher/true-false-review/:minigameId", element: <TrueFalseReview/>},
     {path: "/crossword", element: <CrosswordEditor/>},
-    {path: "/crossword-review", element: <CrosswordReview/>},
+    {path: "/teacher/crossword-review/:minigameId", element: <CrosswordReview/>},
     {path: "/flashcard", element: <FlashcardDesigner/>},
     {path: "/teacher/flashcard-review/:minigameId", element: <FlashcardReview/>},
     {path: "/course", element: <CoursePage/>},
@@ -80,4 +80,5 @@ export const privateRoutes = [
     {path: "/student/restoration/:minigameId", element: <PlayRestoration/>},
     {path: "/student/true-false/:minigameId", element: <PlayTrueFalse/>},
     {path: "/student/find-word/:minigameId", element: <PlayFindWord/>},
+    {path: "/student/crossword/:minigameId", element: <PlayCrossword/>},
 ]

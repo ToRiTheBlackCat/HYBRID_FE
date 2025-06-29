@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../../../components/HomePage/Header';
 import Footer from '../../../components/HomePage/Footer';
-import { fetchPlayMinigames } from '../../../services/authService';
+import { fetchPlayMinigames, submitAccomplishment } from '../../../services/authService';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import GameTutorialModal from '../GameTutorial/GameTutorialModal';
+import { Accomplishment } from '../../../types';
 
 interface Position {
   row: number;
@@ -26,6 +27,10 @@ const PlayFindWord: React.FC = () => {
   const [targetWords, setTargetWords] = useState<string[]>([]);
   const [hint, setHint] = useState<string>("");
   const [correctPositions, setCorrectPositions] = useState<Position[]>([]);
+  const [lastFoundTime, setLastFoundTime] = useState<number | null>(null);
+  const [showHintButton, setShowHintButton] = useState<boolean>(false);
+  const [hintRevealed, setHintRevealed] = useState<boolean>(false);
+
 
 
   useEffect(() => {
@@ -38,19 +43,32 @@ const PlayFindWord: React.FC = () => {
     }
 
     const interval = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prev) => {
+        const newTime = prev - 1;
+
+        const now = Date.now();
+        const last = lastFoundTime ?? now;
+        const elapsed = now - last;
+
+        if (!showHintButton && elapsed >= 10000) {
+          setShowHintButton(true);
+        }
+
+        return newTime;
+      });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft]);
+  }, [isRunning, timeLeft, initialDuration, lastFoundTime, showHintButton]);
+
 
   useEffect(() => {
     const generateGrid = () => {
       const newGrid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
-      const directions = ['horizontal', 'vertical'];
-      const maxAttempts = 100; // Giới hạn số lần thử
+      const directions = ['horizontal', 'vertical', 'diagonalDownRight', 'diagonalDownLeft'];
 
-      // Thử đặt từng từ
+      const maxAttempts = 100;
+
       for (const word of targetWords) {
         let placed = false;
         let attempts = 0;
@@ -63,10 +81,9 @@ const PlayFindWord: React.FC = () => {
             const row = Math.floor(Math.random() * gridSize);
             const col = Math.floor(Math.random() * (gridSize - word.length + 1));
 
-            // Kiểm tra có thể đặt được không
             const canPlace = word.split('').every((letter, i) => {
-              const newCol = col + i;
-              return newCol < gridSize && (!newGrid[row][newCol] || newGrid[row][newCol] === letter);
+              const existing = newGrid[row][col + i];
+              return existing === '' || existing === letter;
             });
 
             if (canPlace) {
@@ -75,13 +92,14 @@ const PlayFindWord: React.FC = () => {
               });
               placed = true;
             }
+
           } else if (direction === 'vertical') {
             const col = Math.floor(Math.random() * gridSize);
             const row = Math.floor(Math.random() * (gridSize - word.length + 1));
 
             const canPlace = word.split('').every((letter, i) => {
-              const newRow = row + i;
-              return newRow < gridSize && (!newGrid[newRow][col] || newGrid[newRow][col] === letter);
+              const existing = newGrid[row + i][col];
+              return existing === '' || existing === letter;
             });
 
             if (canPlace) {
@@ -91,16 +109,49 @@ const PlayFindWord: React.FC = () => {
               placed = true;
             }
           }
+          else if (direction === 'diagonalDownRight') {
+            const row = Math.floor(Math.random() * (gridSize - word.length + 1));
+            const col = Math.floor(Math.random() * (gridSize - word.length + 1));
+
+            const canPlace = word.split('').every((letter, i) => {
+              const existing = newGrid[row + i][col + i];
+              return existing === '' || existing === letter;
+            });
+
+            if (canPlace) {
+              word.split('').forEach((letter, i) => {
+                newGrid[row + i][col + i] = letter;
+              });
+              placed = true;
+            }
+          }
+
+          else if (direction === 'diagonalDownLeft') {
+            const row = Math.floor(Math.random() * (gridSize - word.length + 1));
+            const col = Math.floor(Math.random() * (gridSize - word.length + 1)) + word.length - 1;
+
+            const canPlace = word.split('').every((letter, i) => {
+              const existing = newGrid[row + i][col - i];
+              return existing === '' || existing === letter;
+            });
+
+            if (canPlace) {
+              word.split('').forEach((letter, i) => {
+                newGrid[row + i][col - i] = letter;
+              });
+              placed = true;
+            }
+          }
+
         }
 
-        // Nếu không đặt được sau maxAttempts lần thử, bắt đầu lại
         if (!placed) {
-          console.log(`Could not place word: ${word}, regenerating grid...`);
-          return generateGrid(); // Tạo lại grid
+          console.warn(`Could not place word: ${word}, regenerating...`);
+          return generateGrid(); // reset grid and try again
         }
       }
 
-      // Điền các ô trống bằng chữ cái ngẫu nhiên
+      // Fill remaining cells with random letters
       for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
           if (!newGrid[i][j]) {
@@ -111,6 +162,7 @@ const PlayFindWord: React.FC = () => {
 
       return newGrid;
     };
+
 
     setGrid(generateGrid());
   }, []); // Loại bỏ targetWords khỏi dependency array
@@ -168,11 +220,18 @@ const PlayFindWord: React.FC = () => {
 
       if (targetWords.includes(selectedWord) && !foundWords.includes(selectedWord)) {
         setFoundWords(prev => [...prev, selectedWord]);
-        setCorrectPositions(prev => [...prev, ...path]); // ✅ thêm dòng này
+        setCorrectPositions(prev => [...prev, ...path]);
+        setShowHintButton(false);
+        setHintRevealed(false);
+        setLastFoundTime(Date.now());
       } else if (targetWords.includes(reverseWord) && !foundWords.includes(reverseWord)) {
         setFoundWords(prev => [...prev, reverseWord]);
-        setCorrectPositions(prev => [...prev, ...path]); // ✅ thêm dòng này
+        setCorrectPositions(prev => [...prev, ...path]);
+        setShowHintButton(false);
+        setHintRevealed(false);
+        setLastFoundTime(Date.now());
       }
+
 
       setTimeout(() => {
         setStartPos(null);
@@ -282,18 +341,42 @@ const PlayFindWord: React.FC = () => {
 
     setGrid(generateGrid());
   };
+  const getLocalISOTime = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset(); // in minutes
+    const localTime = new Date(now.getTime() - offset * 60 * 1000);
+    return localTime.toISOString().slice(0, -1); // remove the 'Z'
+  };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setIsRunning(false);
     const allFound = targetWords.every(word => foundWords.includes(word));
-    toast(allFound ? 'Correct! All words found!' : 'Not all words found. Try again!');
+    toast(allFound ? '🎉 Correct! All words found!' : '❌ Not all words found. Try again!');
+
+    if (minigameId) {
+      const percent = Math.round((foundWords.length / targetWords.length) * 100);
+      const payload = {
+        MinigameId: minigameId,
+        Percent: percent,
+        DurationInSecond: initialDuration - timeLeft,
+        TakenDate: getLocalISOTime()
+      };
+
+      const result = await submitAccomplishment(payload as unknown as Accomplishment);
+      if (result) {
+        console.log("✅ Accomplishment submitted!");
+      } else {
+        console.error("❌ Failed to submit accomplishment.");
+      }
+    }
   };
 
   return (
     <>
       <Header />
       <GameTutorialModal
-      isOpen={showTutorial}
-      onClose={()=>setShowTutorial(false)}
+        isOpen={showTutorial}
+        onClose={() => setShowTutorial(false)}
       />
       <div className="min-h-screen flex flex-col justify-center items-center bg-white px-4 py-8 mt-20">
 
@@ -302,10 +385,28 @@ const PlayFindWord: React.FC = () => {
           <div className="text-lg font-semibold">
             ⏳ Time Left: {timeLeft}s
           </div>
+          {showHintButton && !hintRevealed && (
+            <button
+              onClick={() => setHintRevealed(true)}
+              className="bg-yellow-300 hover:bg-yellow-400 px-3 py-1 rounded text-black"
+            >
+              💡 Hint
+            </button>
+          )}
+          {hintRevealed && (
+            <div className="text-md text-purple-700 font-semibold">
+              📌 Hint: {targetWords.find(word => !foundWords.includes(word)) ?? "All words found!"}
+            </div>
+          )}
+
           <button
-            onClick={() => setIsRunning(prev => !prev)}
-            className={`px-4 py-1 rounded text-white font-semibold transition ${isRunning ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
-              }`}
+            onClick={() => {
+              if (!isRunning) {
+                setLastFoundTime(Date.now()); // 👈 Khởi tạo khi bắt đầu
+              }
+              setIsRunning(prev => !prev);
+            }}
+            className={`px-4 py-1 rounded text-white font-semibold transition ${isRunning ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'}`}
           >
             {isRunning ? '⏸ Pause' : '▶ Play'}
           </button>
@@ -325,7 +426,7 @@ const PlayFindWord: React.FC = () => {
                     key={`${i}-${j}`}
                     onClick={() => handleCellClick(i, j)}
                     className={`w-12 h-12 text-white flex items-center justify-center text-lg font-bold rounded cursor-pointer transition-colors
-          ${isCorrect ? 'bg-green-500' : isSelected ? 'bg-yellow-400' : 'bg-gray-700 hover:bg-gray-600'}`}
+                    ${isCorrect ? 'bg-green-500' : isSelected ? 'bg-yellow-400' : 'bg-gray-700 hover:bg-gray-600'}`}
                   >
                     {letter}
                   </div>
@@ -335,18 +436,6 @@ const PlayFindWord: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-[500px] flex flex-col space-y-2 mb-12">
-          {targetWords.map(word => (
-            <button
-              key={word}
-              className={`px-4 py-2 rounded-full text-white font-semibold transition-colors ${foundWords.includes(word) ? 'bg-green-500' : 'bg-green-400 hover:bg-green-500'
-                }`}
-            >
-              {word} {foundWords.includes(word) ? '✓' : ''}
-            </button>
-          ))}
-        </div>
-
         <div className="w-full max-w-[700px] flex justify-between items-center px-4">
           <button
             onClick={handleTryAgain}
@@ -354,12 +443,14 @@ const PlayFindWord: React.FC = () => {
           >
             Try again
           </button>
+          {isRunning && 
           <button
             onClick={handleSubmit}
             className="px-6 py-2 bg-green-200 text-green-800 font-semibold rounded-full hover:bg-green-300 transition"
           >
             Submit
           </button>
+          }
         </div>
 
       </div>

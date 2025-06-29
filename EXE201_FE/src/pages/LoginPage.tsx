@@ -52,6 +52,7 @@ const LoginPage: React.FC = () => {
         roleId: roleId
       }
       const initialUserData = await LoginGoggle(body);
+      
       const isTeacher = roleId === "3";
       console.log(initialUserData);
       if (initialUserData && initialUserData.userId) {
@@ -162,7 +163,10 @@ const LoginPage: React.FC = () => {
 
     try {
       const userData = await Login(email, password);
-
+      if(userData?.roleId==="1"){
+        setRoleModalOpen(false);
+        navigate("/admin")
+      }
       if (userData) {
         setUserData(userData)
 
@@ -170,16 +174,7 @@ const LoginPage: React.FC = () => {
         Cookies.set('user', JSON.stringify(userData), { expires: 7 });
 
         toast.success("Đăng nhập thành công");
-        //open 
         setRoleModalOpen(true);
-
-
-
-        // if (userData.roleId === "3") {
-        //   navigate("/");
-        // } else if (userData.roleId === "2") {
-        //   navigate("/student");
-        // }
       } else {
         toast.error("Đăng nhập thất bại");
       }

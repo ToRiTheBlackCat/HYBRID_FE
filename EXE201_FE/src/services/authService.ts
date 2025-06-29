@@ -5,7 +5,8 @@ import { Profile, ProfileUpdate, Conjunction, Anagram, QuizData, UpdateConjuncti
     UpdateRandomCardData, SpellingData, UpdateSpellingData, Accomplishment, FlashCardData,
     UpdateFlashCard, rateMinigameData, CompletionData, UpdateCompletionData,
     PairingData, UpdatePairingData, RestorationData,  UpdateRestorationData,
-    TrueFalse, UpdateTrueFalseData, FindWordData, UpdateFindWordData } from "../types";
+    TrueFalse, UpdateTrueFalseData, FindWordData, UpdateFindWordData, CrosswordData, 
+    UpdateCrosswordData} from "../types";
 
 export const fetchUserProfile = async (userId: string, isTeacher: boolean) : Promise<Profile | null> => {
     try{
@@ -198,6 +199,48 @@ export const deleteMinigame = async (minigameId: string) => {
     }
 }
 
+//admin
+export const adminAnalyzeCourses = async () =>{
+    try{
+        const response = await axiosInstance.get(`/api/Admin/analyze-courses`);
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const adminAnalyzeUsers = async () =>{
+    try{
+        const response = await axiosInstance.get(`/api/Admin/analyze-users`);
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const adminAnalyzeMinigames = async () =>{
+    try{
+        const response = await axiosInstance.get(`/api/Admin/analyze-minigames`);
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const adminFilterUser = async (fromDate: string, toDate: string) =>{
+    try{
+        const response = await axiosInstance.post(`/api/Admin/filter-user`, {
+            params:{
+                fromDate: fromDate,
+                toData: toDate,
+            }
+        })
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
 
 //template
 export const createConjunction = async (conjunctionData: Conjunction) => {
@@ -1056,6 +1099,85 @@ export const updateFindWord = async (updateData: UpdateFindWordData) =>{
         })
 
         const response = await axiosInstance.put(`/api/MiniGame/word-find`, formData,{
+            params:{fakeTeacherId: updateData.TeacherId},
+            headers:{
+                'Content-Type': 'multipart/form-data',
+            }
+        })
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const createCrossword = async (crosswordData: CrosswordData) =>{
+    try{
+        const formData = new FormData();
+
+        formData.append("MinigameName", crosswordData.MinigameName);
+        formData.append("TeacherId", crosswordData.TeacherId);
+        formData.append("Duration", crosswordData.Duration.toString());
+        formData.append("CourseId", crosswordData.CourseId);
+
+        if(crosswordData.ImageFile){
+            formData.append("ImageFile", crosswordData.ImageFile);
+        }
+
+        crosswordData.GameData.forEach((data, index)=>{
+            data.Clues.forEach((clueData, clueIndex)=>{
+                formData.append(`GameData[${index}].Clues[${clueIndex}]`, clueData)
+            })
+            formData.append(`GameData[${index}].DimensionSize`, data.DimensionSize.toString());
+            data.Words.forEach((wordData, wordIndex)=>{
+                formData.append(`GameData[${index}].Words[${wordIndex}]`, wordData)
+            })
+        })
+
+        const response = await axiosInstance.post(`/api/MiniGame/cross-words`, formData,{
+            headers:{
+                'Content-Type': 'multipart/form-data',
+            }
+        })
+        return response.data;
+    }catch(error){
+        console.log(error);
+        return null;
+    }
+}
+export const updateCrossword = async (updateData: UpdateCrosswordData) =>{
+    try{
+        const formData = new FormData();
+
+        formData.append('MinigameId', updateData.MinigameId);
+        formData.append('MinigameName', updateData.MinigameName);
+        formData.append('Duration', updateData.Duration.toString());
+        formData.append('TeacherId', updateData.TeacherId);
+
+        let imageFile: File | null = null;
+        if (updateData.ImageFile) {
+            imageFile = updateData.ImageFile;
+        } else if (updateData.ImageUrl) {
+            try {
+                imageFile = await fetchImageAsFile(updateData.ImageUrl, 'existing-thumbnail.jpg');
+            } catch (corsError) {
+                console.error('CORS error while fetching image:', corsError);
+                console.warn('Skipping image due to CORS restrictions');
+            }
+        }
+        if (imageFile) {
+            formData.append('ImageFile', imageFile);
+        }
+        updateData.GameData.forEach((data, index)=>{
+            data.Clues.forEach((clueData, clueIndex)=>{
+                formData.append(`GameData[${index}].Clues[${clueIndex}]`, clueData)
+            })
+            formData.append(`GameData[${index}].DimensionSize`, data.DimensionSize.toString());
+            data.Words.forEach((wordData, wordIndex)=>{
+                formData.append(`GameData[${index}].Words[${wordIndex}]`, wordData)
+            })
+        })
+
+        const response = await axiosInstance.put(`/api/MiniGame/cross-words`, formData,{
             params:{fakeTeacherId: updateData.TeacherId},
             headers:{
                 'Content-Type': 'multipart/form-data',
