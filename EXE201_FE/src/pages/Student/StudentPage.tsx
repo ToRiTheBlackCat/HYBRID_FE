@@ -206,9 +206,9 @@ const StudentPage: React.FC = () => {
         </section>
       </FadeInOnView>
       <div className="mt-50">
-          <Footer/>
+        <Footer />
       </div>
-      
+
     </>
   )
 }

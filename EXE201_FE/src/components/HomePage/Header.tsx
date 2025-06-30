@@ -28,7 +28,7 @@ const Header: React.FC = () => {
 
   const menuRef = useRef<HTMLDivElement>(null);
   const isTeacher = user.roleId === "3";
-  
+
 
   useEffect(() => {
     const getFullName = async () => {
@@ -39,15 +39,15 @@ const Header: React.FC = () => {
         console.log(error);
       }
     };
-    const checkSupscriptionData = async () =>{
+    const checkSupscriptionData = async () => {
       const data = {
         userId: user.userId,
         isTeacher: isTeacher,
       }
-      try{
+      try {
         const response = await checkSupscription(data);
         setIsUpdate(response.isTeacher);
-      }catch(error){
+      } catch (error) {
         console.log(error)
       }
     }
@@ -102,9 +102,8 @@ const Header: React.FC = () => {
       initial={{ y: -80 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 100 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md' : 'bg-white'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md' : 'bg-white'
+        }`}
     >
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
@@ -114,29 +113,36 @@ const Header: React.FC = () => {
 
         {/* Desktop Menu */}
         <div className="hidden lg:flex mr-20 items-center gap-4">
-          {menuItems.map((item) => {
-            const isHome = item.path === '/';
-            const handleClick = () => {
-              if (isHome && roleId === "2") {
-                navigate('/student');
-              } else {
-                navigate(item.path);
+          {menuItems
+            .filter((item) => {
+              if (item.path === '/course') {
+                return roleId === "3"; 
               }
-            };
-            return (
-              <button
-                key={item.path}
-                onClick={handleClick}
-                className={`text-sm px-4 py-2 rounded-full font-medium transition ${
-                  isActiveLink(item.path)
-                    ? 'bg-blue-600 text-white shadow'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+              return true; 
+            })
+            .map((item) => {
+              const isHome = item.path === '/';
+              const handleClick = () => {
+                if (isHome && roleId === "2") {
+                  navigate('/student');
+                } else {
+                  navigate(item.path);
+                }
+              };
+              return (
+                <button
+                  key={item.path}
+                  onClick={handleClick}
+                  className={`text-sm px-4 py-2 rounded-full font-medium transition ${isActiveLink(item.path)
+                      ? 'bg-blue-600 text-white shadow'
+                      : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                    }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+
         </div>
 
         {/* Auth Buttons */}
@@ -192,11 +198,10 @@ const Header: React.FC = () => {
                   <button
                     key={item.path}
                     onClick={handleClick}
-                    className={`text-sm px-4 py-2 rounded-md ${
-                      isActiveLink(item.path)
+                    className={`text-sm px-4 py-2 rounded-md ${isActiveLink(item.path)
                         ? 'bg-blue-600 text-white'
                         : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                    }`}
+                      }`}
                   >
                     {item.label}
                   </button>

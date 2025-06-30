@@ -47,7 +47,7 @@ const PlayQuiz: React.FC = () => {
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0); // Khởi tạo bằng 0, sẽ được cập nhật trong loadData
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const initialDurationRef = useRef<number>(0);
 
@@ -134,9 +134,9 @@ const PlayQuiz: React.FC = () => {
       Percent: percent,
       DurationInSecond: used < 0 ? 0 : used,
       TakenDate: getLocalISOTime(),
-    }as unknown as Accomplishment;
+    } as unknown as Accomplishment;
     const result = await submitAccomplishment(payload);
-    if(result){
+    if (result) {
       toast.success(`Submit successfully. You got ${percent} points`);
     }
   };
@@ -169,125 +169,129 @@ const PlayQuiz: React.FC = () => {
   const selected = selectedIndexes[currentIndex];
 
   return (
-    <>
-      <Header />
-      <div className="w-[900px] mx-auto mt-25 p-6 border rounded-md shadow-md bg-white">
-        {courseMinigames.length > 0 && (
-          <aside className="absolute top-24 right-4 w-60 bg-white border rounded-lg shadow-md overflow-auto max-h-[80vh]">
-            <h3 className="font-bold text-center py-2 border-b">Other games</h3>
-            {courseMinigames.map((mg) => {
-              const isActive = mg.minigameId === minigameId;
-              const path = paths[mg.templateId];
-              return (
-                <button
-                  key={mg.minigameId}
-                  onClick={() =>
-                    navigate(`/student/${path}/${mg.minigameId}`, {
-                      state: { courseId: courseIdFromState },
-                    })
-                  }
-                  className={`w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-blue-50 ${isActive ? "bg-blue-100 font-semibold" : ""
-                    }`}
-                  disabled={isActive}
-                >
-                  <img
-                    src={normalize(baseImageUrl, mg.thumbnailImage)}
-                    alt={mg.minigameName}
-                    className="w-10 h-10 object-cover rounded"
-                  />
-                  <div className="flex flex-col">
-                    <span className="line-clamp-2">{mg.minigameName}</span>
-                    <span className="line-clamp-2 text-gray-500 text-xs">{mg.templateName}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </aside>
-        )}
-        <div className="flex justify-between mb-4">
-          <div className="text-lg font-medium">⏱ Time left: {timeLeft}s</div>
-          <button
-            onClick={togglePause}
-            className="px-3 py-1 bg-yellow-400 rounded hover:bg-yellow-500 text-white"
-          >
-            {paused ? "Resume" : "Pause"}
-          </button>
-        </div>
-
-        <div className="bg-gray-300 rounded-2xl h-24 flex items-center justify-center mb-6 text-xl font-semibold px-4 text-center">
-          {currentQuestion.text}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          {currentQuestion.answer.map((answer, index) => {
-            const isSelected = selected === index;
-            const isCorrect = index === currentQuestion.correctIndex;
-            const showColor =
-              showResult && isSelected
-                ? isCorrect
-                  ? "bg-green-500 text-white"
-                  : "bg-red-400 text-white"
-                : isSelected
-                  ? "bg-blue-400 text-white"
-                  : "bg-pink-50 hover:bg-pink-100";
-
+  <>
+    <Header />
+    <div className="max-w-4xl mx-auto mt-24 p-6 border rounded-xl shadow-lg bg-white relative">
+      {/* Sidebar: Other games */}
+      {courseMinigames.length > 0 && (
+        <aside className="absolute top-4 right-[-320px] w-64 bg-white border rounded-xl shadow-md overflow-auto max-h-[80vh] p-2 hidden xl:block">
+          <h3 className="font-bold text-center py-2 border-b">Other Games</h3>
+          {courseMinigames.map((mg) => {
+            const isActive = mg.minigameId === minigameId;
+            const path = paths[mg.templateId];
             return (
               <button
-                key={index}
-                className={`p-3 border rounded cursor-pointer transition duration-300 ease-in-out ${showColor}`}
-                onClick={() => handleSelectAnswer(index)}
-                disabled={showResult || paused}
+                key={mg.minigameId}
+                onClick={() => navigate(`/student/${path}/${mg.minigameId}`, { state: { courseId: courseIdFromState } })}
+                className={`w-full flex items-center gap-3 text-left px-3 py-2 text-sm rounded-lg transition-all ${isActive ? "bg-blue-100 font-semibold" : "hover:bg-blue-50"}`}
+                disabled={isActive}
               >
-                {answer}
+                <img
+                  src={normalize(baseImageUrl, mg.thumbnailImage)}
+                  alt={mg.minigameName}
+                  className="w-10 h-10 object-cover rounded-md"
+                />
+                <div className="flex flex-col">
+                  <span className="truncate font-medium">{mg.minigameName}</span>
+                  <span className="text-gray-500 text-xs">{mg.templateName}</span>
+                </div>
               </button>
             );
           })}
-        </div>
+        </aside>
+      )}
 
-        <div className="flex justify-between items-center mt-4">
-          <button
-            disabled={currentIndex === 0 || paused}
-            onClick={() => setCurrentIndex((prev) => prev - 1)}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-          >
-            Prev
-          </button>
+      {/* Timer and Pause */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-lg font-semibold text-blue-700">⏱ Time Left: {timeLeft}s</div>
+        <button
+          onClick={togglePause}
+          className="px-4 py-1.5 bg-yellow-400 text-white rounded-full hover:bg-yellow-500 shadow"
+        >
+          {paused ? "Play" : "Pause"}
+        </button>
+      </div>
 
-          <div className="flex gap-4">
-            {showResult ? (
-              <>
-                <div className="text-lg font-semibold text-green-600">
-                  ✅ Score: {score} / {questions.length}
-                </div>
-                <button
-                  onClick={handleTryAgain}
-                  className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600"
-                >
-                  Try Again
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  disabled={currentIndex === questions.length - 1 || paused}
-                  onClick={() => setCurrentIndex((prev) => prev + 1)}
-                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-                >
-                  Next
-                </button>
-                <button
-                  onClick={handleFinish}
-                  disabled={paused}
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-                >
-                  Finish
-                </button>
-              </>
-            )}
-          </div>
+      {/* Question Text */}
+      <div className="bg-blue-100 rounded-xl p-6 text-center text-lg font-semibold mb-6 shadow-inner">
+        {currentQuestion.text}
+      </div>
+
+      {/* Answer Options */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {currentQuestion.answer.map((answer, index) => {
+          const isSelected = selected === index;
+          const isCorrect = index === currentQuestion.correctIndex;
+          const showColor =
+            showResult && isSelected
+              ? isCorrect
+                ? "bg-green-500 text-white"
+                : "bg-red-500 text-white"
+              : isSelected
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 hover:bg-blue-100";
+
+          return (
+            <button
+              key={index}
+              onClick={() => handleSelectAnswer(index)}
+              disabled={showResult || paused}
+              className={`p-3 border rounded-lg font-medium transition-all ${showColor}`}
+            >
+              {answer}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Navigation & Score */}
+      <div className="flex justify-between items-center mb-4">
+        <button
+          onClick={() => setCurrentIndex((prev) => prev - 1)}
+          disabled={currentIndex === 0 || paused}
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+        >
+          Prev
+        </button>
+
+        <div className="flex gap-4 items-center">
+          {showResult && (
+            <div className="text-green-600 font-semibold">
+              ✅ Score: {score}/{questions.length}
+            </div>
+          )}
+          {!showResult && (
+            <button
+              onClick={() => setCurrentIndex((prev) => prev + 1)}
+              disabled={currentIndex === questions.length - 1 || paused}
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            >
+              Next
+            </button>
+          )}
         </div>
       </div>
-    </>
-  );
+
+      {/* Finish + Try Again */}
+      <div className="flex justify-end gap-4">
+        <button
+          onClick={handleFinish}
+          disabled={paused}
+          className="px-5 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+        >
+          Finish
+        </button>
+        {showResult && (
+          <button
+            onClick={handleTryAgain}
+            className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+          >
+            Try Again
+          </button>
+        )}
+      </div>
+    </div>
+  </>
+);
 }
 export default PlayQuiz

@@ -61,7 +61,7 @@ const CourseDetail: React.FC = () => {
       TP11: "true-false",
       TP12: "crossword",
     };
-    if (paths[templateId]) navigate(`/student/${paths[templateId]}/${minigameId}`,{state:{courseId: courseId}});
+    if (paths[templateId]) navigate(`/student/${paths[templateId]}/${minigameId}`, { state: { courseId: courseId } });
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -107,29 +107,33 @@ const CourseDetail: React.FC = () => {
       <Header />
       <div className="mt-24 mb-20 p-6 max-w-5xl mx-auto">
         <div className="bg-blue-50 p-6 rounded-lg mb-10">
-          <div className="flex flex-row gap-6 justify-center items-start">
-            <img src={fullThumbnailUrl} alt="Main thumbnail" className="w-[320px] h-[320px] object-cover rounded-lg shadow" />
-            <div className="flex flex-col justify-start mt-2">
-              <p className="text-lg text-gray-800"><span className="font-bold">Course‘s name:</span> {course.courseName}</p>
-              <p className="text-lg text-gray-800 mt-2"><span className="font-bold">Level:</span> {course.levelName}</p>
+          <div className="bg-gradient-to-r from-blue-50 to-white p-6 rounded-2xl shadow-xl flex flex-col lg:flex-row gap-6 items-center">
+            <img src={fullThumbnailUrl} alt="Main thumbnail" className="w-full max-w-[320px] h-[320px] object-cover rounded-xl shadow-lg" />
+            <div className="text-left">
+              <h2 className="text-3xl font-bold text-blue-800 mb-2">{course.courseName}</h2>
+              <p className="text-lg text-gray-700"><span className="font-semibold">Level:</span> {course.levelName}</p>
             </div>
           </div>
 
           <div className="flex gap-2 items-center justify-center mt-6">
-            <button onClick={() => setCarouselIndex(c => Math.max(c - 1, 0))}>←</button>
+            <button
+              className="text-xl font-bold text-blue-600 hover:text-blue-800 transition"
+              onClick={() => setCarouselIndex(c => Math.max(c - 1, 0))}>←</button>
             {visibleImages.map((url, i) => (
-              <img key={i + carouselIndex} src={url} className="w-30 h-30 rounded-md border cursor-pointer" onClick={() => setSelectedImageIndex(i + carouselIndex)} />
+              <img key={i + carouselIndex} src={url} className="w-[150px] h-[150px] rounded-xl border-4 border-blue-200 hover:border-blue-500 transition-shadow duration-300 cursor-pointer shadow-sm hover:shadow-lg" onClick={() => setSelectedImageIndex(i + carouselIndex)} />
             ))}
-            <button onClick={() => setCarouselIndex(c => Math.min(c + 1, fullImageUrls.length - 4))}>→</button>
+            <button
+              className="text-xl font-bold text-blue-600 hover:text-blue-800 transition"
+              onClick={() => setCarouselIndex(c => Math.min(c + 1, fullImageUrls.length - 4))}>→</button>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex gap-4 items-center">
+        <div className="flex flex-wrap gap-4 items-center mb-6">
           <select
             value={templateFilter}
             onChange={(e) => { setTemplateFilter(e.target.value); setPageNum(1); }}
-            className="border px-2 py-1 rounded"
+            className="border border-blue-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <option value="">All Templates</option>
             {templateOptions.map(opt => (
@@ -142,10 +146,10 @@ const CourseDetail: React.FC = () => {
             value={nameFilter}
             onChange={(e) => setNameFilter(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && setPageNum(1)}
-            className="border px-3 py-1 rounded w-64"
+            className="border border-blue-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <button
-            className="bg-blue-600 text-white px-4 py-1 rounded"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             onClick={() => setPageNum(1)}
           >Search</button>
         </div>
@@ -154,15 +158,15 @@ const CourseDetail: React.FC = () => {
         <h3 className="text-2xl font-semibold mb-4">Here are some games to practice</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {minigames.map(game => (
-            <div key={game.minigameId} className="bg-pink-100 rounded-lg p-4 shadow-md" onClick={() => handleMinigameClick(game.templateId, game.minigameId)}>
+            <div key={game.minigameId} className="bg-pink-100 rounded-lg p-4 shadow-md transform transition duration-300 hover:scale-105 hover:shadow-lg cursor-pointer" onClick={() => handleMinigameClick(game.templateId, game.minigameId)}>
               <img
                 src={`${baseImageUrl}${game.thumbnailImage?.replace(/^\/\/+/, "")}`}
                 alt={game.minigameName}
                 className="rounded-md mb-3 w-full h-40 object-cover"
               />
-              <h4 className="text-lg font-bold">{game.minigameName}</h4>
-              <p className="text-sm">Author: {game.teacherName}</p>
-              <p className="text-sm">Type: {game.templateName}</p>
+              <h4 className="text-lg font-semibold text-blue-700 mb-1 line-clamp-2">{game.minigameName}</h4>
+              <p className="text-sm text-gray-600">Author: {game.teacherName}</p>
+              <p className="text-sm text-gray-600 mb-1">Type: {game.templateName}</p>
               <div className="flex justify-between items-center mt-2 text-sm">
                 <span>⭐ {game.ratingScore ?? "N/A"}</span>
                 <span>👥 {game.participantsCount ?? "0"} participants</span>
@@ -172,10 +176,10 @@ const CourseDetail: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-center mt-6 gap-2">
-          <button onClick={() => setPageNum(p => Math.max(p - 1, 1))} disabled={pageNum <= 1} className="px-3 py-1 bg-gray-300 rounded">Prev</button>
+        <div className="flex justify-center items-center mt-8 gap-3 text-sm">
+          <button onClick={() => setPageNum(p => Math.max(p - 1, 1))} disabled={pageNum <= 1} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full transition">Prev</button>
           <span className="px-4 py-1">Page {pageNum} of {totalPages}</span>
-          <button onClick={() => setPageNum(p => Math.min(p + 1, totalPages))} disabled={pageNum >= totalPages} className="px-3 py-1 bg-gray-300 rounded">Next</button>
+          <button onClick={() => setPageNum(p => Math.min(p + 1, totalPages))} disabled={pageNum >= totalPages} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full transition">Next</button>
         </div>
       </div>
 

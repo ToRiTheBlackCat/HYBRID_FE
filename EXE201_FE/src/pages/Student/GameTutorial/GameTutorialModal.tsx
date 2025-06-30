@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { X, ArrowRight, ArrowLeft } from "lucide-react";
-import Image1 from "../../../assets/CatLogo.jpg"
-import Image2 from "../../../assets/Logo.jpg"
-import Video from "../../../assets/user_manual.mkv.mp4";
+import Image1 from "../../../assets/Tutorial/FindWord_tutorial.jpg"
+import FindWordTutorial1 from "../../../assets/Tutorial/FindWord_tutorial(1).mp4";
+import FindWordTutorial2 from "../../../assets/Tutorial/FindWord_tutorial(2).mp4";
 
 interface Step {
   title: string;
@@ -18,19 +18,19 @@ interface Props {
 
 const steps: Step[] = [
   {
-    title: "Bước 1: Giới thiệu",
-    description: "Bạn cần kéo các từ vào đúng vị trí để hoàn thành câu.",
-    image: Image1,
+    title: "Bước 1: Giới thiệu trò chơi",
+    description: "Tìm các từ liên quan đến chủ đề hiển thị ở trên (ví dụ: Sport). Các từ có thể nằm ngang, dọc hoặc chéo.",
+    image: Image1, // ảnh biểu tượng hoặc chủ đề
   },
   {
-    title: "Bước 2: Luật chơi",
-    description: "Mỗi câu đúng sẽ được cộng điểm, sai thì không bị trừ điểm.",
-    image: Image2,
+    title: "Bước 2: Cách chơi",
+    description: "Nhấp vào chữ cái bắt đầu và kết thúc của từ để chọn. Từ đúng sẽ được đánh dấu màu xanh lá.",
+    videoUrl: FindWordTutorial1, 
   },
   {
-    title: "Xem video minh họa",
-    description: "Video hướng dẫn chi tiết cách chơi.",
-    videoUrl: Video, // hoặc video tải lên từ server
+    title: "Bước 3: Gợi ý và thời gian",
+    description: "Sau 10 giây không tìm được từ mới, nút gợi ý sẽ xuất hiện. Trò chơi có giới hạn thời gian, hãy nhanh tay!",
+    videoUrl: FindWordTutorial2,
   },
 ];
 
