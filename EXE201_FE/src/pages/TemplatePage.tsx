@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 // import { Link } from "react-router-dom";
 import AnimatedText from "../components/hooks/AnimatedText";
 import FadeInOnView from "../components/hooks/FadeInOnView";
@@ -7,18 +7,14 @@ import Anagram from "../assets/TemplateLogo/Anagram.jpg";
 import Completion from "../assets/TemplateLogo/Completion.jpg";
 import Conjunction from "../assets/TemplateLogo/Conjunction.jpg";
 import Crossword from "../assets/TemplateLogo/Crossword.jpg";
-import DragDrop from "../assets/TemplateLogo/DragDrop.jpg";
 import RandomCard from "../assets/TemplateLogo/RandomCard.jpg";
 import Restoration from "../assets/TemplateLogo/Restoration.jpg";
 import Pairing from "../assets/TemplateLogo/Pairing.jpg";
 import FindWord from "../assets/TemplateLogo/FindWord.jpg";
 import TrueFalse from "../assets/TemplateLogo/TrueFalse.jpg";
 import FlashCard from "../assets/TemplateLogo/Flashcard.jpg";
-import Reading from "../assets/TemplateLogo/Reading.jpg";
-import SongPuzzle from "../assets/TemplateLogo/SongPuzzle.jpg";
 import Spelling from "..//assets/TemplateLogo/Spelling.jpg";
 import Quiz from "../assets/TemplateLogo/Quiz.jpg";
-import Pronunciation from "../assets/TemplateLogo/Pronunciation.jpg";
 
 import TemplateModal from "../components/common/TemplateModal";
 import ConjunctionTemplate from "./Template/Conjunction";
@@ -34,6 +30,10 @@ import RestorationScreen from "./Template/Basic/Restoration";
 import FindWordsScreen from "./Template/Basic/FindWords";
 import TrueFalseComponent from "./Template/Basic/TrueFalse";
 import CrosswordEditor from "./Template/Basic/Crossword";
+import { fetchUserProfile } from "../services/authService";
+import { useSelector } from "react-redux";
+import { RootState } from "../store/store";
+import { Profile } from "../types/user";
 
 type TemplateComponentProps = {
   courseId: string;
@@ -60,23 +60,40 @@ interface TemplatePageProps {
 
 const TemplatePage: React.FC<TemplatePageProps> = ({courseId}) => {
   const [showMoreBasic, setShowMoreBasic] = useState(false);
-  const [showMorePremium, setShowMorePremium] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<null | {
     title: string;
     image: string;
     url?: string;
   }>(null);
+  
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
+  const useId = useSelector((state: RootState) => state.user.userId);
+  const isTeacher = useSelector((state: RootState) => state.user.roleId) === "3";
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profile = await fetchUserProfile(useId, isTeacher);
+        setUserProfile(profile);
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [isTeacher, useId]);
+
 
   const freeTemplates = [
     { title: "Conjunction", image: Conjunction, url: "/conjunction" },
-    { title: "Anagram", image: Anagram, url: "/anagram" },
     { title: "Quiz", image: Quiz, url: "/quiz" },
     { title: "Random Card", image: RandomCard, url: "/random-card" },
-    { title: "Spelling", image: Spelling, url: "/spelling" },
-    { title: "Flashcard", image: FlashCard, url: "/flashcard" },
   ];
 
-  const basicTemplates = [
+  const premiumTemplates = [
+    { title: "Anagram", image: Anagram, url: "/anagram" },
+    { title: "Spelling", image: Spelling, url: "/spelling" },
+    { title: "Flashcard", image: FlashCard, url: "/flashcard" },
     { title: "Completion", image: Completion, url: "/completion" },
     { title: "Pairing", image: Pairing, url: "/pairing" },
     { title: "Restoration", image: Restoration, url: "/restoration" },
@@ -85,14 +102,6 @@ const TemplatePage: React.FC<TemplatePageProps> = ({courseId}) => {
     { title: "Crossword", image: Crossword, url: "/crossword" },
   ];
 
-  const premiumTemplates = [
-    { title: "Drag & Drop", image: DragDrop },
-    { title: "Song Puzzle", image: SongPuzzle },
-    { title: "Reading", image: Reading },
-    { title: "Completion", image: Completion },
-    { title: "Quiz", image: Quiz },
-    { title: "Pronunciation", image: Pronunciation },
-  ];
 
   const handleSelectTemplate = (template: {
     title: string;
@@ -172,37 +181,7 @@ const TemplatePage: React.FC<TemplatePageProps> = ({courseId}) => {
         </section>
       </FadeInOnView>
 
-      {showMoreBasic && (
-        <FadeInOnView>
-          <section className="py-12 px-4 md:px-16 bg-white text-center">
-            <h2 className="text-lg font-semibold text-gray-700 mb-6 border-b border-gray-300 pb-2 w-fit mx-auto">
-              Basic templates
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 w-full gap-6 justify-items-center">
-              {basicTemplates.map((item, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleSelectTemplate(item)}
-                  className="cursor-pointer flex items-center border rounded-2xl overflow-hidden w-[280px] h-[150px] max-w-sm hover:shadow-md transition"
-                >
-                  <div className="w-[250px] h-[147px] rounded-lg overflow-hidden">
-                    <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
-                  </div>
-                  <p className="text-gray-800 font-semibold">{item.title}</p>
-                </div>
-              ))}
-            </div>
-            <button
-              className="mt-8 bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-600 transition"
-              onClick={() => setShowMorePremium(!showMorePremium)}
-            >
-              {showMorePremium ? "SHOW LESS" : "SEE MORE"}
-            </button>
-          </section>
-        </FadeInOnView>
-      )}
-
-      {showMorePremium && (
+      {showMoreBasic && userProfile?.tierName === "Premium" && (
         <FadeInOnView>
           <section className="py-12 px-4 md:px-16 bg-white text-center">
             <h2 className="text-lg font-semibold text-gray-700 mb-6 border-b border-gray-300 pb-2 w-fit mx-auto">
@@ -225,6 +204,7 @@ const TemplatePage: React.FC<TemplatePageProps> = ({courseId}) => {
           </section>
         </FadeInOnView>
       )}
+
 
       {selectedTemplate && (
         <TemplateModal onClose={() => setSelectedTemplate(null)}>
