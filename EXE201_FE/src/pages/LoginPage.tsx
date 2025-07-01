@@ -25,7 +25,7 @@ const LoginPage: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
-  const [birthYear, setBirthYear] = useState('');
+  const [birthYear, setBirthYear] = useState<number>();
   // const [role, setRole] = useState('2'); // Mặc định là "student" với giá trị 2
   const [userId, setUserId] = useState(''); // Lưu userId từ LoginGoggle
   const [pendingToken, setPendingToken] = useState<string | null>(null);   // token từ Google
@@ -54,12 +54,11 @@ const LoginPage: React.FC = () => {
       const initialUserData = await LoginGoggle(body);
       
       const isTeacher = roleId === "3";
-      console.log(initialUserData);
       if (initialUserData && initialUserData.userId) {
         dispatch(setUserRedux(initialUserData));
-
         Cookies.set('user', JSON.stringify(initialUserData), { expires: 7 });
         setUserId(initialUserData.userId); // Lưu userId
+        setUserData(initialUserData);
         if (!roleId) {
           setShowAdditionalForm(true); // Hiển thị form bổ sung
         }
@@ -104,7 +103,7 @@ const LoginPage: React.FC = () => {
         fullName,
         address,
         phone,
-        yearOfBirth: parseInt(birthYear),
+        yearOfBirth: birthYear,
       };
 
       // Gọi API phù hợp dựa trên role
@@ -122,7 +121,6 @@ const LoginPage: React.FC = () => {
       }
 
       toast.success("Thông tin đã được lưu");
-      navigate("/");
     } catch (error) {
       console.error('Save additional info error:', error);
       toast.error("Lưu thông tin thất bại");
@@ -136,7 +134,6 @@ const LoginPage: React.FC = () => {
       setUserId(userData.userId);
       userData.roleId = roleId;
       dispatch(setUserRedux(userData));
-      console.log("UserData", userData);
       const isTeacher = roleId === "3";
       const checkProfile = await fetchUserProfile(userData.userId, isTeacher);
       if (!checkProfile) {
@@ -169,7 +166,6 @@ const LoginPage: React.FC = () => {
       }
       if (userData) {
         setUserData(userData)
-
         dispatch(setUserRedux(userData));
         Cookies.set('user', JSON.stringify(userData), { expires: 7 });
 
@@ -292,7 +288,7 @@ const LoginPage: React.FC = () => {
                 <input
                   type="number"
                   value={birthYear}
-                  onChange={(e) => setBirthYear(e.target.value)}
+                  onChange={(e) => setBirthYear(Number(e.target.value))}
                   className="mt-1 p-2 w-full border rounded"
                 />
               </div>
