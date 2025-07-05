@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchCourseDetail } from "../services/userService";
 import { fetchCourseMinigame, fetchMinigameScore } from "../services/authService";
@@ -68,8 +68,7 @@ const CourseDetail: React.FC = () => {
     return templateOptions.find(opt => opt.id === templateId) || { icon: "🎮", color: "from-gray-500 to-slate-500" };
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const loadCourse = async () => {
+  const loadCourse = useCallback( async () => {
     if (!courseId) return;
     try {
       const detail = await fetchCourseDetail(courseId);
@@ -78,10 +77,9 @@ const CourseDetail: React.FC = () => {
     } catch (error) {
       console.error("Error loading course:", error);
     }  
-  };
+  }, [courseId]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const loadMinigames = async () => {
+  const loadMinigames = useCallback( async () => {
     if (!courseId) return;
     try {
       const res = await fetchCourseMinigame(courseId, {
@@ -103,10 +101,10 @@ const CourseDetail: React.FC = () => {
     } catch (error) {
       console.error("Error loading minigames:", error);
     }
-  };
+  }, [courseId, templateFilter, nameFilter, pageNum]);
 
-  useEffect(() => { loadCourse(); }, [courseId, loadCourse]);
-  useEffect(() => { loadMinigames(); }, [courseId, templateFilter, nameFilter, pageNum, loadMinigames]);
+  useEffect(() => { loadCourse(); }, [loadCourse]);
+  useEffect(() => { loadMinigames(); }, [loadMinigames]);
 
 
   if (!course) return <div>Course not found</div>;

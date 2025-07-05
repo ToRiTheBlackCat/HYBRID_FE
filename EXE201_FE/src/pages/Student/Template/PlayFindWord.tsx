@@ -31,8 +31,6 @@ const PlayFindWord: React.FC = () => {
   const [showHintButton, setShowHintButton] = useState<boolean>(false);
   const [hintRevealed, setHintRevealed] = useState<boolean>(false);
 
-
-
   useEffect(() => {
     if (!isRunning) return;
 
@@ -45,7 +43,6 @@ const PlayFindWord: React.FC = () => {
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         const newTime = prev - 1;
-
         const now = Date.now();
         const last = lastFoundTime ?? now;
         const elapsed = now - last;
@@ -61,12 +58,10 @@ const PlayFindWord: React.FC = () => {
     return () => clearInterval(interval);
   }, [isRunning, timeLeft, initialDuration, lastFoundTime, showHintButton]);
 
-
   useEffect(() => {
     const generateGrid = () => {
       const newGrid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
       const directions = ['horizontal', 'vertical', 'diagonalDownRight', 'diagonalDownLeft'];
-
       const maxAttempts = 100;
 
       for (const word of targetWords) {
@@ -92,7 +87,6 @@ const PlayFindWord: React.FC = () => {
               });
               placed = true;
             }
-
           } else if (direction === 'vertical') {
             const col = Math.floor(Math.random() * gridSize);
             const row = Math.floor(Math.random() * (gridSize - word.length + 1));
@@ -108,8 +102,7 @@ const PlayFindWord: React.FC = () => {
               });
               placed = true;
             }
-          }
-          else if (direction === 'diagonalDownRight') {
+          } else if (direction === 'diagonalDownRight') {
             const row = Math.floor(Math.random() * (gridSize - word.length + 1));
             const col = Math.floor(Math.random() * (gridSize - word.length + 1));
 
@@ -124,9 +117,7 @@ const PlayFindWord: React.FC = () => {
               });
               placed = true;
             }
-          }
-
-          else if (direction === 'diagonalDownLeft') {
+          } else if (direction === 'diagonalDownLeft') {
             const row = Math.floor(Math.random() * (gridSize - word.length + 1));
             const col = Math.floor(Math.random() * (gridSize - word.length + 1)) + word.length - 1;
 
@@ -142,16 +133,14 @@ const PlayFindWord: React.FC = () => {
               placed = true;
             }
           }
-
         }
 
         if (!placed) {
           console.warn(`Could not place word: ${word}, regenerating...`);
-          return generateGrid(); // reset grid and try again
+          return generateGrid();
         }
       }
 
-      // Fill remaining cells with random letters
       for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
           if (!newGrid[i][j]) {
@@ -163,9 +152,9 @@ const PlayFindWord: React.FC = () => {
       return newGrid;
     };
 
-
     setGrid(generateGrid());
-  }, []); // Loại bỏ targetWords khỏi dependency array
+  }, []);
+
   useEffect(() => {
     const loadData = async () => {
       if (!minigameId) return;
@@ -183,7 +172,6 @@ const PlayFindWord: React.FC = () => {
         const words = wordsNodeList ? Array.from(wordsNodeList).map(w => w.textContent?.toUpperCase().trim() || "") : [];
         const hint = question?.querySelector("hint")?.textContent ?? "";
 
-        // Convert 1D array string to 2D grid
         const newGrid = Array.from({ length: dimension }, (_, row) =>
           Array.from({ length: dimension }, (_, col) => {
             const index = row * dimension + col;
@@ -204,7 +192,6 @@ const PlayFindWord: React.FC = () => {
 
     loadData();
   }, [minigameId]);
-
 
   const handleCellClick = (row: number, col: number) => {
     if (!startPos) {
@@ -232,7 +219,6 @@ const PlayFindWord: React.FC = () => {
         setLastFoundTime(Date.now());
       }
 
-
       setTimeout(() => {
         setStartPos(null);
         setSelectedPositions([]);
@@ -246,19 +232,16 @@ const PlayFindWord: React.FC = () => {
     const colDiff = end.col - start.col;
 
     if (rowDiff === 0) {
-      // Horizontal line
       const step = colDiff > 0 ? 1 : -1;
       for (let col = start.col; col !== end.col + step; col += step) {
         path.push({ row: start.row, col });
       }
     } else if (colDiff === 0) {
-      // Vertical line
       const step = rowDiff > 0 ? 1 : -1;
       for (let row = start.row; row !== end.row + step; row += step) {
         path.push({ row, col: start.col });
       }
     } else if (Math.abs(rowDiff) === Math.abs(colDiff)) {
-      // Diagonal line
       const steps = Math.abs(rowDiff);
       const rowStep = rowDiff > 0 ? 1 : -1;
       const colStep = colDiff > 0 ? 1 : -1;
@@ -274,9 +257,12 @@ const PlayFindWord: React.FC = () => {
     setFoundWords([]);
     setSelectedPositions([]);
     setStartPos(null);
+    setCorrectPositions([]);
     setTimeLeft(initialDuration);
     setIsRunning(false);
-    // Tạo grid mới thay vì reload page
+    setShowHintButton(false);
+    setHintRevealed(false);
+    
     const generateGrid = () => {
       const newGrid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
       const directions = ['horizontal', 'vertical'];
@@ -341,11 +327,12 @@ const PlayFindWord: React.FC = () => {
 
     setGrid(generateGrid());
   };
+
   const getLocalISOTime = () => {
     const now = new Date();
-    const offset = now.getTimezoneOffset(); // in minutes
+    const offset = now.getTimezoneOffset();
     const localTime = new Date(now.getTime() - offset * 60 * 1000);
-    return localTime.toISOString().slice(0, -1); // remove the 'Z'
+    return localTime.toISOString().slice(0, -1);
   };
 
   const handleSubmit = async () => {
@@ -371,6 +358,14 @@ const PlayFindWord: React.FC = () => {
     }
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const progressPercentage = (foundWords.length / targetWords.length) * 100;
+
   return (
     <>
       <Header />
@@ -378,82 +373,190 @@ const PlayFindWord: React.FC = () => {
         isOpen={showTutorial}
         onClose={() => setShowTutorial(false)}
       />
-      <div className="min-h-screen flex flex-col justify-center items-center bg-white px-4 py-8 mt-20">
-
-        <h2 className="text-xl font-bold mb-4">Topic: {hint}</h2>
-        <div className="flex items-center gap-4 mb-6">
-          <div className="text-lg font-semibold">
-            ⏳ Time Left: {timeLeft}s
+      
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 px-4 py-8 mt-20">
+        <div className="max-w-7xl mx-auto">
+          
+          {/* Header Section */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-8 py-4 shadow-lg border border-white/30 mb-4">
+              <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse"></div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                Word Hunt Challenge
+              </h1>
+            </div>
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-md border border-white/30 inline-block">
+              <p className="text-xl text-gray-700 font-medium">
+                🎯 <span className="text-purple-600 font-bold">{hint}</span>
+              </p>
+            </div>
           </div>
-          {showHintButton && !hintRevealed && (
+
+          {/* Game Stats & Controls */}
+          <div className="flex flex-wrap justify-center items-center gap-4 mb-8">
+            
+            {/* Timer */}
+            <div className={`bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border border-white/30 ${timeLeft <= 10 ? 'animate-pulse' : ''}`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-3 h-3 rounded-full ${timeLeft <= 10 ? 'bg-red-500' : timeLeft <= 30 ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
+                <span className="text-lg font-mono font-bold text-gray-700">
+                  ⏱️ {formatTime(timeLeft)}
+                </span>
+              </div>
+            </div>
+
+            {/* Progress */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border border-white/30">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-600">Progress:</span>
+                <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm font-bold text-gray-700">
+                  {foundWords.length}/{targetWords.length}
+                </span>
+              </div>
+            </div>
+
+            {/* Play/Pause Button */}
             <button
-              onClick={() => setHintRevealed(true)}
-              className="bg-yellow-300 hover:bg-yellow-400 px-3 py-1 rounded text-black"
+              onClick={() => {
+                if (!isRunning) {
+                  setLastFoundTime(Date.now());
+                }
+                setIsRunning(prev => !prev);
+              }}
+              className={`px-6 py-3 rounded-2xl font-bold text-white shadow-lg transform hover:scale-105 transition-all duration-200 ${
+                isRunning 
+                  ? 'bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600' 
+                  : 'bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600'
+              }`}
             >
-              💡 Hint
+              {isRunning ? '⏸️ Pause' : '▶️ Start'}
             </button>
-          )}
+
+            {/* Hint Button */}
+            {showHintButton && !hintRevealed && (
+              <button
+                onClick={() => setHintRevealed(true)}
+                className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-bold rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200 hover:from-yellow-500 hover:to-amber-600"
+              >
+                💡 Get Hint
+              </button>
+            )}
+          </div>
+
+          {/* Hint Revealed */}
           {hintRevealed && (
-            <div className="text-md text-purple-700 font-semibold">
-              📌 Hint: {targetWords.find(word => !foundWords.includes(word)) ?? "All words found!"}
+            <div className="text-center mb-6">
+              <div className="inline-block bg-gradient-to-r from-yellow-100 to-amber-100 border-2 border-yellow-300 rounded-2xl px-6 py-3 shadow-lg">
+                <p className="text-lg font-bold text-amber-800">
+                  💡 Next word: <span className="text-purple-600">{targetWords.find(word => !foundWords.includes(word)) ?? "All words found!"}</span>
+                </p>
+              </div>
             </div>
           )}
 
-          <button
-            onClick={() => {
-              if (!isRunning) {
-                setLastFoundTime(Date.now()); // 👈 Khởi tạo khi bắt đầu
-              }
-              setIsRunning(prev => !prev);
-            }}
-            className={`px-4 py-1 rounded text-white font-semibold transition ${isRunning ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'}`}
-          >
-            {isRunning ? '⏸ Pause' : '▶ Play'}
-          </button>
-        </div>
-        <div className="bg-pink-100 border rounded-lg p-6 mb-12 overflow-auto">
-          <div
-            className="grid gap-1 mx-auto"
-            style={{ gridTemplateColumns: `repeat(${gridSize}, 3rem)` }} // mỗi cột ~48px
-          >
-            {grid.map((row, i) =>
-              row.map((letter, j) => {
-                const isSelected = selectedPositions.some(pos => pos.row === i && pos.col === j);
-                const isCorrect = correctPositions.some(pos => pos.row === i && pos.col === j);
+          <div className="flex flex-col xl:flex-row gap-8 items-start justify-center">
+            
+            {/* Game Grid */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/30">
+              <div
+                className="grid gap-2 mx-auto"
+                style={{ gridTemplateColumns: `repeat(${gridSize}, 3.5rem)` }}
+              >
+                {grid.map((row, i) =>
+                  row.map((letter, j) => {
+                    const isSelected = selectedPositions.some(pos => pos.row === i && pos.col === j);
+                    const isCorrect = correctPositions.some(pos => pos.row === i && pos.col === j);
 
-                return (
+                    return (
+                      <div
+                        key={`${i}-${j}`}
+                        onClick={() => handleCellClick(i, j)}
+                        className={`
+                          w-14 h-14 flex items-center justify-center text-lg font-bold rounded-xl cursor-pointer 
+                          transition-all duration-200 transform hover:scale-105 select-none
+                          ${isCorrect 
+                            ? 'bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg scale-105' 
+                            : isSelected 
+                              ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white shadow-lg scale-105' 
+                              : 'bg-gradient-to-br from-slate-600 to-slate-700 text-white hover:from-slate-500 hover:to-slate-600 shadow-md'
+                          }
+                        `}
+                      >
+                        {letter}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Word List */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/30 xl:w-80">
+              <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">
+                🎯 Words to Find
+              </h3>
+              <div className="space-y-3">
+                {targetWords.map((word) => (
                   <div
-                    key={`${i}-${j}`}
-                    onClick={() => handleCellClick(i, j)}
-                    className={`w-12 h-12 text-white flex items-center justify-center text-lg font-bold rounded cursor-pointer transition-colors
-                    ${isCorrect ? 'bg-green-500' : isSelected ? 'bg-yellow-400' : 'bg-gray-700 hover:bg-gray-600'}`}
+                    key={word}
+                    className={`
+                      px-4 py-3 rounded-2xl font-semibold transition-all duration-300 transform
+                      ${foundWords.includes(word) 
+                        ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg scale-105' 
+                        : 'bg-gradient-to-r from-purple-400 to-blue-400 text-white hover:from-purple-500 hover:to-blue-500 shadow-md hover:scale-105'
+                      }
+                    `}
                   >
-                    {letter}
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg">{word}</span>
+                      {foundWords.includes(word) && (
+                        <span className="text-white text-xl animate-bounce">✓</span>
+                      )}
+                    </div>
                   </div>
-                );
-              })
+                ))}
+              </div>
+
+              {/* Score Card */}
+              <div className="mt-8 bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl p-4 border border-purple-200">
+                <h4 className="text-lg font-bold text-purple-800 mb-2">📊 Your Score</h4>
+                <div className="text-3xl font-bold text-purple-600">
+                  {Math.round(progressPercentage)}%
+                </div>
+                <p className="text-sm text-purple-600 mt-1">
+                  {foundWords.length} out of {targetWords.length} found
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mt-12">
+            <button
+              onClick={handleTryAgain}
+              className="px-8 py-4 bg-gradient-to-r from-blue-400 to-cyan-500 text-white font-bold rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200 hover:from-blue-500 hover:to-cyan-600"
+            >
+              🔄 Try Again
+            </button>
+            
+            {isRunning && (
+              <button
+                onClick={handleSubmit}
+                className="px-8 py-4 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-200 hover:from-green-500 hover:to-emerald-600"
+              >
+                🎉 Submit Game
+              </button>
             )}
           </div>
         </div>
-
-        <div className="w-full max-w-[700px] flex justify-between items-center px-4">
-          <button
-            onClick={handleTryAgain}
-            className="px-6 py-2 bg-blue-200 text-blue-800 font-semibold rounded-full hover:bg-blue-300 transition"
-          >
-            Try again
-          </button>
-          {isRunning && 
-          <button
-            onClick={handleSubmit}
-            className="px-6 py-2 bg-green-200 text-green-800 font-semibold rounded-full hover:bg-green-300 transition"
-          >
-            Submit
-          </button>
-          }
-        </div>
-
       </div>
+      
       <Footer />
     </>
   );

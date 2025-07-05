@@ -127,16 +127,23 @@ const QuizReview: React.FC = () => {
       <Quiz onStart={() => setIsPlaying(true)}/>
     ):
       
-      <div className="w-[900px] mx-auto mt-25 p-6 border rounded-md shadow-md bg-white">
-        <div className="flex justify-between mb-4">
-          <div className="text-lg font-medium">⏱ Time left: {timeLeft}s</div>
+      <div className="w-[900px] mx-auto mt-20 p-8 border-0 rounded-3xl shadow-2xl bg-gradient-to-br from-white via-blue-50 to-indigo-100 backdrop-blur-sm">
+        {/* Header Section */}
+        <div className="flex justify-between items-center mb-8 p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <div className="text-xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+              ⏱ Time left: {timeLeft}s
+            </div>
+          </div>
           <button
             onClick={togglePause}
-            className="px-3 py-1 bg-yellow-400 rounded hover:bg-yellow-500 text-white"
+            className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl hover:from-yellow-500 hover:to-orange-600 text-white font-semibold shadow-lg transform hover:scale-105 transition-all duration-200 active:scale-95"
           >
-            {paused ? "Resume" : "Pause"}
+            {paused ? "▶️ Resume" : "⏸️ Pause"}
           </button>
         </div>
+
         <EditQuiz
           initialActivityName={activityName}
           initialQuestions={questions.map((q) => ({
@@ -161,73 +168,115 @@ const QuizReview: React.FC = () => {
           onRefresh={loadData} // Truyền hàm loadData
         />
 
-        <div className="bg-gray-300 rounded-2xl h-24 flex items-center justify-center mb-6 text-xl font-semibold px-4 text-center">
-          {currentQuestion.text}
+        {/* Question Display */}
+        <div className="relative mb-8">
+          <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-3xl p-1 shadow-xl">
+            <div className="bg-white rounded-3xl p-8 h-32 flex items-center justify-center">
+              <div className="text-2xl font-bold text-gray-800 text-center leading-relaxed">
+                {currentQuestion.text}
+              </div>
+            </div>
+          </div>
+          {/* Question Number Badge */}
+          <div className="absolute -top-4 -right-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg shadow-lg">
+            {currentIndex + 1}
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        {/* Answer Options */}
+        <div className="grid grid-cols-2 gap-6 mb-8">
           {currentQuestion.answer.map((answer, index) => {
             const isSelected = selected === index;
             const isCorrect = index === currentQuestion.correctIndex;
             const showColor =
               showResult && isSelected
                 ? isCorrect
-                  ? "bg-green-500 text-white"
-                  : "bg-red-400 text-white"
+                  ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-green-200"
+                  : "bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-red-200"
                 : isSelected
-                ? "bg-blue-400 text-white"
-                : "bg-pink-50 hover:bg-pink-100";
+                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-blue-200"
+                : "bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 border-2 border-gray-200 hover:border-blue-300";
 
             return (
               <button
                 key={index}
-                className={`p-3 border rounded cursor-pointer transition duration-300 ease-in-out ${showColor}`}
+                className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 ${showColor} shadow-lg font-semibold text-lg min-h-[80px] flex items-center justify-center text-center`}
                 onClick={() => handleSelectAnswer(index)}
                 disabled={showResult || paused}
               >
-                {answer}
+                <span className="flex items-center gap-3">
+                  <span className="w-8 h-8 bg-black/10 rounded-full flex items-center justify-center text-sm font-bold">
+                    {String.fromCharCode(65 + index)}
+                  </span>
+                  {answer}
+                </span>
               </button>
             );
           })}
         </div>
 
-        <div className="flex justify-between items-center mt-4">
+        {/* Navigation and Controls */}
+        <div className="flex justify-between items-center pt-6 border-t border-gray-200">
           <button
             disabled={currentIndex === 0 || paused}
             onClick={() => setCurrentIndex((prev) => prev - 1)}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            className="px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-xl hover:from-gray-500 hover:to-gray-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105 transition-all duration-200 font-semibold"
           >
-            Prev
+            ← Prev
           </button>
 
-          <div className="flex gap-4">
+          <div className="flex items-center gap-6">
             {showResult ? (
               <>
-                <div className="text-lg font-semibold text-green-600">
-                  ✅ Score: {score} / {questions.length}
+                <div className="flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border border-white/20">
+                  <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                    🎉 Score: {score} / {questions.length}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    ({Math.round((score / questions.length) * 100)}%)
+                  </div>
                 </div>
                 <button
                   onClick={handleTryAgain}
-                  className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600"
+                  className="px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 shadow-lg transform hover:scale-105 transition-all duration-200 font-semibold"
                 >
-                  Try Again
+                  🔄 Try Again
                 </button>
               </>
             ) : (
               <>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex gap-1">
+                    {questions.map((_, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-3 h-3 rounded-full ${
+                          idx === currentIndex 
+                            ? 'bg-blue-500' 
+                            : idx < currentIndex 
+                              ? 'bg-green-500' 
+                              : 'bg-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm font-medium ml-2">
+                    {currentIndex + 1} / {questions.length}
+                  </span>
+                </div>
                 <button
                   disabled={currentIndex === questions.length - 1 || paused}
                   onClick={() => setCurrentIndex((prev) => prev + 1)}
-                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105 transition-all duration-200 font-semibold"
                 >
-                  Next
+                  Next →
                 </button>
                 <button
                   onClick={handleFinish}
                   disabled={paused}
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                  className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105 transition-all duration-200 font-semibold"
                 >
-                  Finish
+                  ✅ Finish
                 </button>
               </>
             )}

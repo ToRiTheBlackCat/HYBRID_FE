@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaLink, FaTrash } from "react-icons/fa";
+import { FaTrash, FaImage, FaClock, FaPlus, FaCheck, FaEdit, FaBullseye } from "react-icons/fa";
 import { createCompletion } from "../../../services/authService";
 import { CompletionData, Completion } from "../../../types";
 import { useSelector } from "react-redux";
@@ -84,6 +84,7 @@ const CompletionTemplate: React.FC<CompletionProp> = ({ courseId }) => {
     setOptions(newOptions);
     setSelectedWords(newSelectedWords);
   };
+  
   const handleCorrectChange = (sentIdx: number, optIdx: number) => {
     const arr = [...correctIndexes];
     arr[sentIdx] = optIdx;
@@ -92,20 +93,19 @@ const CompletionTemplate: React.FC<CompletionProp> = ({ courseId }) => {
 
   const handleFinish = async () => {
     if (!activityName.trim()) {
-      alert("Please enter an activity name.");
+      toast.error("Please enter an activity name.");
       return;
     }
-
 
     // build modified sentence (___) + options giống như bạn đã làm
     const filledSentences = sentences.filter((s) => s.trim() !== "");
     if (filledSentences.length === 0) {
-      alert("Please enter at least one sentence.");
+      toast.error("Please enter at least one sentence.");
       return;
     }
 
     if (!selectedWords.some((w) => w.length > 0)) {
-      alert("Please select at least one word to replace.");
+      toast.error("Please select at least one word to replace.");
       return;
     }
 
@@ -142,129 +142,266 @@ const CompletionTemplate: React.FC<CompletionProp> = ({ courseId }) => {
       CourseId: courseId,
       GameData: gameData,
     };
+    console.log("Payload to create completion:", payload);
 
     try {
       const result = await createCompletion(payload);
       if (result) {
-        toast.success("Tạo completion thành công!");
+        toast.success("🎉 Completion created successfully!");
         navigate("/teacher/activities");
       }
     } catch (err) {
-      toast.error("Có lỗi khi tạo completion. Kiểm tra console!");
+      toast.error("❌ Error creating completion. Check console!");
       console.error(err);
     }
   }
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-lg font-bold mb-4">Activity name</h2>
-        <input
-          type="text"
-          value={activityName}
-          onChange={handleActivityNameChange}
-          placeholder="Enter activity name"
-          className="w-full p-2 mb-4 border rounded bg-gray-100"
-        />
-        <label className="block font-semibold mb-1">Thumbnail</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-          className="w-full p-2 border rounded mb-4"
-        />
-        <h2 className="text-lg font-bold mb-4">Duration (seconds)</h2>
-        <input
-          type="number"
-          value={duration}
-          onChange={(e) => setDuration(Number(e.target.value))}
-          placeholder="Enter duration in seconds"
-          className="w-full p-2 mb-4 border rounded bg-gray-100"
-        />
-        <h2 className="text-lg font-bold mb-4">Sentence</h2>
-        {sentences.map((sentence, index) => (
-          <div key={index} className="mb-4">
-            <div className="flex items-center">
-              <span className="mr-2">{index + 1}.</span>
-              <input
-                type="text"
-                value={sentence}
-                onChange={(e) => handleSentenceChange(index, e.target.value)}
-                placeholder="Enter a sentence..."
-                className="flex-1 p-2 border rounded mr-2"
-              />
-              <button className="p-2">
-                <FaLink className="text-gray-500" />
-              </button>
-              <button onClick={() => deleteSentence(index)} className="p-2">
-                <FaTrash className="text-gray-500" />
-              </button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+              <FaEdit className="text-white" />
             </div>
-            {sentence && (
-              <div className="flex flex-wrap gap-2 mt-2 ml-6">
-                {sentence.split(/\s+/).filter((word) => word.length > 0).map((word, wordIndex) => (
-                  <span
-                    key={wordIndex}
-                    onClick={() => handleWordClick(index, word)}
-                    className={`cursor-pointer px-2 py-1 rounded ${selectedWords[index].includes(word)
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-200"
-                      }`}
-                  >
-                    {word}
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="mt-2 ml-6">
-              <p className="font-semibold mb-2">Options:</p>
-              {options[index].map((opt, optIndex) => (
-                <div key={optIndex} className="flex items-center mb-2">
-                  {/* radio chọn đáp án đúng */}
-                  <input
-                    type="radio"
-                    name={`correct-${index}`}
-                    checked={correctIndexes[index] === optIndex}
-                    onChange={() => handleCorrectChange(index, optIndex)}
-                    className="mr-2"
-                  />
-
-                  <input
-                    type="text"
-                    value={opt}
-                    onChange={(e) => handleOptionsChange(index, optIndex, e.target.value)}
-                    placeholder={`Option ${optIndex + 1}`}
-                    className="flex-1 p-2 border rounded mr-2"
-                  />
-
-                  <button onClick={() => deleteOption(index, optIndex)} className="p-2">
-                    <FaTrash className="text-gray-500" />
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() => addOption(index)}
-                className="bg-blue-200 text-black px-2 py-1 rounded hover:bg-blue-300 mt-1"
-              >
-                Add Option
-              </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Create Completion Activity</h1>
+              <p className="text-gray-600">Design interactive fill-in-the-blank exercises</p>
             </div>
           </div>
-        ))}
-        <div className="flex justify-between mt-4">
-          <button
-            onClick={addSentence}
-            className="flex items-center bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-500"
-          >
-            <span className="mr-2">+</span> Add more
-          </button>
-          <button
-            onClick={handleFinish}
-            className="bg-green-400 text-black px-4 py-2 rounded hover:bg-green-500"
-          >
-            Finish
-          </button>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Activity Name */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <FaEdit className="text-blue-500" />
+                Activity Name
+              </label>
+              <input
+                type="text"
+                value={activityName}
+                onChange={handleActivityNameChange}
+                placeholder="Enter activity name"
+                className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              />
+            </div>
+
+            {/* Duration */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <FaClock className="text-green-500" />
+                Duration
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value))}
+                  placeholder="Enter duration in seconds"
+                  className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
+                />
+                <div className="text-sm text-gray-600 px-3 py-2 bg-gray-100 rounded-lg">
+                  {formatTime(duration)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Thumbnail */}
+          <div className="mt-6 space-y-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <FaImage className="text-purple-500" />
+              Thumbnail Image
+            </label>
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
+              />
+              {imageFile && (
+                <div className="text-sm text-green-600 font-medium">
+                  ✓ {imageFile.name}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Sentences Section */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-800">Sentences & Options</h2>
+            <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+              {sentences.filter(s => s.trim()).length} sentence(s)
+            </div>
+          </div>
+
+          {sentences.map((sentence, index) => (
+            <div key={index} className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+              {/* Sentence Input */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    {index + 1}
+                  </div>
+                  <label className="text-sm font-semibold text-gray-700">Sentence</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={sentence}
+                    onChange={(e) => handleSentenceChange(index, e.target.value)}
+                    placeholder="Enter a sentence..."
+                    className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                  />
+                  <button 
+                    onClick={() => deleteSentence(index)}
+                    className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    disabled={sentences.length <= 1}
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
+
+              {/* Word Selection */}
+              {sentence && (
+                <div className="mb-4">
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    Select words to replace with blanks:
+                  </label>
+                  <div className="flex flex-wrap gap-2 p-3 bg-white rounded-xl border border-gray-200">
+                    {sentence.split(/\s+/).filter((word) => word.length > 0).map((word, wordIndex) => (
+                      <span
+                        key={wordIndex}
+                        onClick={() => handleWordClick(index, word)}
+                        className={`cursor-pointer px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                          selectedWords[index].includes(word)
+                            ? "bg-blue-500 text-white shadow-sm"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {word}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Options */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <FaBullseye className="text-orange-500" />
+                  <label className="text-sm font-semibold text-gray-700">Answer Options</label>
+                </div>
+                
+                {options[index].map((opt, optIndex) => (
+                  <div key={optIndex} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name={`correct-${index}`}
+                        checked={correctIndexes[index] === optIndex}
+                        onChange={() => handleCorrectChange(index, optIndex)}
+                        className="w-4 h-4 text-green-500 focus:ring-green-500"
+                      />
+                      <span className="text-sm text-gray-600">Correct</span>
+                    </div>
+                    
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => handleOptionsChange(index, optIndex, e.target.value)}
+                      placeholder={`Option ${optIndex + 1}`}
+                      className="flex-1 p-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none transition-all"
+                    />
+                    
+                    <button 
+                      onClick={() => deleteOption(index, optIndex)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                ))}
+                
+                <button
+                  onClick={() => addOption(index)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all"
+                >
+                  <FaPlus />
+                  Add Option
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-between pt-6 border-t border-gray-200">
+            <button
+              onClick={addSentence}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+            >
+              <FaPlus />
+              Add Sentence
+            </button>
+            
+            <button
+              onClick={handleFinish}
+              className="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+            >
+              <FaCheck />
+              Create Activity
+            </button>
+          </div>
+        </div>
+
+        {/* Preview Section */}
+        {sentences.some(s => s.trim()) && (
+          <div className="mt-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">Preview</h3>
+            <div className="space-y-4">
+              {sentences.map((sentence, index) => {
+                if (!sentence.trim()) return null;
+                
+                let preview = sentence;
+                selectedWords[index].forEach((word) => {
+                  const re = new RegExp(`\\b${word}\\b`, "gi");
+                  preview = preview.replace(re, "___");
+                });
+                
+                return (
+                  <div key={index} className="p-4 bg-gray-50 rounded-xl">
+                    <div className="text-gray-800 mb-2">{preview}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {options[index].filter(opt => opt.trim()).map((opt, optIndex) => (
+                        <span
+                          key={optIndex}
+                          className={`px-3 py-1 rounded-lg text-sm ${
+                            correctIndexes[index] === optIndex
+                              ? "bg-green-100 text-green-700 border border-green-300"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {opt} {correctIndexes[index] === optIndex && "✓"}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

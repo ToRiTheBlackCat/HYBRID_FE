@@ -33,6 +33,7 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
   const [duration, setDuration] = useState(initialDuration);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [entries, setEntries] = useState<ConjunctionEntry[]>(initialEntries);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const teacherId = useSelector((state: RootState) => state.user.userId);
   const { minigameId } = useParams<{ minigameId: string }>();
@@ -44,7 +45,7 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
   const openModal = () => {
     setActivityName(initialActivityName);
     setDuration(initialDuration);
-    setThumbnail(null); // Reset thumbnail file khi mở modal
+    setThumbnail(null);
     setEntries(initialEntries);
     setIsOpen(true);
   };
@@ -68,22 +69,31 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
   const handleFinishEdit = async () => {
     const validEntries = entries.filter((e) => e.Term && e.Definition);
 
-    if (!activityName || validEntries.length === 0 || duration <= 0) {
-      alert("Please fill in all fields with valid data.");
+    if (!activityName.trim()) {
+      toast.error("Activity name is required.");
+      return;
+    }
+    if (validEntries.length === 0) {
+      toast.error("At least one valid entry is required.");
+      return;
+    }
+    if (duration <= 0) {
+      toast.error("Duration must be greater than 0.");
       return;
     }
     if (!teacherId || !minigameId) {
-      alert("Missing teacherId or minigameId.");
+      toast.error("Missing required information.");
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      // Chuẩn bị data để gửi API
       const conjunctionData = {
         MinigameId: minigameId,
         MinigameName: activityName,
-        ImageFile: thumbnail, // File mới (nếu có)
-        ImageUrl: !thumbnail && initialThumbnailUrl ? initialThumbnailUrl : undefined, // URL ảnh cũ (nếu không có file mới)
+        ImageFile: thumbnail,
+        ImageUrl: !thumbnail && initialThumbnailUrl ? initialThumbnailUrl : undefined,
         Duration: duration,
         TemplateId: "TP1",
         TeacherId: teacherId,
@@ -92,23 +102,17 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
           Definition: entry.Definition,
         })),
       };
-      console.log("Submitting conjunction data:", conjunctionData);
 
       const result = await editConjunction(conjunctionData);
 
       if (result) {
-        // Xác định thumbnail URL cuối cùng để trả về
-        // toast.success("Cập nhật thành công")
         let finalThumbnailUrl: string | null = null;
         
         if (result.thumbnailImage) {
-          // Nếu API trả về thumbnail mới
           finalThumbnailUrl = normalizeUrl(baseImageUrl, result.thumbnailImage);
         } else if (thumbnail) {
-          // Nếu có upload file mới nhưng API không trả về URL
           finalThumbnailUrl = URL.createObjectURL(thumbnail);
         } else {
-          // Giữ nguyên URL cũ
           finalThumbnailUrl = initialThumbnailUrl ?? null;
         }
 
@@ -127,10 +131,11 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
     } catch (error) {
       console.error("Error updating minigame:", error);
       toast.error("An error occurred while updating minigame.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Xác định ảnh hiển thị trong preview
   const getPreviewImageSrc = (): string | null => {
     if (thumbnail) {
       return URL.createObjectURL(thumbnail);
@@ -142,117 +147,235 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
     <>
       <button
         onClick={openModal}
-        className="px-4 py-2 rounded bg-yellow-400 hover:bg-yellow-500 text-black font-semibold"
+        className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
       >
-        ✏️ Edit Minigame
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        Edit Minigame
       </button>
 
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-2xl rounded-lg bg-white p-6 border shadow-lg space-y-4">
-            <Dialog.Title className="text-xl font-bold text-center">Edit Minigame</Dialog.Title>
+          <Dialog.Panel className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl border-0">
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
+                  <Dialog.Title className="text-2xl font-bold">Edit Minigame</Dialog.Title>
+                </div>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
 
-            <div className="space-y-3">
-              <input
-                type="text"
-                value={activityName}
-                onChange={(e) => setActivityName(e.target.value)}
-                placeholder="Enter activity name"
-                className="w-full border px-3 py-2 rounded"
-              />
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Activity Name */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Activity Name *
+                </label>
+                <input
+                  type="text"
+                  value={activityName}
+                  onChange={(e) => setActivityName(e.target.value)}
+                  placeholder="Enter activity name"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 outline-none"
+                />
+              </div>
 
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block font-semibold mb-1">Thumbnail</label>
+              {/* Thumbnail and Duration */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Thumbnail Section */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Thumbnail Image
+                  </label>
                   
-                  {/* Preview thumbnail hiện tại */}
+                  {/* Current/Preview Image */}
                   {getPreviewImageSrc() && (
-                    <div className="mb-2">
-                      <p className="text-sm text-gray-600">
-                        {thumbnail ? "New thumbnail:" : "Current thumbnail:"}
-                      </p>
-                      <img
-                        src={getPreviewImageSrc()!}
-                        alt="Thumbnail preview"
-                        className="w-20 h-20 object-cover rounded border"
-                      />
+                    <div className="relative group">
+                      <div className="w-full h-48 rounded-xl overflow-hidden bg-gray-100 border-2 border-dashed border-gray-300">
+                        <img
+                          src={getPreviewImageSrc()!}
+                          alt="Thumbnail preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 text-white text-xs rounded-lg">
+                        {thumbnail ? "New Image" : "Current Image"}
+                      </div>
                     </div>
                   )}
                   
-                  <input
-                    type="file"
-                    // accept="image/*"
-                    onChange={(e) => setThumbnail(e.target.files?.[0] ?? null)}
-                    className="w-full border px-2 py-1 rounded"
-                  />
-                  
-                  <p className="text-xs text-gray-500 mt-1">
-                    Leave empty to keep current thumbnail
+                  {/* File Upload */}
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setThumbnail(e.target.files?.[0] ?? null)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      id="thumbnail-upload"
+                    />
+                    <label
+                      htmlFor="thumbnail-upload"
+                      className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+                    >
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <span className="text-sm text-gray-600">
+                        {thumbnail ? thumbnail.name : "Choose new image or keep current"}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Duration Section */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Duration (seconds) *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={duration}
+                      onChange={(e) => setDuration(Number(e.target.value))}
+                      placeholder="60"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 outline-none"
+                      min="1"
+                    />
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+                      sec
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Recommended: 30-120 seconds for optimal gameplay
                   </p>
                 </div>
-                
-                <div className="flex-1">
-                  <label className="block font-semibold mb-1">Duration (seconds)</label>
-                  <input
-                    type="number"
-                    value={duration}
-                    onChange={(e) => setDuration(Number(e.target.value))}
-                    placeholder="Enter duration (in seconds)"
-                    className="w-full border px-2 py-1 rounded"
-                    min="1"
-                  />
-                </div>
               </div>
 
-              <div>
-                <label className="font-semibold">Entries</label>
-                {entries.map((entry, index) => (
-                  <div key={index} className="flex items-center gap-2 my-2">
-                    <input
-                      type="text"
-                      value={entry.Term}
-                      onChange={(e) => handleChangeEntry(index, "Term", e.target.value)}
-                      placeholder="Term"
-                      className="flex-1 border px-2 py-1 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={entry.Definition}
-                      onChange={(e) => handleChangeEntry(index, "Definition", e.target.value)}
-                      placeholder="Meaning"
-                      className="flex-1 border px-2 py-1 rounded"
-                    />
-                    <button
-                      onClick={() => handleRemoveEntry(index)}
-                      className="text-red-500 hover:text-red-700 px-2"
-                      title="Remove entry"
+              {/* Entries Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-gray-700">
+                    Term & Definition Pairs *
+                  </label>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                    {entries.filter(e => e.Term && e.Definition).length} valid entries
+                  </span>
+                </div>
+
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                  {entries.map((entry, index) => (
+                    <div
+                      key={index}
+                      className="group relative bg-gray-50 rounded-xl p-4 border-2 border-transparent hover:border-gray-200 transition-all duration-200"
                     >
-                      🗑️
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                          {index + 1}
+                        </div>
+                        
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <input
+                              type="text"
+                              value={entry.Term}
+                              onChange={(e) => handleChangeEntry(index, "Term", e.target.value)}
+                              placeholder="Enter term..."
+                              className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-200 outline-none"
+                            />
+                            <label className="text-xs text-gray-500 mt-1 block">Term</label>
+                          </div>
+                          
+                          <div>
+                            <input
+                              type="text"
+                              value={entry.Definition}
+                              onChange={(e) => handleChangeEntry(index, "Definition", e.target.value)}
+                              placeholder="Enter definition..."
+                              className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-200 outline-none"
+                            />
+                            <label className="text-xs text-gray-500 mt-1 block">Definition</label>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleRemoveEntry(index)}
+                          className="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+                          title="Remove entry"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
                 <button
                   onClick={handleAddEntry}
-                  className="mt-2 bg-yellow-100 hover:bg-yellow-200 text-black px-3 py-1 rounded"
+                  className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center gap-2"
                 >
-                  ➕ Add more
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add New Entry
                 </button>
               </div>
+            </div>
 
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleFinishEdit}
-                  className="px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600"
-                >
-                  ✅ Finish
-                </button>
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-2xl border-t">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  * Required fields
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleFinishEdit}
+                    disabled={isSubmitting}
+                    className="relative px-6 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save Changes
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </Dialog.Panel>

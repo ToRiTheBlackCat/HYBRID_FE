@@ -118,30 +118,6 @@ const AnagramReview: React.FC = () => {
 
   const currentWord = words[currentIndex];
 
-  // if (!isPlaying) {
-  //   return (
-  //     <>
-  //       <Header />
-  //       <div className="max-w-2xl mx-auto mt-20 border rounded-lg bg-white p-6 shadow">
-  //         <div className="flex gap-6">
-  //           <img src={thumbnail || "/default-thumbnail.png"} alt="thumbnail" className="w-40 h-40 rounded-lg object-cover" />
-  //           <div className="flex flex-col justify-center gap-2">
-  //             <h1 className="text-2xl font-bold">{activityName}</h1>
-  //             <p className="text-gray-600">👨‍🏫 {teacherName}</p>
-  //             <p className="text-gray-600">⏱ Duration: {duration}s</p>
-  //             <button
-  //               className="mt-4 bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-  //               onClick={() => setIsPlaying(true)}
-  //             >
-  //               ▶️ Play Now
-  //             </button>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </>
-  //   );
-  // }
-
   if (words.length === 0) {
     return <div className="text-center mt-10 text-gray-600">Không tìm thấy từ cho hoạt động này.</div>;
   }
@@ -151,97 +127,180 @@ const AnagramReview: React.FC = () => {
       <Header />
       {!isPlaying ? (
         <Anagram onStart={() => setIsPlaying(true)}/>
-      ):
-      <div className="border rounded-lg p-6 w-full max-w-3xl mx-auto mt-20 bg-pink-50">
-        <div className="flex justify-between mb-4 text-lg font-medium">
-          <div>⏰ Thời gian còn lại: {timer}s</div>
-          <button onClick={togglePause} className="bg-gray-400 px-3 py-1 rounded text-white">
-            {isPaused ? "Resume" : "Pause"}
-          </button>
-        </div>
+      ) : (
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 py-8 mt-15">
+          <div className="max-w-4xl mx-auto px-4">
+            {/* Game Header */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-6 mb-6">
+              <div className="flex justify-between items-center mb-4">
+                {/* Timer Section */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-orange-400 to-red-400 text-white px-4 py-2 rounded-xl shadow-md">
+                    <span className="text-xl">⏰</span>
+                    <span className="font-bold text-lg">{timer}s</span>
+                  </div>
+                  <button 
+                    onClick={togglePause} 
+                    className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 ${
+                      isPaused 
+                        ? 'bg-gradient-to-r from-green-400 to-green-500 text-white hover:from-green-500 hover:to-green-600' 
+                        : 'bg-gradient-to-r from-yellow-400 to-orange-400 text-white hover:from-yellow-500 hover:to-orange-500'
+                    }`}
+                  >
+                    {isPaused ? "▶️ Resume" : "⏸️ Pause"}
+                  </button>
+                </div>
 
-        <EditAnagram
-          initialActivityName={activityName}
-          initialDuration={duration}
-          initialWords={words}
-          initialThumbnailUrl={thumbnail}
-          onSave={(data) => {
-            setWords(data.words);
-            setDuration(data.duration);
-          }}
-        />
+                {/* Progress Indicator */}
+                <div className="flex items-center gap-3">
+                  <div className="bg-gradient-to-r from-blue-400 to-purple-400 text-white px-4 py-2 rounded-xl shadow-md">
+                    <span className="font-bold">{currentIndex + 1} / {words.length}</span>
+                  </div>
+                  <div className="w-32 bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-blue-400 to-purple-400 h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${((currentIndex + 1) / words.length) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
 
-        <div className="text-center text-2xl mb-6 font-semibold tracking-wide">
-          {currentWord.split("").map((letter, idx) => (
-            <span key={idx} className="inline-block mx-2 font-mono">
-              {letter}
-            </span>
-          ))}
-        </div>
-
-        <div className="flex justify-center gap-2 mb-6">
-          {currentWord.split("").map((_, idx) => (
-            <div
-              key={idx}
-              className="w-10 h-10 border border-black rounded flex items-center justify-center text-xl bg-white"
-            >
-              {droppedLetters[idx] || ""}
+              {/* Edit Section */}
+              <EditAnagram
+                initialActivityName={activityName}
+                initialDuration={duration}
+                initialWords={words}
+                initialThumbnailUrl={thumbnail}
+                onSave={(data) => {
+                  setWords(data.words);
+                  setDuration(data.duration);
+                }}
+              />
             </div>
-          ))}
+
+            {/* Main Game Area */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 p-8">
+              {/* Scrambled Word Display */}
+              <div className="text-center mb-8">
+                <h2 className="text-gray-600 text-lg font-medium mb-4">Sắp xếp lại các chữ cái:</h2>
+                <div className="flex justify-center items-center gap-3 mb-6">
+                  {currentWord.split("").map((letter, idx) => (
+                    <div
+                      key={idx}
+                      className="w-14 h-14 bg-gradient-to-br from-purple-400 to-pink-400 text-white rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg transform hover:scale-105 transition-all duration-200"
+                    >
+                      {letter.toUpperCase()}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Answer Slots */}
+              <div className="text-center mb-8">
+                <h3 className="text-gray-600 text-lg font-medium mb-4">Đáp án của bạn:</h3>
+                <div className="flex justify-center gap-3 mb-6">
+                  {currentWord.split("").map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`w-14 h-14 border-2 border-dashed rounded-xl flex items-center justify-center text-2xl font-bold transition-all duration-200 ${
+                        droppedLetters[idx] 
+                          ? 'bg-gradient-to-br from-green-100 to-green-200 border-green-300 text-green-700' 
+                          : 'bg-gray-50 border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      {droppedLetters[idx]?.toUpperCase() || ""}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Drag and Drop Area */}
+              <div className="mb-8">
+                <KeywordDragDrop
+                  keywords={shuffledLetters}
+                  targets={currentWord.split("")}
+                  droppedKeywords={droppedLetters}
+                  onDrop={handleDrop}
+                  direction="horizontal"
+                  paused={isPaused}
+                  resetTrigger={resetCounter}
+                />
+              </div>
+
+              {/* Feedback */}
+              {feedback === "correct" && (
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-400 to-green-500 text-white px-6 py-3 rounded-2xl shadow-lg animate-bounce">
+                    <span className="text-2xl">🎉</span>
+                    <span className="text-lg font-bold">Chính xác! Tuyệt vời!</span>
+                  </div>
+                </div>
+              )}
+              {feedback === "incorrect" && (
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-400 to-red-500 text-white px-6 py-3 rounded-2xl shadow-lg animate-pulse">
+                    <span className="text-2xl">❌</span>
+                    <span className="text-lg font-bold">Sai rồi! Thử lại nhé!</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation Controls */}
+              <div className="flex justify-center items-center gap-6 mb-8">
+                <button
+                  onClick={handlePrev}
+                  disabled={currentIndex === 0}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-xl font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  <span className="text-lg">←</span>
+                  <span>Trước</span>
+                </button>
+
+                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-md border">
+                  <span className="text-gray-600">Câu</span>
+                  <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {currentIndex + 1}
+                  </span>
+                  <span className="text-gray-600">trên</span>
+                  <span className="font-bold text-lg">{words.length}</span>
+                </div>
+
+                <button
+                  onClick={handleNext}
+                  disabled={currentIndex === words.length - 1}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-xl font-medium shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  <span>Sau</span>
+                  <span className="text-lg">→</span>
+                </button>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-center gap-4">
+                {!finished ? (
+                  <button 
+                    onClick={handleFinish} 
+                    className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                  >
+                    <span className="text-xl">🏁</span>
+                    <span>Hoàn thành</span>
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleRetry} 
+                    className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                  >
+                    <span className="text-xl">🔄</span>
+                    <span>Thử lại</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-
-        <KeywordDragDrop
-          keywords={shuffledLetters}
-          targets={currentWord.split("")}
-          droppedKeywords={droppedLetters}
-          onDrop={handleDrop}
-          direction="horizontal"
-          paused={isPaused}
-          resetTrigger={resetCounter}
-        />
-
-        {feedback === "correct" && (
-          <div className="text-green-600 text-center text-lg font-semibold mt-4">✅ Chính xác!</div>
-        )}
-        {feedback === "incorrect" && (
-          <div className="text-red-600 text-center text-lg font-semibold mt-4">❌ Sai rồi!</div>
-        )}
-
-        <div className="flex justify-center items-center gap-4 mt-8 text-lg font-medium">
-          <button
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-          >
-            ←
-          </button>
-          <span>
-            {currentIndex + 1} / {words.length}
-          </span>
-          <button
-            onClick={handleNext}
-            disabled={currentIndex === words.length - 1}
-            className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-          >
-            →
-          </button>
-        </div>
-
-        <div className="flex justify-center gap-6 mt-6">
-          {!finished ? (
-            <button onClick={handleFinish} className="bg-blue-500 text-white px-4 py-2 rounded">
-              Finish
-            </button>
-          ) : (
-            <button onClick={handleRetry} className="bg-yellow-500 text-white px-4 py-2 rounded">
-              Try Again
-            </button>
-          )}
-        </div>
-      </div>
-}
+      )}
     </>
   );
-};
+}
 
 export default AnagramReview;

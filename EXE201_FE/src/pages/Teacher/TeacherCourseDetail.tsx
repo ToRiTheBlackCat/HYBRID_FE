@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { fetchCourseDetail } from "../../services/userService";
 import { fetchCourseMinigame, fetchMinigameScore } from "../../services/authService";
 import { Course, Minigame } from "../../types/index";
@@ -30,7 +30,6 @@ const PAGE_SIZE = 6;
 
 const CourseDetail: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
-  const navigate = useNavigate();
 
   const [course, setCourse] = useState<Course>();
   const [minigames, setMinigames] = useState<Minigame[]>([]);
@@ -50,24 +49,6 @@ const CourseDetail: React.FC = () => {
     return { thumbnail, images };
   };
 
-  const handleMinigameClick = (templateId: string, minigameId: string) => {
-    const pathMap: Record<string, string> = {
-      TP1: "conjunction",
-      TP2: "quiz",
-      TP3: "anagram",
-      TP4: "random-card",
-      TP5: "spelling",
-      TP6: "flashcard",
-      TP7: "completion",
-      TP8: "pairing",
-      TP9: "restoration",
-      TP10: "find-word",
-      TP11: "true-false",
-      TP12: "crossword",
-    };
-    const path = pathMap[templateId];
-    if (path) navigate(`/student/${path}/${minigameId}`);
-  };
 
   useEffect(() => {
     if (!courseId) return;
@@ -272,7 +253,6 @@ const CourseDetail: React.FC = () => {
               {minigames.map((game) => (
                 <div 
                   key={game.minigameId} 
-                  onClick={() => handleMinigameClick(game.templateId, game.minigameId)} 
                   className="group bg-white rounded-xl shadow-lg hover:shadow-2xl cursor-pointer transition-all duration-300 transform hover:-translate-y-2 overflow-hidden"
                 >
                   <div className="relative">

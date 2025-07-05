@@ -54,12 +54,12 @@
 }
 
 .card-front {
-  background-color: #bfdbfe; /* Tailwind bg-blue-100 */
+  background-color: #bfdbfe; 
   color: #1e3a8a;
 }
 
 .card-back {
-  background-color: #bbf7d0; /* Tailwind bg-green-100 */
+  background-color: #bbf7d0; 
   color: #064e3b;
-  transform: rotateY(180deg); /* CHÍNH LÀ DÒNG FIX! */
+  transform: rotateY(180deg); 
 }

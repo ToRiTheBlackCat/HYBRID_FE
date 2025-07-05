@@ -4,7 +4,7 @@ const AnimatedText: React.FC<{ text: string; delay?: number }> = ({ text, delay 
   const words = text.split(" ");
 
   return (
-    <motion.div className="inline-block">
+    <motion.span className="inline-block">
       {words.map((word, index) => (
         <motion.span
           key={index}
@@ -16,7 +16,7 @@ const AnimatedText: React.FC<{ text: string; delay?: number }> = ({ text, delay 
           {word}
         </motion.span>
       ))}
-    </motion.div>
+    </motion.span>
   );
 };
 export default AnimatedText

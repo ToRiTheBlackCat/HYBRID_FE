@@ -5,6 +5,7 @@ import { createFlashCard } from '../../services/authService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { toast } from 'react-toastify';
+import { BookOpen, Check, Clock, Plus, Trash2, Upload } from 'lucide-react';
 
 interface FlashcardDesignerProps {
   courseId?: string;
@@ -57,107 +58,191 @@ const FlashcardDesigner: React.FC<FlashcardDesignerProps> = ({ courseId }) => {
       toast.error("Tạo không thành công");
     }
   };
+  const isFormValid = minigameName.trim() && flashcards.some(card => card.front.trim() && card.back.trim());
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Thiết kế Flashcard</h1>
-
-        {/* Thông tin minigame */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8 space-y-4">
-          <h2 className="text-xl font-semibold text-gray-800">Thông tin minigame</h2>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tên hoạt động</label>
-            <input
-              type="text"
-              value={minigameName}
-              onChange={(e) => setMinigameName(e.target.value)}
-              placeholder="Nhập tên minigame"
-              className="w-full p-3 rounded-lg border border-gray-300"
-            />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+            <BookOpen className="w-8 h-8 text-white" />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Thời lượng (giây)</label>
-            <input
-              type="number"
-              value={duration}
-              onChange={(e) => setDuration(parseInt(e.target.value))}
-              placeholder="Nhập thời lượng"
-              className="w-full p-3 rounded-lg border border-gray-300"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ảnh đại diện (tuỳ chọn)</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-              className="w-full p-2 border border-gray-300 rounded"
-            />
-          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Thiết kế Flashcard
+          </h1>
+          <p className="text-gray-600">Tạo minigame học tập thú vị với flashcard tương tác</p>
         </div>
 
-        {/* Danh sách form Flashcards */}
-        <div className="space-y-6">
-          {flashcards.map((card) => (
-            <div
-              key={card.id}
-              className="bg-white p-4 rounded-lg shadow border border-gray-200"
-            >
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mặt trước</label>
-                <input
-                  type="text"
-                  value={card.front}
-                  onChange={(e) => handleChangeCard(card.id, 'front', e.target.value)}
-                  className="w-full p-2 border rounded"
-                  placeholder="Câu hỏi..."
-                />
-              </div>
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mặt sau</label>
-                <textarea
-                  value={card.back}
-                  onChange={(e) => handleChangeCard(card.id, 'back', e.target.value)}
-                  className="w-full p-2 border rounded"
-                  placeholder="Câu trả lời..."
-                  rows={3}
-                />
-              </div>
-              <button
-                onClick={() => handleDeleteCard(card.id)}
-                className="text-red-500 hover:underline"
-              >
-                Xóa câu hỏi này
-              </button>
+        {/* Game Info Card */}
+        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl mb-8 border border-white/20">
+          <div className="flex items-center mb-6">
+            <div className="w-3 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full mr-3"></div>
+            <h2 className="text-2xl font-bold text-gray-800">Thông tin minigame</h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700 flex items-center">
+                <BookOpen className="w-4 h-4 mr-2" />
+                Tên hoạt động
+              </label>
+              <input
+                type="text"
+                value={minigameName}
+                onChange={(e) => setMinigameName(e.target.value)}
+                placeholder="Ví dụ: Ôn tập từ vựng tiếng Anh"
+                className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors bg-white/50"
+              />
             </div>
-          ))}
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700 flex items-center">
+                <Clock className="w-4 h-4 mr-2" />
+                Thời lượng (giây)
+              </label>
+              <input
+                type="number"
+                value={duration}
+                onChange={(e) => setDuration(parseInt(e.target.value) || 60)}
+                placeholder="60"
+                min="10"
+                max="600"
+                className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors bg-white/50"
+              />
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-2">
+            <label className="text-sm font-semibold text-gray-700 flex items-center">
+              <Upload className="w-4 h-4 mr-2" />
+              Ảnh đại diện (tuỳ chọn)
+            </label>
+            <div className="relative">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                className="w-full p-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-colors bg-white/50 cursor-pointer"
+              />
+              {imageFile && (
+                <div className="mt-2 text-sm text-green-600 flex items-center">
+                  <Check className="w-4 h-4 mr-1" />
+                  Đã chọn: {imageFile.name}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Nút thêm flashcard */}
-        <div className="mt-6">
-          <button
-            onClick={handleAddCard}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-          >
-            ➕ Thêm câu hỏi
-          </button>
-        </div>
-
-        {/* Nút tạo minigame */}
-        {flashcards.length > 0 && (
-          <div className="mt-6 text-right">
+        {/* Flashcards Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <div className="w-3 h-8 bg-gradient-to-b from-green-500 to-blue-500 rounded-full mr-3"></div>
+              <h2 className="text-2xl font-bold text-gray-800">
+                Danh sách câu hỏi ({flashcards.length})
+              </h2>
+            </div>
             <button
-              onClick={handleCreateMinigame}
-              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition"
+              onClick={handleAddCard}
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
-              ✅ Tạo Minigame
+              <Plus className="w-5 h-5 mr-2" />
+              Thêm câu hỏi
             </button>
           </div>
-        )}
+
+          <div className="grid gap-6">
+            {flashcards.map((card, index) => (
+              <div
+                key={card.id}
+                className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300 group"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                      {index + 1}
+                    </div>
+                    <h3 className="font-semibold text-gray-800">Câu hỏi {index + 1}</h3>
+                  </div>
+                  {flashcards.length > 1 && (
+                    <button
+                      onClick={() => handleDeleteCard(card.id)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Mặt trước (Câu hỏi)</label>
+                    <input
+                      type="text"
+                      value={card.front}
+                      onChange={(e) => handleChangeCard(card.id, 'front', e.target.value)}
+                      className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors bg-white/70"
+                      placeholder="Nhập câu hỏi..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Mặt sau (Câu trả lời)</label>
+                    <textarea
+                      value={card.back}
+                      onChange={(e) => handleChangeCard(card.id, 'back', e.target.value)}
+                      className="w-full p-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors bg-white/70 resize-none"
+                      placeholder="Nhập câu trả lời..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Create Button */}
+        <div className="text-center">
+          <button
+            onClick={handleCreateMinigame}
+            disabled={!isFormValid}
+            className={`px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 shadow-lg transform hover:scale-105 ${
+              isFormValid
+                ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-xl'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            <Check className="w-6 h-6 inline mr-2" />
+            Tạo Minigame
+          </button>
+          {!isFormValid && (
+            <p className="text-sm text-gray-500 mt-2">
+              Vui lòng nhập tên minigame và ít nhất một câu hỏi hoàn chỉnh
+            </p>
+          )}
+        </div>
+
+        {/* Stats */}
+        <div className="mt-8 flex justify-center">
+          <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+            <div className="flex items-center space-x-8 text-sm text-gray-600">
+              <div className="flex items-center">
+                <BookOpen className="w-4 h-4 mr-1" />
+                <span>{flashcards.length} câu hỏi</span>
+              </div>
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-1" />
+                <span>{duration} giây</span>
+              </div>
+              <div className="flex items-center">
+                <Check className="w-4 h-4 mr-1" />
+                <span>{flashcards.filter(card => card.front.trim() && card.back.trim()).length} hoàn thành</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

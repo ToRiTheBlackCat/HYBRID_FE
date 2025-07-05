@@ -20,7 +20,7 @@ interface WordPlacement {
 }
 
 const gridSize = 15;
-const cellSize = 30;
+const cellSize = 35;
 
 const createEmptyGrid = () => Array.from({ length: gridSize }, () => Array(gridSize).fill(''));
 
@@ -90,6 +90,7 @@ const placeWord = (
   }
   return null;
 };
+
 const PlayCrossword: React.FC = () => {
   const { minigameId } = useParams<{ minigameId: string }>();
   const [solutionGrid, setSolutionGrid] = useState<string[][]>([]);
@@ -104,15 +105,22 @@ const PlayCrossword: React.FC = () => {
   const [activeDirection, setActiveDirection] = useState<'horizontal' | 'vertical' | null>(null);
   const [activeWord, setActiveWord] = useState<WordPlacement | null>(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [isGameStarted, setIsGameStarted] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
 
-
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   const getLocalISOTime = () => {
     const now = new Date();
-    const offset = now.getTimezoneOffset(); // in minutes
+    const offset = now.getTimezoneOffset();
     const localTime = new Date(now.getTime() - offset * 60 * 1000);
-    return localTime.toISOString().slice(0, -1); // remove the 'Z'
+    return localTime.toISOString().slice(0, -1);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   useEffect(() => {
@@ -178,18 +186,20 @@ const PlayCrossword: React.FC = () => {
 
     fetchData();
   }, [minigameId]);
+
   useEffect(() => {
-    if (!isPaused && timeLeft > 0) {
+    if (!isPaused && timeLeft > 0 && isGameStarted) {
       timerRef.current = setTimeout(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
     } else if (timeLeft === 0) {
-      alert("⏰ Time's up!");
+      toast.error("⏰ Time's up!");
+      setIsPaused(true);
     }
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [timeLeft, isPaused]);
+  }, [timeLeft, isPaused, isGameStarted]);
 
   const handleInputChange = (row: number, col: number, value: string) => {
     const newGrid = userGrid.map(r => [...r]);
@@ -207,17 +217,15 @@ const PlayCrossword: React.FC = () => {
         solutionGrid[nextRow]?.[nextCol]
       ) {
         inputRefs.current[nextRow][nextCol]?.focus();
-        setActiveIndex(nextIndex); // cập nhật chỉ số ô đang nhập
+        setActiveIndex(nextIndex);
       }
     }
   };
-
 
   const handleCellClick = (row: number, col: number) => {
     if (!solutionGrid[row][col]) return setSelectedCell(null);
     setSelectedCell({ row, col });
 
-    // tìm từ chứa ô vừa click
     const matched = wordPlacements.find(({ start, direction, word }) => {
       const len = word.length;
       return (
@@ -234,7 +242,6 @@ const PlayCrossword: React.FC = () => {
       );
     }
 
-    // xử lý hiển thị hint như cũ
     const matchedHints = wordPlacements.filter(({ start, direction, word }) => {
       const len = word.length;
       return (
@@ -259,10 +266,14 @@ const PlayCrossword: React.FC = () => {
     }
   };
 
-
   const getCellNumber = (row: number, col: number): number | null => {
     const cell = wordPlacements.find(p => p.start.row === row && p.start.col === col);
     return cell ? cell.number : null;
+  };
+
+  const handleStartGame = () => {
+    setIsGameStarted(true);
+    setIsPaused(false);
   };
 
   const handleTryAgain = () => {
@@ -270,6 +281,10 @@ const PlayCrossword: React.FC = () => {
     setSelectedCell(null);
     setHints([]);
     setShownHints([]);
+    setScore(0);
+    setActiveDirection(null);
+    setActiveWord(null);
+    setActiveIndex(0);
   };
 
   const handleSubmit = async () => {
@@ -313,98 +328,249 @@ const PlayCrossword: React.FC = () => {
     }
   };
 
+  const isActiveCell = (row: number, col: number): boolean => {
+    if (!activeWord || !activeDirection) return false;
+    
+    const { start, word, direction } = activeWord;
+    if (direction === 'horizontal') {
+      return row === start.row && col >= start.col && col < start.col + word.length;
+    } else {
+      return col === start.col && row >= start.row && row < start.row + word.length;
+    }
+  };
 
   return (
     <>
       <Header />
-      <div className="min-h-screen mb-20 flex flex-col justify-center items-center bg-white px-4 py-8 relative">
-        <div className="mt-15 mb-5 flex items-center gap-4 text-lg font-semibold">
-          ⏱️ Time Left: {timeLeft}s
-          <button
-            onClick={() => setIsPaused(!isPaused)}
-            className="bg-blue-200 hover:bg-blue-300 px-3 py-1 rounded"
-          >
-            {isPaused ? '▶️ Play' : '⏸ Pause'}
-          </button>
-          <span>⭐ Score: {score}</span>
-        </div>
-
-        <div className="w-fit bg-pink-100 border rounded-lg p-6 mb-12 relative">
-          <div className="grid gap-[2px]" style={{ gridTemplateColumns: `repeat(${gridSize}, 30px)` }}>
-            {userGrid.map((row, i) =>
-              row.map((char, j) => {
-                const number = getCellNumber(i, j);
-                const active = solutionGrid[i][j] !== '';
-                return (
-                  <div
-                    key={`${i}-${j}`}
-                    onClick={() => handleCellClick(i, j)}
-                    className={`w-[30px] h-[30px] border border-gray-300 flex items-center justify-center relative
-                    ${active ? 'bg-white cursor-pointer' : 'bg-gray-300'}
-                    ${selectedCell?.row === i && selectedCell?.col === j ? 'bg-yellow-200' : ''}`}
-                  >
-                    {number && (
-                      <span className="absolute top-0 left-0 text-[10px] text-gray-600 pl-0.5 pt-0.5 font-bold">
-                        {number}
-                      </span>
-                    )}
-                    {active && (
-                      <input
-                        ref={(el) => {
-                          if (!inputRefs.current[i]) inputRefs.current[i] = [];
-                          inputRefs.current[i][j] = el;
-                        }}
-                        type="text"
-                        value={char}
-                        onChange={(e) => handleInputChange(i, j, e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Backspace') {
-                            const prevRow = activeDirection === 'vertical' ? i - 1 : i;
-                            const prevCol = activeDirection === 'horizontal' ? j - 1 : j;
-
-                            if (userGrid[i][j] === '') {
-                              if (
-                                prevRow >= 0 &&
-                                prevCol >= 0 &&
-                                prevRow < gridSize &&
-                                prevCol < gridSize &&
-                                solutionGrid[prevRow]?.[prevCol]
-                              ) {
-                                inputRefs.current[prevRow][prevCol]?.focus();
-                                const newGrid = userGrid.map((r) => [...r]);
-                                newGrid[prevRow][prevCol] = '';
-                                setUserGrid(newGrid);
-                              }
-                            }
-                          }
-                        }}
-                        className="w-full h-full text-center font-bold text-sm bg-transparent focus:outline-none"
-                        maxLength={1}
-                      />
-                    )}
-                  </div>
-                );
-              })
-            )}
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 px-4 py-8 mt-20">
+        <div className="max-w-7xl mx-auto">
+          {/* Game Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">🧩 Crossword Puzzle</h1>
+            <p className="text-gray-600">Challenge your mind with this exciting word puzzle!</p>
           </div>
-          {hints.map((hint, i) => (
-            <div
-              key={i}
-              className="absolute left-0 p-3 bg-blue-100 text-blue-800 rounded-lg shadow-md max-w-[200px] z-10"
-              style={{ top: `${hint.start.row * cellSize - 40}px`, left: `${hint.start.col * cellSize}px` }}
-            >
-              <p className="text-sm font-medium">{hint.text}</p>
-            </div>
-          ))}
-        </div>
 
-        <div className="w-full max-w-[700px] flex justify-between items-center px-4">
-          <button onClick={handleTryAgain} className="px-6 py-2 bg-blue-200 text-blue-800 font-semibold rounded-full hover:bg-blue-300 transition">
-            Try again
-          </button>
-          <button onClick={handleSubmit} className="px-6 py-2 bg-green-200 text-green-800 font-semibold rounded-full hover:bg-green-300 transition">
-            Submit
-          </button>
+          {/* Game Stats */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-white rounded-2xl shadow-lg p-6 flex items-center gap-8">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Time Left</p>
+                  <p className="text-2xl font-bold text-gray-800">{formatTime(timeLeft)}</p>
+                </div>
+              </div>
+
+              <div className="h-12 w-px bg-gray-200"></div>
+
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Score</p>
+                  <p className="text-2xl font-bold text-gray-800">{score}/{wordPlacements.length}</p>
+                </div>
+              </div>
+
+              <div className="h-12 w-px bg-gray-200"></div>
+
+              <div className="flex gap-3">
+                {!isGameStarted ? (
+                  <button
+                    onClick={handleStartGame}
+                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-green-700 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                  >
+                    🚀 Start Game
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIsPaused(!isPaused)}
+                    className={`px-6 py-3 font-semibold rounded-xl transform hover:scale-105 transition-all duration-200 shadow-lg ${
+                      isPaused 
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700' 
+                        : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700'
+                    }`}
+                  >
+                    {isPaused ? '▶️ Resume' : '⏸️ Pause'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Main Game Area */}
+          <div className="flex flex-col lg:flex-row justify-center items-start gap-8">
+            {/* Crossword Grid */}
+            <div className="flex-shrink-0">
+              <div className="bg-white rounded-2xl shadow-xl p-8 relative">
+                <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridSize}, 35px)` }}>
+                  {userGrid.map((row, i) =>
+                    row.map((char, j) => {
+                      const number = getCellNumber(i, j);
+                      const active = solutionGrid[i][j] !== '';
+                      const isSelected = selectedCell?.row === i && selectedCell?.col === j;
+                      const isPartOfActiveWord = isActiveCell(i, j);
+                      
+                      return (
+                        <div
+                          key={`${i}-${j}`}
+                          onClick={() => handleCellClick(i, j)}
+                          className={`w-[35px] h-[35px] border-2 flex items-center justify-center relative transition-all duration-200 
+                            ${active 
+                              ? `bg-white cursor-pointer hover:bg-blue-50 ${
+                                  isSelected 
+                                    ? 'border-blue-500 bg-blue-100 shadow-md' 
+                                    : isPartOfActiveWord 
+                                      ? 'border-blue-300 bg-blue-50' 
+                                      : 'border-gray-300 hover:border-gray-400'
+                                }` 
+                              : 'bg-gray-800 border-gray-700'
+                            }`}
+                        >
+                          {number && (
+                            <span className="absolute top-0.5 left-0.5 text-[10px] text-blue-600 font-bold z-10">
+                              {number}
+                            </span>
+                          )}
+                          {active && (
+                            <input
+                              ref={(el) => {
+                                if (!inputRefs.current[i]) inputRefs.current[i] = [];
+                                inputRefs.current[i][j] = el;
+                              }}
+                              type="text"
+                              value={char}
+                              onChange={(e) => handleInputChange(i, j, e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Backspace') {
+                                  const prevRow = activeDirection === 'vertical' ? i - 1 : i;
+                                  const prevCol = activeDirection === 'horizontal' ? j - 1 : j;
+
+                                  if (userGrid[i][j] === '') {
+                                    if (
+                                      prevRow >= 0 &&
+                                      prevCol >= 0 &&
+                                      prevRow < gridSize &&
+                                      prevCol < gridSize &&
+                                      solutionGrid[prevRow]?.[prevCol]
+                                    ) {
+                                      inputRefs.current[prevRow][prevCol]?.focus();
+                                      const newGrid = userGrid.map((r) => [...r]);
+                                      newGrid[prevRow][prevCol] = '';
+                                      setUserGrid(newGrid);
+                                    }
+                                  }
+                                }
+                              }}
+                              className="w-full h-full text-center font-bold text-lg bg-transparent focus:outline-none text-gray-800"
+                              maxLength={1}
+                            />
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+                
+                {/* Hints */}
+                {hints.map((hint, i) => (
+                  <div
+                    key={i}
+                    className="absolute z-20 p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow-xl max-w-[250px] border-2 border-purple-400"
+                    style={{ 
+                      top: `${hint.start.row * cellSize + 60}px`, 
+                      left: `${hint.start.col * cellSize + 60}px`,
+                      transform: 'translate(-50%, -100%)'
+                    }}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-white rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm font-medium leading-relaxed">{hint.text}</p>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-purple-500"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Clues Panel */}
+            <div className="w-full lg:w-80">
+              <div className="bg-white rounded-2xl shadow-xl p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  Clues
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      Across
+                    </h4>
+                    <div className="space-y-2">
+                      {wordPlacements
+                        .filter(p => p.direction === 'horizontal')
+                        .sort((a, b) => a.number - b.number)
+                        .map(({ number, clue, word }) => (
+                          <div key={`${number}-horizontal`} className="text-sm text-gray-600 p-2 bg-gray-50 rounded-lg">
+                            <span className="font-medium text-blue-600">{number}.</span> {clue} <span className="text-gray-400">({word.length})</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      Down
+                    </h4>
+                    <div className="space-y-2">
+                      {wordPlacements
+                        .filter(p => p.direction === 'vertical')
+                        .sort((a, b) => a.number - b.number)
+                        .map(({ number, clue, word }) => (
+                          <div key={`${number}-vertical`} className="text-sm text-gray-600 p-2 bg-gray-50 rounded-lg">
+                            <span className="font-medium text-green-600">{number}.</span> {clue} <span className="text-gray-400">({word.length})</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-center gap-4 mt-8">
+            <button 
+              onClick={handleTryAgain} 
+              className="px-8 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold rounded-xl hover:from-gray-600 hover:to-gray-700 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Try Again
+            </button>
+            
+            <button 
+              onClick={handleSubmit} 
+              className="px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Submit Answer
+            </button>
+          </div>
         </div>
       </div>
       <Footer />
