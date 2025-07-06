@@ -202,6 +202,7 @@ const PlayCrossword: React.FC = () => {
   }, [timeLeft, isPaused, isGameStarted]);
 
   const handleInputChange = (row: number, col: number, value: string) => {
+    if (!isGameStarted || isPaused) return;
     const newGrid = userGrid.map(r => [...r]);
     newGrid[row][col] = value.toUpperCase().slice(0, 1);
     setUserGrid(newGrid);
@@ -223,6 +224,7 @@ const PlayCrossword: React.FC = () => {
   };
 
   const handleCellClick = (row: number, col: number) => {
+    if (!isGameStarted || isPaused) return;
     if (!solutionGrid[row][col]) return setSelectedCell(null);
     setSelectedCell({ row, col });
 
@@ -288,6 +290,7 @@ const PlayCrossword: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    if(!isGameStarted) { return toast.error("❌ Please start the game first!"); }
     let correctWords = 0;
 
     wordPlacements.forEach(({ word, start, direction }) => {
@@ -329,7 +332,7 @@ const PlayCrossword: React.FC = () => {
   };
 
   const isActiveCell = (row: number, col: number): boolean => {
-    if (!activeWord || !activeDirection) return false;
+    if (!isGameStarted || !activeWord || !activeDirection) return false;
     
     const { start, word, direction } = activeWord;
     if (direction === 'horizontal') {

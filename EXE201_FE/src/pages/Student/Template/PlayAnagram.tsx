@@ -65,7 +65,7 @@ const PlayAnagram: React.FC = () => {
   const [words, setWords] = useState<string[]>([]);
   const [duration, setDuration] = useState(60);
   const [timer, setTimer] = useState(60);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [shuffledLetters, setShuffledLetters] = useState<string[]>([]);
   const [droppedLetters, setDroppedLetters] = useState<{ [index: number]: string | null }>({});
@@ -74,6 +74,7 @@ const PlayAnagram: React.FC = () => {
   const [resetCounter, setResetCounter] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [courseMinigames, setCourseMinigames] = useState<Minigame[]>([]);
+  const [showSidebar, setShowSidebar] = useState(true);
 
   /* ───────── effects ───────── */
   // Load game data
@@ -87,7 +88,6 @@ const PlayAnagram: React.FC = () => {
       setDuration(res.duration || 60);
       setTimer(res.duration || 60);
       setFinished(false);
-      setIsPaused(false);
       setCurrentIndex(0);
       setCorrectCount(0);
     });
@@ -190,6 +190,13 @@ const PlayAnagram: React.FC = () => {
     setResetCounter((c) => c + 1);
     setFeedback(null);
   };
+  const resetCurrentQuestion = () => {
+    const cur = words[currentIndex];
+    setShuffledLetters(shuffleArray(cur.split("")));
+    setDroppedLetters(Object.fromEntries(Array(cur.length).fill(null).map((_, idx) => [idx, null])));
+    setFeedback(null);
+    setResetCounter((c) => c + 1); // để truyền xuống KeywordDragDrop
+  };
 
   const togglePause = () => setIsPaused((p) => !p);
 
@@ -224,9 +231,23 @@ const PlayAnagram: React.FC = () => {
     <>
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative mt-15">
-        
+
         {/* ───────── Sidebar: Other Minigames ───────── */}
-        {courseMinigames.length > 0 && (
+        <button
+          onClick={() => setShowSidebar((prev) => !prev)}
+          className="fixed top-24 right-6 z-30 bg-white border border-gray-300 shadow-lg rounded-full p-3 hover:bg-gray-100 transition-all"
+        >
+          {showSidebar ? (
+            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          )}
+        </button>
+        {showSidebar && courseMinigames.length > 0 && (
           <aside className="fixed top-20 right-4 w-72 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden max-h-[85vh] z-20">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4">
               <h3 className="font-bold text-lg flex items-center gap-2">
@@ -245,11 +266,10 @@ const PlayAnagram: React.FC = () => {
                         state: { courseId: courseIdFromState },
                       })
                     }
-                    className={`w-full flex items-center gap-3 text-left p-3 m-1 rounded-xl transition-all duration-200 hover:scale-[1.02] ${
-                      isActive 
-                        ? "bg-gradient-to-r from-indigo-100 to-purple-100 border-2 border-indigo-300 shadow-md" 
-                        : "bg-gray-50 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 border border-gray-200"
-                    }`}
+                    className={`w-full flex items-center gap-3 text-left p-3 m-1 rounded-xl transition-all duration-200 hover:scale-[1.02] ${isActive
+                      ? "bg-gradient-to-r from-indigo-100 to-purple-100 border-2 border-indigo-300 shadow-md"
+                      : "bg-gray-50 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 border border-gray-200"
+                      }`}
                     disabled={isActive}
                   >
                     <div className="relative">
@@ -279,16 +299,15 @@ const PlayAnagram: React.FC = () => {
 
         {/* ───────── Main Game Area ───────── */}
         <div className="container mx-auto px-4 py-8 max-w-6xl">
-          
+
           {/* ───────── Top Stats Bar ───────── */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
+
               {/* Timer */}
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  isTimeRunningOut ? 'bg-red-100 animate-pulse' : 'bg-blue-100'
-                }`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isTimeRunningOut ? 'bg-red-100 animate-pulse' : 'bg-blue-100'
+                  }`}>
                   <svg className={`w-6 h-6 ${isTimeRunningOut ? 'text-red-600' : 'text-blue-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -299,10 +318,9 @@ const PlayAnagram: React.FC = () => {
                     {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
                   </div>
                   <div className="w-32 h-2 bg-gray-200 rounded-full mt-1">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-1000 ${
-                        isTimeRunningOut ? 'bg-red-500' : 'bg-blue-500'
-                      }`}
+                    <div
+                      className={`h-full rounded-full transition-all duration-1000 ${isTimeRunningOut ? 'bg-red-500' : 'bg-blue-500'
+                        }`}
                       style={{ width: `${timerProgress}%` }}
                     ></div>
                   </div>
@@ -320,7 +338,7 @@ const PlayAnagram: React.FC = () => {
                   <div className="text-sm text-gray-600">Progress</div>
                   <div className="text-2xl font-bold text-gray-800">{currentIndex + 1}/{words.length}</div>
                   <div className="w-32 h-2 bg-gray-200 rounded-full mt-1">
-                    <div 
+                    <div
                       className="h-full bg-green-500 rounded-full transition-all duration-500"
                       style={{ width: `${progress}%` }}
                     ></div>
@@ -349,20 +367,19 @@ const PlayAnagram: React.FC = () => {
             <div className="flex justify-center mt-6">
               <button
                 onClick={togglePause}
-                className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                  isPaused
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
-                    : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white'
-                }`}
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${isPaused
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
+                  : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white'
+                  }`}
               >
-                {isPaused ? '▶️ Tiếp tục' : '⏸️ Tạm dừng'}
+                {isPaused ? '▶️ Chơi' : '⏸️ Tạm dừng'}
               </button>
             </div>
           </div>
 
           {/* ───────── Main Game Card ───────── */}
           <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/20 p-8 relative overflow-hidden">
-            
+
             {/* Background decoration */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full opacity-30 transform translate-x-32 -translate-y-32"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-blue-100 to-cyan-100 rounded-full opacity-30 transform -translate-x-24 translate-y-24"></div>
@@ -384,11 +401,10 @@ const PlayAnagram: React.FC = () => {
               {currentWord.split("").map((_, idx) => (
                 <div
                   key={idx}
-                  className={`w-14 h-14 rounded-xl border-3 flex items-center justify-center text-xl font-bold shadow-lg transition-all duration-300 ${
-                    droppedLetters[idx] 
-                      ? 'border-green-400 bg-green-50 text-green-700 scale-105' 
-                      : 'border-gray-300 bg-white text-gray-400 hover:border-indigo-300 hover:bg-indigo-50'
-                  }`}
+                  className={`w-14 h-14 rounded-xl border-3 flex items-center justify-center text-xl font-bold shadow-lg transition-all duration-300 ${droppedLetters[idx]
+                    ? 'border-green-400 bg-green-50 text-green-700 scale-105'
+                    : 'border-gray-300 bg-white text-gray-400 hover:border-indigo-300 hover:bg-indigo-50'
+                    }`}
                 >
                   {droppedLetters[idx] || ""}
                 </div>
@@ -410,14 +426,12 @@ const PlayAnagram: React.FC = () => {
 
             {/* Feedback */}
             {feedback && (
-              <div className={`text-center mb-8 relative z-10 animate-bounce ${
-                feedback === "correct" ? "text-green-600" : "text-red-600"
-              }`}>
-                <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-xl font-bold text-lg shadow-lg ${
-                  feedback === "correct" 
-                    ? "bg-green-100 border-2 border-green-300" 
-                    : "bg-red-100 border-2 border-red-300"
+              <div className={`text-center mb-8 relative z-10 animate-bounce ${feedback === "correct" ? "text-green-600" : "text-red-600"
                 }`}>
+                <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-xl font-bold text-lg shadow-lg ${feedback === "correct"
+                  ? "bg-green-100 border-2 border-green-300"
+                  : "bg-red-100 border-2 border-red-300"
+                  }`}>
                   {feedback === "correct" ? "🎉" : "❌"}
                   <span>{feedback === "correct" ? "Chính xác!" : "Sai rồi!"}</span>
                 </div>
@@ -433,7 +447,7 @@ const PlayAnagram: React.FC = () => {
               >
                 ←
               </button>
-              
+
               <div className="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg border border-white/20">
                 <span className="text-lg font-bold text-gray-800">{currentIndex + 1}</span>
                 <span className="text-gray-500 mx-2">/</span>
@@ -451,6 +465,12 @@ const PlayAnagram: React.FC = () => {
 
             {/* Action Buttons */}
             <div className="flex justify-center gap-4 relative z-10">
+              <button
+                onClick={resetCurrentQuestion}
+                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+              >
+                🔁 Làm lại câu này
+              </button>
               {!finished ? (
                 <button
                   onClick={handleFinish}

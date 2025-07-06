@@ -131,11 +131,11 @@ const SpellingReview: React.FC = () => {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setAttempts(prev => prev + 1);
-    
+
     if (letters.join("") === curQ.word) {
       setScore(prev => prev + 1);
       toast.success("🎉 Correct!");
-      
+
       if (curIdx < questions.length - 1) {
         setTimeout(() => {
           const next = curIdx + 1;
@@ -194,24 +194,22 @@ const SpellingReview: React.FC = () => {
                     <div className="text-sm text-gray-600">Attempts</div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-4">
-                  <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${
-                    remaining <= 30 ? 'bg-red-100 text-red-700' : 
-                    remaining <= 60 ? 'bg-yellow-100 text-yellow-700' : 
-                    'bg-green-100 text-green-700'
-                  }`}>
+                  <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${remaining <= 30 ? 'bg-red-100 text-red-700' :
+                      remaining <= 60 ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-green-100 text-green-700'
+                    }`}>
                     <FiClock className="w-4 h-4" />
                     <span className="font-semibold">{formatTime(remaining)}</span>
                   </div>
-                  
+
                   <button
                     onClick={() => setPaused((p) => !p)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all ${
-                      paused 
-                        ? 'bg-green-500 hover:bg-green-600 text-white' 
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold transition-all ${paused
+                        ? 'bg-green-500 hover:bg-green-600 text-white'
                         : 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                    }`}
+                      }`}
                   >
                     {paused ? <FiPlay className="w-4 h-4" /> : <FiPause className="w-4 h-4" />}
                     {paused ? 'Resume' : 'Pause'}
@@ -239,8 +237,8 @@ const SpellingReview: React.FC = () => {
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-2xl transition-colors"></div>
                   </div>
                 ) : (
-                  <button 
-                    onClick={() => speakWord(curQ.word)} 
+                  <button
+                    onClick={() => speakWord(curQ.word)}
                     className="w-48 h-48 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center group"
                   >
                     <FiVolume2 className="w-16 h-16 group-hover:scale-110 transition-transform" />
@@ -258,6 +256,17 @@ const SpellingReview: React.FC = () => {
                         ref={(el) => { inputRefs.current[i] = el; }}
                         value={ch}
                         onChange={(e) => onType(i, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Backspace" && letters[i] === "") {
+                            if (i > 0) {
+                              const updated = [...letters];
+                              updated[i - 1] = "";
+                              setLetters(updated);
+                              inputRefs.current[i - 1]?.focus();
+                              e.preventDefault();
+                            }
+                          }
+                        }}
                         className="w-14 h-14 text-center uppercase border-2 text-2xl font-bold rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white shadow-sm"
                         maxLength={1}
                         disabled={paused || remaining === 0}
@@ -276,7 +285,7 @@ const SpellingReview: React.FC = () => {
                     <FiCheck className="w-5 h-5" />
                     Check Answer
                   </button>
-                  
+
                   <button
                     type="button"
                     onClick={resetCurrentWord}
@@ -301,7 +310,7 @@ const SpellingReview: React.FC = () => {
 
                 {/* Progress Bar */}
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${((curIdx + 1) / questions.length) * 100}%` }}
                   ></div>
@@ -316,7 +325,7 @@ const SpellingReview: React.FC = () => {
             initialDuration={remaining}
             initialQuestions={editItems}
             initialThumbnailUrl={thumbnailUrl}
-            onSave={(newData) => { 
+            onSave={(newData) => {
               setActivityName(newData.activityName);
               setRemaining(newData.duration);
               setThumbnailUrl(newData.thumbnailUrl ?? "");

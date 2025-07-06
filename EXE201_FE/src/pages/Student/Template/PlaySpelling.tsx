@@ -166,7 +166,7 @@ const PlaySpelling: React.FC = () => {
     const isCorrect = letters.join("") === curQ.word;
     let nextScore = score;
     let nextStreak = streak;
-    
+
     if (isCorrect) {
       toast.success("🎉 Correct!");
       nextScore += 1;
@@ -236,9 +236,8 @@ const PlaySpelling: React.FC = () => {
 
         {/* Sidebar */}
         {courseMinigames.length > 0 && (
-          <aside className={`fixed top-24 right-4 w-80 bg-white border rounded-xl shadow-xl overflow-hidden max-h-[80vh] transition-transform duration-300 z-40 ${
-            sidebarOpen ? "translate-x-0" : "translate-x-full"
-          }`}>
+          <aside className={`fixed top-24 right-4 w-80 bg-white border rounded-xl shadow-xl overflow-hidden max-h-[80vh] transition-transform duration-300 z-40 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+            }`}>
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
               <h3 className="font-bold text-lg">Other Games</h3>
               <p className="text-blue-100 text-sm">{courseMinigames.length} activities available</p>
@@ -256,9 +255,8 @@ const PlaySpelling: React.FC = () => {
                       });
                       setSidebarOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 text-left p-4 hover:bg-blue-50 transition-colors border-b border-gray-100 ${
-                      isActive ? "bg-blue-100 border-l-4 border-l-blue-500" : ""
-                    }`}
+                    className={`w-full flex items-center gap-3 text-left p-4 hover:bg-blue-50 transition-colors border-b border-gray-100 ${isActive ? "bg-blue-100 border-l-4 border-l-blue-500" : ""
+                      }`}
                     disabled={isActive}
                   >
                     <div className="flex-shrink-0">
@@ -290,7 +288,7 @@ const PlaySpelling: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl relative overflow-hidden">
             {/* Background decoration */}
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-            
+
             {/* Header Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-4 text-center">
@@ -300,19 +298,19 @@ const PlaySpelling: React.FC = () => {
                   {formatTime(remaining)}
                 </p>
               </div>
-              
+
               <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-4 text-center">
                 <FiTrendingUp className="w-6 h-6 mx-auto mb-2" />
                 <p className="text-sm font-medium">Score</p>
                 <p className="text-xl font-bold">{score}/{questions.length}</p>
               </div>
-              
+
               <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl p-4 text-center">
                 <div className="w-6 h-6 mx-auto mb-2 flex items-center justify-center">🔥</div>
                 <p className="text-sm font-medium">Streak</p>
                 <p className="text-xl font-bold">{streak}</p>
               </div>
-              
+
               <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl p-4 text-center">
                 <div className="w-6 h-6 mx-auto mb-2 flex items-center justify-center">📈</div>
                 <p className="text-sm font-medium">Progress</p>
@@ -329,7 +327,7 @@ const PlaySpelling: React.FC = () => {
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
-                <div 
+                <div
                   className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500"
                   style={{ width: `${getProgressPercentage()}%` }}
                 ></div>
@@ -340,16 +338,15 @@ const PlaySpelling: React.FC = () => {
             <div className="flex justify-center gap-4 mb-8">
               <button
                 onClick={() => setPaused(!paused)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
-                  paused 
-                    ? "bg-green-500 hover:bg-green-600 text-white" 
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${paused
+                    ? "bg-green-500 hover:bg-green-600 text-white"
                     : "bg-yellow-500 hover:bg-yellow-600 text-white"
-                }`}
+                  }`}
               >
                 {paused ? <FiPlay className="w-5 h-5" /> : <FiPause className="w-5 h-5" />}
-                {paused ? "Resume" : "Pause"}
+                {paused ? "Play" : "Pause"}
               </button>
-              
+
               <button
                 onClick={initGame}
                 className="flex items-center gap-2 px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all"
@@ -391,11 +388,21 @@ const PlaySpelling: React.FC = () => {
                     ref={el => { inputRefs.current[i] = el; }}
                     value={ch}
                     onChange={(e) => onType(i, e.target.value)}
-                    className={`w-14 h-14 text-center uppercase border-2 text-2xl font-bold rounded-xl transition-all focus:outline-none focus:ring-4 focus:ring-blue-200 ${
-                      paused || remaining === 0
+                    onKeyDown={(e) => {
+                      if (e.key === "Backspace" && letters[i] === "") {
+                        if (i > 0) {
+                          const updated = [...letters];
+                          updated[i - 1] = "";
+                          setLetters(updated);
+                          inputRefs.current[i - 1]?.focus();
+                          e.preventDefault();
+                        }
+                      }
+                    }}
+                    className={`w-14 h-14 text-center uppercase border-2 text-2xl font-bold rounded-xl transition-all focus:outline-none focus:ring-4 focus:ring-blue-200 ${paused || remaining === 0
                         ? "border-gray-300 bg-gray-100 cursor-not-allowed"
                         : "border-gray-300 bg-white hover:border-blue-400 focus:border-blue-500"
-                    }`}
+                      }`}
                     maxLength={1}
                     disabled={paused || remaining === 0}
                   />
@@ -404,11 +411,10 @@ const PlaySpelling: React.FC = () => {
 
               {/* Answer Feedback */}
               {lastAnswerCorrect !== null && (
-                <div className={`text-center p-4 rounded-xl ${
-                  lastAnswerCorrect 
-                    ? "bg-green-100 text-green-800 border border-green-200" 
+                <div className={`text-center p-4 rounded-xl ${lastAnswerCorrect
+                    ? "bg-green-100 text-green-800 border border-green-200"
                     : "bg-red-100 text-red-800 border border-red-200"
-                }`}>
+                  }`}>
                   {lastAnswerCorrect ? (
                     <div className="flex items-center justify-center gap-2">
                       <FiCheck className="w-5 h-5" />

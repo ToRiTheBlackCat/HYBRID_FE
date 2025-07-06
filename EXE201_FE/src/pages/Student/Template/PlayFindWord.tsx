@@ -194,6 +194,7 @@ const PlayFindWord: React.FC = () => {
   }, [minigameId]);
 
   const handleCellClick = (row: number, col: number) => {
+    if(!isRunning) return;
     if (!startPos) {
       setStartPos({ row, col });
       setSelectedPositions([{ row, col }]);
@@ -480,6 +481,7 @@ const PlayFindWord: React.FC = () => {
                         className={`
                           w-14 h-14 flex items-center justify-center text-lg font-bold rounded-xl cursor-pointer 
                           transition-all duration-200 transform hover:scale-105 select-none
+                          ${!isRunning ? 'opacity-50 cursor-not-allowed' : ''}
                           ${isCorrect 
                             ? 'bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg scale-105' 
                             : isSelected 

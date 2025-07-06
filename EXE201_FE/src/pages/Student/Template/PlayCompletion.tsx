@@ -470,7 +470,7 @@ const PlayCompletion: React.FC = () => {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-9 4h10a1 1 0 001-1V7a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1z" />
                       </svg>
-                      Tiếp tục
+                      Chơi
                     </>
                   ) : (
                     <>

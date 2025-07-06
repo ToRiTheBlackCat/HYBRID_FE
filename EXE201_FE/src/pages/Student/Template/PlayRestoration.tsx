@@ -370,7 +370,7 @@ const PlayRestoration: React.FC = () => {
                     className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-xl hover:bg-yellow-200 transition-all duration-200 flex items-center gap-2 font-medium transform hover:scale-105"
                   >
                     {paused ? <Play size={16} /> : <Pause size={16} />}
-                    {paused ? "Resume" : "Pause"}
+                    {paused ? "Play" : "Pause"}
                   </button>
                 </div>
               </div>

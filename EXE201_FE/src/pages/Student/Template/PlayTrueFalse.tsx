@@ -106,11 +106,12 @@ const PlayTrueFalse: React.FC = () => {
   };
 
   const handleAnswer = (val: "True" | "False") => {
+    if (paused) return;
     setUserAnswers(prev => prev.map((a, i) => i === currentIndex ? val : a));
   };
 
   const goToIndex = (idx: number) => {
-    if (idx < 0 || idx >= questions.length) return;
+    if (paused  || idx < 0 || idx >= questions.length) return;
     setCurrentIndex(idx);
   };
 
@@ -332,6 +333,7 @@ const PlayTrueFalse: React.FC = () => {
                   {/* True Button */}
                   <button
                     onClick={() => handleAnswer("True")}
+                    disabled={paused}
                     className={`group relative overflow-hidden rounded-2xl p-6 border-2 transition-all duration-300 ${
                       selectedAnswer === "True"
                         ? "border-green-500 bg-green-50 shadow-lg scale-105"
@@ -354,6 +356,7 @@ const PlayTrueFalse: React.FC = () => {
                   {/* False Button */}
                   <button
                     onClick={() => handleAnswer("False")}
+                    disabled={paused}
                     className={`group relative overflow-hidden rounded-2xl p-6 border-2 transition-all duration-300 ${
                       selectedAnswer === "False"
                         ? "border-red-500 bg-red-50 shadow-lg scale-105"
@@ -394,6 +397,7 @@ const PlayTrueFalse: React.FC = () => {
             <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
               <button
                 onClick={handleTryAgain}
+                disabled={paused}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-all hover:scale-105"
               >
                 <RotateCcw size={18} />
@@ -402,6 +406,7 @@ const PlayTrueFalse: React.FC = () => {
               
               <button
                 onClick={handleSubmit}
+                disabled={paused}
                 className="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl font-medium transition-all hover:scale-105 shadow-lg"
               >
                 <Check size={18} />
