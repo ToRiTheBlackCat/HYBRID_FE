@@ -46,7 +46,7 @@ const Header: React.FC = () => {
       }
       try {
         const response = await checkSupscription(data);
-        setIsUpdate(response.isTeacher);
+        setIsUpdate(response.isUpdated);
       } catch (error) {
         console.log(error)
       }
@@ -57,7 +57,7 @@ const Header: React.FC = () => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [user.roleId, user.userId]);
+  }, [isTeacher, user.roleId, user.userId]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

@@ -22,7 +22,6 @@ const normalize = (base: string, path: string) =>
 
 const PAGE_SIZE = 50;
 
-// Map templateId → route segment; keep in sync with router
 const paths: Record<string, string> = {
   TP1: "conjunction",
   TP2: "quiz",
@@ -49,8 +48,8 @@ const WordCard: React.FC<{ word: Word; disabled: boolean }> = ({ word, disabled 
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { if (ref.current) drag(ref); }, [drag]);
   return (
-    <div 
-      ref={ref} 
+    <div
+      ref={ref}
       className={`
         px-4 py-3 bg-gradient-to-r from-blue-400 to-purple-500 text-white 
         rounded-xl cursor-move text-center select-none transition-all duration-300 
@@ -83,8 +82,8 @@ const DropArea: React.FC<{ answer: Word[]; onDropWord: (w: Word) => void; disabl
   useEffect(() => { if (dropRef.current) drop(dropRef); }, [drop]);
   const active = canDrop && isOver;
   return (
-    <div 
-      ref={dropRef} 
+    <div
+      ref={dropRef}
       className={`
         w-full min-h-20 border-2 rounded-xl flex items-center flex-wrap gap-2 p-4 
         transition-all duration-300 bg-gradient-to-br from-gray-50 to-white
@@ -93,8 +92,8 @@ const DropArea: React.FC<{ answer: Word[]; onDropWord: (w: Word) => void; disabl
     >
       {answer.length ? (
         answer.map((w, index) => (
-          <span 
-            key={w.id} 
+          <span
+            key={w.id}
             className="px-3 py-2 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-lg font-medium text-sm shadow-md animate-in fade-in-0 slide-in-from-top-1"
             style={{ animationDelay: `${index * 100}ms` }}
           >
@@ -129,6 +128,8 @@ const PlayRestoration: React.FC = () => {
   const [paused, setPaused] = useState(true);
   const [thumb, setThumb] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
+
 
   const resetGame = async () => {
     if (!minigameId) return;
@@ -235,7 +236,7 @@ const PlayRestoration: React.FC = () => {
       Percent: percent,
       DurationInSecond: durationUsed,
       TakenDate: getLocalISOTime(),
-    }as unknown as Accomplishment;
+    } as unknown as Accomplishment;
 
     try {
       await submitAccomplishment(payload);
@@ -250,7 +251,7 @@ const PlayRestoration: React.FC = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <Header />
-      
+
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 pt-20">
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           <div className="flex gap-6">
@@ -263,16 +264,16 @@ const PlayRestoration: React.FC = () => {
                   <div className="relative group">
                     {thumb && (
                       <div className="relative">
-                        <img 
-                          src={baseImageUrl + thumb} 
-                          alt="Game thumbnail" 
-                          className="w-48 h-28 rounded-xl object-cover border shadow-lg group-hover:shadow-xl transition-all duration-300" 
+                        <img
+                          src={baseImageUrl + thumb}
+                          alt="Game thumbnail"
+                          className="w-48 h-28 rounded-xl object-cover border shadow-lg group-hover:shadow-xl transition-all duration-300"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Timer and Progress */}
                   <div className="flex-1 text-center lg:text-left">
                     <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
@@ -280,21 +281,20 @@ const PlayRestoration: React.FC = () => {
                       <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                         {fmt(remaining)}
                       </div>
-                      <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-                        paused ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
-                      }`}>
+                      <div className={`px-4 py-2 rounded-full text-sm font-medium ${paused ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                        }`}>
                         {paused ? 'Paused' : 'Active'}
                       </div>
                     </div>
-                    
+
                     {/* Progress bar */}
                     <div className="w-full bg-gray-200 rounded-full h-3 mb-3 overflow-hidden">
-                      <div 
+                      <div
                         className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500 ease-out"
                         style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
                       ></div>
                     </div>
-                    
+
                     <div className="flex items-center justify-center lg:justify-start gap-2 text-gray-600 font-medium">
                       <Target size={16} />
                       Question {currentIdx + 1} of {questions.length}
@@ -309,7 +309,7 @@ const PlayRestoration: React.FC = () => {
                 <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
                   <Pool words={pool} disabled={paused} />
                 </div>
-                
+
                 {/* Drop Area */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
                   <DropArea answer={answer} onDropWord={dropWord} disabled={paused} />
@@ -320,53 +320,53 @@ const PlayRestoration: React.FC = () => {
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
                 <div className="flex flex-wrap justify-center gap-3">
                   {/* Navigation */}
-                  <button 
-                    disabled={currentIdx === 0} 
-                    onClick={() => goToSentence(currentIdx - 1)} 
+                  <button
+                    disabled={currentIdx === 0}
+                    onClick={() => goToSentence(currentIdx - 1)}
                     className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-all duration-200 flex items-center gap-2 font-medium"
                   >
                     <ChevronLeft size={16} />
                     Previous
                   </button>
-                  
-                  <button 
-                    disabled={currentIdx === questions.length - 1} 
-                    onClick={() => goToSentence(currentIdx + 1)} 
+
+                  <button
+                    disabled={currentIdx === questions.length - 1}
+                    onClick={() => goToSentence(currentIdx + 1)}
                     className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-all duration-200 flex items-center gap-2 font-medium"
                   >
                     Next
                     <ChevronRight size={16} />
                   </button>
-                  
+
                   {/* Game Actions */}
-                  <button 
-                    onClick={tryAgain} 
+                  <button
+                    onClick={tryAgain}
                     className="px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-all duration-200 flex items-center gap-2 font-medium transform hover:scale-105"
                   >
                     <RotateCcw size={16} />
                     Try Again
                   </button>
-                  
-                  <button 
-                    onClick={resetGame} 
+
+                  <button
+                    onClick={resetGame}
                     className="px-4 py-2 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-all duration-200 flex items-center gap-2 font-medium transform hover:scale-105"
                   >
                     <RefreshCw size={16} />
                     Reset
                   </button>
-                  
+
                   {!submitted && (
-                    <button 
-                      onClick={handleSubmit} 
+                    <button
+                      onClick={handleSubmit}
                       className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-200 flex items-center gap-2 font-medium transform hover:scale-105 shadow-lg"
                     >
                       <Send size={16} />
                       Submit
                     </button>
                   )}
-                  
-                  <button 
-                    onClick={() => setPaused((p) => !p)} 
+
+                  <button
+                    onClick={() => setPaused((p) => !p)}
                     className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-xl hover:bg-yellow-200 transition-all duration-200 flex items-center gap-2 font-medium transform hover:scale-105"
                   >
                     {paused ? <Play size={16} /> : <Pause size={16} />}
@@ -378,58 +378,80 @@ const PlayRestoration: React.FC = () => {
 
             {/* Sidebar - Other Games */}
             {courseMinigames.length > 0 && (
-              <aside className="w-80 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 h-fit sticky top-24">
-                <h3 className="font-bold text-xl text-gray-800 mb-4 flex items-center gap-2">
-                  <Gamepad2 size={20} className="text-purple-500" />
-                  Other Games
-                </h3>
-                <div className="space-y-2 max-h-[70vh] overflow-y-auto">
-                  {courseMinigames.map((mg) => {
-                    const isActive = mg.minigameId === minigameId;
-                    return (
-                      <button
-                        key={mg.minigameId}
-                        onClick={() =>
-                          navigate(`/student/game/${mg.minigameId}`, {
-                            state: { courseId: 'sample-course' },
-                          })
-                        }
-                        className={`w-full flex items-center gap-3 text-left p-3 rounded-xl transition-all duration-200 ${
-                          isActive 
-                            ? "bg-gradient-to-r from-blue-100 to-purple-100 font-semibold border-2 border-blue-200" 
-                            : "hover:bg-gray-50 hover:shadow-md"
-                        }`}
-                        disabled={isActive}
-                      >
-                        <div className="relative">
-                          <img
-                            src={normalize(baseImageUrl, mg.thumbnailImage)}
-                            alt={mg.minigameName}
-                            className="w-12 h-12 object-cover rounded-lg shadow-sm"
-                          />
-                          {isActive && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
+              <div className="w-80">
+                <button
+                  onClick={() => setShowSidebar((prev) => !prev)}
+                  className="mb-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-xl hover:bg-gray-200 transition-all duration-200 flex items-center gap-2 font-medium"
+                >
+                  {showSidebar ? (
+                    <>
+                      <ChevronLeft size={16} />
+                      Hide Other Games
+                    </>
+                  ) : (
+                    <>
+                      <ChevronRight size={16} />
+                      Show Other Games
+                    </>
+                  )}
+                </button>
+
+                {showSidebar && (
+                  <aside className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 h-fit sticky top-24">
+                    <h3 className="font-bold text-xl text-gray-800 mb-4 flex items-center gap-2">
+                      <Gamepad2 size={20} className="text-purple-500" />
+                      Other Games
+                    </h3>
+                    <div className="space-y-2 max-h-[70vh] overflow-y-auto">
+                      {courseMinigames.map((mg) => {
+                        const isActive = mg.minigameId === minigameId;
+                        const templatePath = paths[mg.templateId] || "game";
+                        return (
+                          <button
+                            key={mg.minigameId}
+                            onClick={() =>
+                              navigate(`/student/${templatePath}/${mg.minigameId}`, {
+                                state: { courseId: courseIdFromState },
+                              })
+                            }
+                            className={`w-full flex items-center gap-3 text-left p-3 rounded-xl transition-all duration-200 ${isActive
+                              ? "bg-gradient-to-r from-blue-100 to-purple-100 font-semibold border-2 border-blue-200"
+                              : "hover:bg-gray-50 hover:shadow-md"
+                              }`}
+                            disabled={isActive}
+                          >
+                            <div className="relative">
+                              <img
+                                src={normalize(baseImageUrl, mg.thumbnailImage)}
+                                alt={mg.minigameName}
+                                className="w-12 h-12 object-cover rounded-lg shadow-sm"
+                              />
+                              {isActive && (
+                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-800 truncate">{mg.minigameName}</div>
-                          <div className="text-sm text-gray-500 truncate flex items-center gap-1">
-                            <Trophy size={12} />
-                            {mg.templateName}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </aside>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-gray-800 truncate">{mg.minigameName}</div>
+                              <div className="text-sm text-gray-500 truncate flex items-center gap-1">
+                                <Trophy size={12} />
+                                {mg.templateName}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </aside>
+                )}
+              </div>
+
             )}
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </DndProvider>
   );

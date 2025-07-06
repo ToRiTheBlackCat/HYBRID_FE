@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import Logo from "../assets/Logo2.jpg";
 import Header from '../components/HomePage/Header';
 import { fetchStudentTier, fetchTeacherTier } from '../services/userService';
+import { fetchUserProfile } from '../services/authService';
 import { RootState } from '../store/store';
 
 // Giả định Tier type
@@ -20,6 +21,8 @@ const PricingPage: React.FC = () => {
   const userId = useSelector((state: RootState) => state.user.userId);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isUpdate, setIsUpdate] = useState<boolean>(false);
+  const isTeacher = useSelector((state: RootState) => state.user.roleId) === "3";
 
   useEffect(() => {
     const fetchTiers = async () => {
@@ -38,9 +41,22 @@ const PricingPage: React.FC = () => {
         setLoading(false);
       }
     };
-
+    const checkSubscription = async () => {
+      try {
+        const response = await fetchUserProfile( userId, isTeacher);
+        console.log('Subscription check response:', response);
+        if(response?.tierName === "Premium"){
+          setIsUpdate(true);
+        } else if(response?.tierName === "Free") {
+          setIsUpdate(false);
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      }
+    };
+    checkSubscription();
     fetchTiers();
-  }, [roleName]);
+  }, [isTeacher, roleName, userId]);
 
   const getTierIcon = (tierId: string) => {
     switch (tierId) {
@@ -129,13 +145,12 @@ const PricingPage: React.FC = () => {
                 const price = getPrice(tier.tierId);
                 const isPopular = tier.tierId === "2";
                 const badge = getTierBadge(tier.tierId);
-                
+
                 return (
                   <div
                     key={tier.tierId}
-                    className={`relative transform transition-all duration-300 hover:scale-105 ${
-                      isPopular ? 'md:scale-110 z-10' : ''
-                    }`}
+                    className={`relative transform transition-all duration-300 hover:scale-105 ${isPopular ? 'md:scale-110 z-10' : ''
+                      }`}
                     style={{ animationDelay: `${index * 200}ms` }}
                   >
                     {/* Popular badge */}
@@ -146,13 +161,12 @@ const PricingPage: React.FC = () => {
                         </div>
                       </div>
                     )}
-                    
-                    <div className={`relative bg-white rounded-3xl shadow-2xl overflow-hidden ${
-                      isPopular ? 'ring-4 ring-yellow-400 ring-opacity-50' : ''
-                    }`}>
+
+                    <div className={`relative bg-white rounded-3xl shadow-2xl overflow-hidden ${isPopular ? 'ring-4 ring-yellow-400 ring-opacity-50' : ''
+                      }`}>
                       {/* Gradient header */}
                       <div className={`h-2 bg-gradient-to-r ${getTierColor(tier.tierId)}`}></div>
-                      
+
                       <div className="p-8">
                         {/* Tier header */}
                         <div className="text-center mb-6">
@@ -167,7 +181,7 @@ const PricingPage: React.FC = () => {
                               {badge.text}
                             </span>
                           </div>
-                          
+
                           {/* Price */}
                           <div className="mb-4">
                             {price === 0 ? (
@@ -203,36 +217,38 @@ const PricingPage: React.FC = () => {
                         </div>
 
                         {/* Action button */}
-                        <div className="text-center">
-                          {tier.tierId === "2" ? (
-                            <button
-                              onClick={() => {
-                                const months = 1;
-                                navigate("/payment-page", {
-                                  state: {
-                                    price: 3000,
-                                    tierId: tier.tierId,
-                                    days: months * 30,
-                                    userId,
-                                  },
-                                });
-                              }}
-                              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                            >
-                              <span className="flex items-center justify-center gap-2">
-                                <Crown className="w-5 h-5" />
-                                Upgrade Now
-                              </span>
-                            </button>
-                          ) : (
-                            <button
-                              disabled
-                              className="w-full bg-gray-100 text-gray-500 font-bold py-4 px-6 rounded-2xl cursor-not-allowed"
-                            >
-                              Current Plan
-                            </button>
-                          )}
-                        </div>
+                        {isUpdate===false && (
+                          <div className="text-center">
+                            {tier.tierId === "2" ? (
+                              <button
+                                onClick={() => {
+                                  const months = 1;
+                                  navigate("/payment-page", {
+                                    state: {
+                                      price: getPrice(tier.tierId),
+                                      tierId: tier.tierId,
+                                      days: months * 30,
+                                      userId,
+                                    },
+                                  });
+                                }}
+                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                              >
+                                <span className="flex items-center justify-center gap-2">
+                                  <Crown className="w-5 h-5" />
+                                  Upgrade Now
+                                </span>
+                              </button>
+                            ) : (
+                              <button
+                                disabled
+                                className="w-full bg-gray-100 text-gray-500 font-bold py-4 px-6 rounded-2xl cursor-not-allowed"
+                              >
+                                Current Plan
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -248,9 +264,9 @@ const PricingPage: React.FC = () => {
               className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white font-semibold py-3 px-8 rounded-2xl hover:bg-white/20 transition-all duration-300 border border-white/20"
             >
               <ArrowLeft className="w-5 h-5" />
-              Back to Dashboard
+              Back to Home
             </button>
-            
+
             <div className="mt-6 text-gray-300 text-sm">
               <p>✨ All plans include 24/7 customer support</p>
               <p className="mt-1">🔒 Secure payment processing</p>

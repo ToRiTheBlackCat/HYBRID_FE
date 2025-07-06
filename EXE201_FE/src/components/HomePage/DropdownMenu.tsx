@@ -83,7 +83,7 @@ const UserDropdown: React.FC<Props> = ({ userName, roleId, isUpdated }) => {
                 <FaBriefcase /> My Accomplishments
               </Link>
             )}
-            {isUpdated===false && (
+            {isUpdated===true && (
             <Link
               to="/pricing"
               onClick={() => setIsOpen(false)}
