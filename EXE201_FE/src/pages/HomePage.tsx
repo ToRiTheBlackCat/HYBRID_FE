@@ -12,14 +12,17 @@ const HomePage: React.FC = () => {
   const roleId = useSelector((state: RootState) => state.user.roleId)
   const navigate = useNavigate();
   useEffect(() => {
+    if (!roleId) return; 
+
     if (roleId === "2") {
-      navigate("/student")
+      navigate("/student");
     } else if (roleId === "3") {
-      navigate("/")
-    } else if(roleId==="1"){
+      navigate("/");
+    } else if (roleId === "1") {
       navigate("/admin");
     }
-  },[navigate, roleId])
+  }, [navigate, roleId]);
+
 
   return (
     <>

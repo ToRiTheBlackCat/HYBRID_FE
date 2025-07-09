@@ -92,8 +92,8 @@ const Header: React.FC = () => {
 
   const menuItems = [
     { path: '/', label: 'Home' },
-    { path: '/course', label: 'Courses' },
-    { path: '/pricing', label: 'Pricing' },
+    { path: '/course', label: 'Courses', requireLogin: true },
+    { path: '/pricing', label: 'Pricing', requireLogin: true },
     { path: '/about-us', label: 'About Us' },
   ];
 
@@ -116,9 +116,12 @@ const Header: React.FC = () => {
           {menuItems
             .filter((item) => {
               if (item.path === '/course') {
-                return roleId === "3"; 
+                return roleId === "3";
               }
-              return true; 
+              if (item.requireLogin) {
+                return isAuthenticated;
+              }
+              return true;
             })
             .map((item) => {
               const isHome = item.path === '/';
@@ -134,8 +137,8 @@ const Header: React.FC = () => {
                   key={item.path}
                   onClick={handleClick}
                   className={`text-sm px-4 py-2 rounded-full font-medium transition ${isActiveLink(item.path)
-                      ? 'bg-blue-600 text-white shadow'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                    ? 'bg-blue-600 text-white shadow'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                     }`}
                 >
                   {item.label}
@@ -199,8 +202,8 @@ const Header: React.FC = () => {
                     key={item.path}
                     onClick={handleClick}
                     className={`text-sm px-4 py-2 rounded-md ${isActiveLink(item.path)
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                       }`}
                   >
                     {item.label}

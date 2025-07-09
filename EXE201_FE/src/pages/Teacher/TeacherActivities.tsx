@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { baseImageUrl } from "../../config/base";
 import { toast } from "react-toastify";
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 8;
 
 const TeacherActivities: React.FC = () => {
   const teacherId = useSelector((state: RootState) => state.user.userId);

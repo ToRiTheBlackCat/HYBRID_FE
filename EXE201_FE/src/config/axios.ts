@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {store} from '../store/store';
+import { store } from '../store/store';
 import { RefreshToken } from '../services/userService';
 import { setUserRedux, logout } from '../store/userSlice';
 import Cookies from 'js-cookie';
@@ -7,11 +7,11 @@ import Cookies from 'js-cookie';
 const API_URL = "https://hybridelearn-acdwdxa8dmh2fdgm.southeastasia-01.azurewebsites.net/"
 
 const axiosInstance = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    },
 });
 
 axiosInstance.interceptors.request.use(
@@ -28,7 +28,7 @@ axiosInstance.interceptors.request.use(
     (error) => {
         return Promise.reject(error);
     }
-    );
+);
 axiosInstance.interceptors.response.use(
     (response) => {
         return response;
@@ -36,13 +36,21 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if(error.response?.status === 401 && !originalRequest._retry){
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            const currentUser = store.getState().user;
+            const refreshToken = currentUser?.refreshToken;
+            const accessToken = currentUser?.accessToken;
+
+            if (!accessToken || !refreshToken) {
+                // ❌ Không redirect ở đây — chỉ reject lỗi
+                return Promise.reject(error);
+            }
             originalRequest._retry = true;
 
-            try{
+            try {
                 const currentUser = store.getState().user;
                 const refreshData = await RefreshToken(currentUser.refreshToken);
-                if(refreshData){
+                if (refreshData) {
                     const updatedUser = {
                         ...currentUser,
                         accesstoken: refreshData.accessToken,
@@ -54,17 +62,17 @@ axiosInstance.interceptors.response.use(
 
                     originalRequest.headers.Authorization = `Bearer ${refreshData.accessToken}`;
                     return axiosInstance(originalRequest);
-                }else{
+                } else {
                     throw new Error('Refresh token failed')
                 }
-            } catch (err){
+            } catch (err) {
                 console.error('Refresh token failed:', err);
                 store.dispatch(logout());
                 Cookies.remove('user');
                 window.location.href = '/login';
             }
         }
-        
+
         return Promise.reject(error);
     }
 );

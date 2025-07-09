@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchCourseDetail } from "../services/userService";
-import { fetchCourseMinigame, fetchMinigameScore } from "../services/authService";
-import { Course, Minigame } from "../types/index";
+import { fetchCourseMinigame, fetchMinigameScore, fetchUserProfile } from "../services/authService";
+import { Course, Minigame, Profile } from "../types/index";
 import Header from "../components/HomePage/Header";
 import Footer from "../components/HomePage/Footer";
 import ImageModal from "../components/common/ImageModal";
 import { baseImageUrl } from "../config/base";
+import { useSelector } from "react-redux";
+import { RootState } from "../store/store";
 
 const templateOptions = [
   { id: "TP1", name: "Conjunction", icon: "🔗", color: "from-blue-500 to-indigo-500" },
@@ -30,11 +32,14 @@ const CourseDetail: React.FC = () => {
   const [course, setCourse] = useState<Course>();
   const [minigames, setMinigames] = useState<Minigame[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const userId = useSelector((state: RootState) => state.user.userId);
+  const isTeacher = useSelector((state: RootState) => state.user.roleId === "3");
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [templateFilter, setTemplateFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
   const [pageNum, setPageNum] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [user, setUser] = useState<Profile | null>(null);
   const navigate = useNavigate();
 
   const parseCourseImages = (dataText: string) => {
@@ -68,7 +73,21 @@ const CourseDetail: React.FC = () => {
     return templateOptions.find(opt => opt.id === templateId) || { icon: "🎮", color: "from-gray-500 to-slate-500" };
   };
 
-  const loadCourse = useCallback( async () => {
+  const fetchUserTier = useCallback(async () => {
+    try {
+      const response = await fetchUserProfile(userId, isTeacher);
+      if (response) {
+        setUser(response);
+        return response; // Return để có thể dùng ngay
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
+    }
+  }, [userId, isTeacher]);
+
+  const loadCourse = useCallback(async () => {
     if (!courseId) return;
     try {
       const detail = await fetchCourseDetail(courseId);
@@ -76,35 +95,60 @@ const CourseDetail: React.FC = () => {
       setCourse({ ...detail, thumbnail, images });
     } catch (error) {
       console.error("Error loading course:", error);
-    }  
+    }
   }, [courseId]);
 
-  const loadMinigames = useCallback( async () => {
+  const loadMinigames = useCallback(async () => {
     if (!courseId) return;
     try {
+      let currentUser = user;
+      if (!currentUser) {
+        currentUser = await fetchUserTier();
+      }
       const res = await fetchCourseMinigame(courseId, {
         TemplateId: templateFilter || undefined,
         MinigameName: nameFilter || undefined,
         PageNum: pageNum,
         PageSize: PAGE_SIZE,
       });
+      let filteredMinigames = res.minigames;
+      const allowedTemplateIds = ["TP1", "TP2", "TP4"];
+      if (user?.tierName === "Free") {
+        filteredMinigames = res.minigames.filter((game: Minigame) =>
+          allowedTemplateIds.includes(game.templateId)
+        );
+      }
+      console.log("Filtered Minigames:", filteredMinigames);
 
       const gamesWithScores = await Promise.all(
-        res.minigames.map(async (game: Minigame) => {
+        filteredMinigames.map(async (game: Minigame) => {
           const scoreData = await fetchMinigameScore(game.minigameId);
           return { ...game, ratingScore: scoreData?.ratingScore ?? null };
         })
       );
 
       setMinigames(gamesWithScores);
-      setTotalPages(res.totalPages);
+      const total = filteredMinigames.length;
+      setTotalPages(total);
     } catch (error) {
       console.error("Error loading minigames:", error);
     }
-  }, [courseId, templateFilter, nameFilter, pageNum]);
+  }, [courseId, user, templateFilter, nameFilter, pageNum, fetchUserTier]);
 
-  useEffect(() => { loadCourse(); }, [loadCourse]);
-  useEffect(() => { loadMinigames(); }, [loadMinigames]);
+  useEffect(() => {
+    const initializePage = async () => {
+      await fetchUserTier(); // Load user trước
+      loadCourse(); // Load course
+    };
+    initializePage();
+  }, [fetchUserTier, loadCourse]);
+
+  // Load minigames sau khi user đã được load
+  useEffect(() => {
+    if (user) { // Chỉ load minigames khi đã có user info
+      loadMinigames();
+    }
+  }, [loadMinigames, user]);
 
 
   if (!course) return <div>Course not found</div>;
@@ -124,15 +168,15 @@ const CourseDetail: React.FC = () => {
             <div className="relative z-10 p-8 lg:p-12">
               <div className="flex flex-col lg:flex-row items-center gap-8">
                 <div className="relative group">
-                  <img 
-                    src={fullThumbnailUrl} 
-                    alt="Course thumbnail" 
+                  <img
+                    src={fullThumbnailUrl}
+                    alt="Course thumbnail"
                     className="w-80 h-80 object-cover rounded-2xl shadow-2xl border-4 border-white/20
-                              group-hover:scale-105 transition-transform duration-500" 
+                              group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-2xl"></div>
                 </div>
-                
+
                 <div className="text-center lg:text-left text-white">
                   <h1 className="text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg">
                     {course.courseName}
@@ -142,7 +186,7 @@ const CourseDetail: React.FC = () => {
                       📚 Level: {course.levelName}
                     </span>
                   </div>
-                  
+
                   {/* Stats */}
                   <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-sm">
                     <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
@@ -173,20 +217,20 @@ const CourseDetail: React.FC = () => {
                 >
                   ←
                 </button>
-                
+
                 <div className="flex gap-4 overflow-hidden">
                   {visibleImages.map((url, i) => (
-                    <img 
-                      key={i + carouselIndex} 
-                      src={url} 
+                    <img
+                      key={i + carouselIndex}
+                      src={url}
                       className="w-32 h-32 lg:w-40 lg:h-40 rounded-xl object-cover cursor-pointer
                                 border-4 border-purple-200 hover:border-purple-500 
-                                transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl" 
-                      onClick={() => setSelectedImageIndex(i + carouselIndex)} 
+                                transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                      onClick={() => setSelectedImageIndex(i + carouselIndex)}
                     />
                   ))}
                 </div>
-                
+
                 <button
                   className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full
                             hover:from-purple-600 hover:to-pink-600 transition-all duration-300
@@ -216,7 +260,7 @@ const CourseDetail: React.FC = () => {
                   <option key={opt.id} value={opt.id}>{opt.icon} {opt.name}</option>
                 ))}
               </select>
-              
+
               <input
                 type="text"
                 placeholder="🔍 Search games by name..."
@@ -227,7 +271,7 @@ const CourseDetail: React.FC = () => {
                           focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
                           bg-gradient-to-r from-purple-50 to-pink-50"
               />
-              
+
               <button
                 className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-xl
                           font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300
@@ -239,6 +283,27 @@ const CourseDetail: React.FC = () => {
             </div>
           </div>
 
+          {user?.tierName === "Free" && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6 mb-8">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">🎮</div>
+                <div>
+                  <h3 className="text-xl font-semibold text-amber-800 mb-2">
+                    You're on the Free Plan
+                  </h3>
+                  <p className="text-amber-700 mb-3">
+                    You have access to 3 game types: Conjunction, Quiz, and Random Card.
+                    Upgrade to Premium to unlock all {templateOptions.length} game types!
+                  </p>
+                  <button
+                    onClick={() => navigate("/pricing")}
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-2 rounded-xl font-semibold hover:from-amber-600 hover:to-orange-600 transition-all duration-300">
+                    Upgrade to Premium ⭐
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Games Section */}
           <div className="mb-12">
             <div className="text-center mb-8">
@@ -259,8 +324,8 @@ const CourseDetail: React.FC = () => {
                 {minigames.map(game => {
                   const templateInfo = getTemplateInfo(game.templateId);
                   return (
-                    <div 
-                      key={game.minigameId} 
+                    <div
+                      key={game.minigameId}
                       className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl p-6 cursor-pointer
                                 transform transition-all duration-500 hover:scale-105 hover:-translate-y-2
                                 border border-gray-100 overflow-hidden relative"
@@ -269,13 +334,13 @@ const CourseDetail: React.FC = () => {
                       {/* Gradient overlay */}
                       <div className={`absolute inset-0 bg-gradient-to-br ${templateInfo.color} opacity-0 
                                       group-hover:opacity-10 transition-opacity duration-300`}></div>
-                      
+
                       {/* Template badge */}
                       <div className={`absolute top-4 right-4 bg-gradient-to-r ${templateInfo.color} 
                                       text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg z-10`}>
                         {templateInfo.icon}
                       </div>
-                      
+
                       <div className="relative z-10">
                         <img
                           src={`${baseImageUrl}${game.thumbnailImage?.replace(/^\/\/+/, "")}`}
@@ -283,12 +348,12 @@ const CourseDetail: React.FC = () => {
                           className="w-full h-48 object-cover rounded-xl mb-4 
                                     group-hover:scale-110 transition-transform duration-500"
                         />
-                        
+
                         <h4 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2 
                                       group-hover:text-purple-600 transition-colors duration-300">
                           {game.minigameName}
                         </h4>
-                        
+
                         <div className="space-y-2 mb-4">
                           <p className="text-sm text-gray-600 flex items-center gap-2">
                             <span className="font-semibold">👨‍🏫 Author:</span> {game.teacherName}
@@ -297,7 +362,7 @@ const CourseDetail: React.FC = () => {
                             <span className="font-semibold">🎯 Type:</span> {game.templateName}
                           </p>
                         </div>
-                        
+
                         <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                           <div className="flex items-center gap-1">
                             <span className="text-yellow-500">⭐</span>
@@ -312,7 +377,7 @@ const CourseDetail: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                        
+
                         {/* Play button */}
                         <button className="w-full mt-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white 
                                           py-3 rounded-xl font-semibold opacity-0 group-hover:opacity-100 
@@ -330,35 +395,34 @@ const CourseDetail: React.FC = () => {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center mt-12 gap-2">
-                <button 
-                  onClick={() => setPageNum(p => Math.max(p - 1, 1))} 
-                  disabled={pageNum <= 1} 
+                <button
+                  onClick={() => setPageNum(p => Math.max(p - 1, 1))}
+                  disabled={pageNum <= 1}
                   className="px-6 py-3 bg-white border-2 border-purple-200 text-purple-600 rounded-xl
                             hover:bg-purple-600 hover:text-white transition-all duration-300
                             disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
                 >
                   ← Previous
                 </button>
-                
+
                 <div className="flex gap-1">
                   {[...Array(totalPages)].map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setPageNum(index + 1)}
-                      className={`w-12 h-12 rounded-xl font-semibold transition-all duration-300 ${
-                        pageNum === index + 1
-                          ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-110"
-                          : "bg-white text-purple-600 hover:bg-purple-100 border-2 border-purple-200"
-                      }`}
+                      className={`w-12 h-12 rounded-xl font-semibold transition-all duration-300 ${pageNum === index + 1
+                        ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-110"
+                        : "bg-white text-purple-600 hover:bg-purple-100 border-2 border-purple-200"
+                        }`}
                     >
                       {index + 1}
                     </button>
                   ))}
                 </div>
-                
-                <button 
-                  onClick={() => setPageNum(p => Math.min(p + 1, totalPages))} 
-                  disabled={pageNum >= totalPages} 
+
+                <button
+                  onClick={() => setPageNum(p => Math.min(p + 1, totalPages))}
+                  disabled={pageNum >= totalPages}
                   className="px-6 py-3 bg-white border-2 border-purple-200 text-purple-600 rounded-xl
                             hover:bg-purple-600 hover:text-white transition-all duration-300
                             disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
@@ -381,7 +445,7 @@ const CourseDetail: React.FC = () => {
           onPrev={() => setSelectedImageIndex(prev => (prev !== null && prev > 0 ? prev - 1 : prev))}
         />
       )}
-      
+
       <Footer />
     </>
   );
