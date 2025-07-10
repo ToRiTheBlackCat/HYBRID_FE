@@ -25,29 +25,55 @@ type PayStatus = "pending" | "succeeded" | "failed";
 const ProcessingPayment: React.FC<ProcessingPaymentProps> = ({ pollInterval = 4000 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchParams = new URLSearchParams(location.search);
-
-  const userId = useSelector((state: RootState) => state.user.userId);
-  const isTeacher = useSelector((state: RootState) => state.user.roleId) === "3";
-
-  // Lấy dữ liệu từ location.state hoặc URL
-  const transactionId = location.state?.transactionId || searchParams.get("id");
-  const amount = location.state?.amount;
-  const tierId = location.state?.tierId || 2;
-  const days = location.state?.days || 30;
-  const orderCodeFromUrl = searchParams.get("orderCode");
 
   const [status, setStatus] = useState<PayStatus>("pending");
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
-  const [orderCode, setOrderCode] = useState<number | null>(orderCodeFromUrl ? Number(orderCodeFromUrl) : null);
+  const [orderCode, setOrderCode] = useState<number | null>(null);
 
-  // Tạo mới PaymentRequest nếu chưa có orderCode
+  const [transactionId, setTransactionId] = useState<string | null>(null);
+  const [amount, setAmount] = useState<number | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [tierId, setTierId] = useState<string>("2");
+  const [days, setDays] = useState<number>(30);
+  const isTeacher = useSelector((state: RootState) => state.user.roleId) === "3";
+
+  // ✅ Lấy paymentInfo từ localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("paymentInfo");
+    console.log("Stored paymentInfo:", stored);
+    const orderCodeFromUrl = searchParams.get("orderCode");
+
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setTransactionId(parsed.transactionId);
+        setAmount(parsed.amount);
+        setUserId(parsed.userId);
+        setTierId(parsed.tierId || "2");
+        setDays(parsed.days || 30);
+        if (orderCodeFromUrl) {
+          setOrderCode(Number(orderCodeFromUrl));
+        }
+      } catch (err) {
+        console.error("Error parsing paymentInfo from localStorage", err);
+        toast.error("Lỗi khi đọc dữ liệu thanh toán");
+        setStatus("failed");
+      }
+    } else {
+      toast.error("Không có dữ liệu thanh toán");
+      setStatus("failed");
+    }
+  }, [searchParams]);
+
+  // ✅ Tạo payment request
   useEffect(() => {
     if (orderCode || !transactionId || !amount || !userId) return;
 
     const createRequest = async () => {
       try {
-        const userProfile = await fetchUserProfile(userId, isTeacher);
+        const userProfile = await fetchUserProfile(userId!, isTeacher);
         if (!userProfile) {
           toast.error("Không thể lấy thông tin người dùng");
           setStatus("failed");
@@ -75,7 +101,7 @@ const ProcessingPayment: React.FC<ProcessingPaymentProps> = ({ pollInterval = 40
     createRequest();
   }, [orderCode, transactionId, amount, userId, isTeacher]);
 
-  // Poll trạng thái thanh toán
+  // ✅ Kiểm tra thanh toán
   useEffect(() => {
     if (!orderCode || !transactionId || status !== "pending") return;
 
@@ -90,14 +116,27 @@ const ProcessingPayment: React.FC<ProcessingPaymentProps> = ({ pollInterval = 40
             const tierStr = String(tierId);
 
             if (isTeacher) {
-              await createTeacherSupscription({ userId, tierId: tierStr, transactionId, days });
-              await upgradeTier({ userId, orderCode, isTeacher, tierId: tierStr });
+              const response = await createTeacherSupscription({ userId: userId!, tierId: tierStr, transactionId, days });
+              console.log("Teacher subscription response:", response);
+              if (response) {
+                const updated = await upgradeTier({ userId: userId!, orderCode, isTeacher, tierId: tierStr });
+                if(updated){
+                  // localStorage.removeItem("paymentInfo");
+                  setStatus("succeeded");
+                } 
+              }
             } else {
-              await createStudentSupscription({ userId, tierId: tierStr, transactionId, days });
-              await upgradeTier({ userId, orderCode, isTeacher, tierId: tierStr });
+              const response = await createStudentSupscription({ userId: userId!, tierId: tierStr, transactionId, days });
+              console.log("Student subscription response:", response);
+              if (response) {
+                const updated = await upgradeTier({ userId: userId!, orderCode, isTeacher, tierId: tierStr });
+                if(updated){
+                  // localStorage.removeItem("paymentInfo");
+                  setStatus("succeeded");
+                } 
+              }
             }
-
-            setStatus("succeeded");
+            
             break;
           }
           case "CANCELLED":
@@ -117,10 +156,10 @@ const ProcessingPayment: React.FC<ProcessingPaymentProps> = ({ pollInterval = 40
 
   useEffect(() => {
     if (status === "succeeded") {
+      localStorage.removeItem("paymentInfo");
       const timeout = setTimeout(() => {
         navigate("/");
-      }, 3000); // Chuyển sau 3 giây
-
+      }, 3000);
       return () => clearTimeout(timeout);
     }
   }, [status, navigate]);

@@ -17,7 +17,8 @@ type Tier = {
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
-  const roleName = useSelector((state: RootState) => state.user.roleName);
+  const [roleName, setRoleName] = useState<string | null>(null);
+  const roleId = useSelector((state: RootState) => state.user.roleId);
   const userId = useSelector((state: RootState) => state.user.userId);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,9 +30,11 @@ const PricingPage: React.FC = () => {
       try {
         setLoading(true);
         let data: Tier[] = [];
-        if (roleName === 'Student') {
+        if (roleId === '2') {
+          setRoleName('Student');
           data = await fetchStudentTier();
-        } else if (roleName === 'Teacher') {
+        } else if (isTeacher) {
+          setRoleName('Teacher');
           data = await fetchTeacherTier();
         }
         setTiers(data);
@@ -56,7 +59,7 @@ const PricingPage: React.FC = () => {
     };
     checkSubscription();
     fetchTiers();
-  }, [isTeacher, roleName, userId]);
+  }, [isTeacher, roleId, userId]);
 
   const getTierIcon = (tierId: string) => {
     switch (tierId) {
@@ -92,7 +95,7 @@ const PricingPage: React.FC = () => {
   };
 
   const getPrice = (tierId: string) => {
-    return tierId === "2" ? (roleName === "Student" ? 70000 : 30000) : 0;
+    return tierId === "2" ? (roleId === "2" ? 70000 : 30000) : 0;
   };
 
   if (loading) {
@@ -223,12 +226,14 @@ const PricingPage: React.FC = () => {
                               <button
                                 onClick={() => {
                                   const months = 1;
+                                  const safeRoleId = String(roleId || '');
                                   navigate("/payment-page", {
                                     state: {
                                       price: getPrice(tier.tierId),
                                       tierId: tier.tierId,
                                       days: months * 30,
                                       userId,
+                                      roleId: safeRoleId,
                                     },
                                   });
                                 }}

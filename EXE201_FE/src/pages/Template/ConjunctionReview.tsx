@@ -77,6 +77,7 @@ const ConjunctionReview: React.FC = () => {
   const calculateScore = () => {
     let correct = 0;
     meanings.forEach((meaning, index) => {
+      console.log(meaning)
       if (dropped[index] === keywords[index]) correct++;
     });
     setScore(correct);

@@ -27,7 +27,7 @@ export const createHistory = async (body: {amount: number, methodId: string}) =>
 }
 export const acceptHistory = async (transactionHistoryId: string) =>{
     try{
-        const response = await axiosInstance.post(`/api/Transaction/accept-history`,{
+        const response = await axiosInstance.post(`/api/Transaction/accept-history`,null,{
             params:{
                 transactionHistoryId: transactionHistoryId
             }
@@ -39,7 +39,7 @@ export const acceptHistory = async (transactionHistoryId: string) =>{
 }
 export const cancelHistory = async (transactionHistoryId: string) =>{
     try{
-        const response = await axiosInstance.post(`/api/Transaction/cancel-history`,{
+        const response = await axiosInstance.post(`/api/Transaction/cancel-history`,null,{
             params:{
                 transactionHistoryId: transactionHistoryId
             }
@@ -260,7 +260,7 @@ export const fetchTeacherTier = async () => {
 }
 export const getStudentTierById = async (tierId: string) =>{
     try{
-        const response = await axiosInstance.get(`/api/Tier/tier-student/${tierId}`);
+        const response = await axiosInstance.get(`/api/Tier/tier-student-${tierId}`);
         return response.data;
     }catch(error){
         console.log(error);
@@ -269,7 +269,7 @@ export const getStudentTierById = async (tierId: string) =>{
 }
 export const getTeacherTierById = async (tierId: string) =>{
     try{
-        const response = await axiosInstance.get(`/api/Tier/tier-teacher/${tierId}`);
+        const response = await axiosInstance.get(`/api/Tier/tier-teacher-${tierId}`);
         return response.data;
     }catch(error){
         console.log(error);

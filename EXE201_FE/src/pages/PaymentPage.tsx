@@ -19,7 +19,7 @@ type Tier = {
 const PaymentPage: React.FC = () => {
     //   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
     const userId = useSelector((state: RootState) => state.user.userId);
-    const isTeacher = userId === "3";
+    const isTeacher = useSelector((state: RootState) => state.user.roleId) === '3';
     const {
         state: { price: unitPrice, tierId },
     } = useLocation() as { state: LocationState };
@@ -56,10 +56,17 @@ const PaymentPage: React.FC = () => {
             }
             const result = await createHistory(data);
             if (result.isSuccess === true) {
-                navigate("/payment", {
-                    state: { transactionId: result.transactionId, amount: totalPrice, userId: userId, days: months * 30},
-                });
-            }else{
+                localStorage.setItem("paymentInfo", JSON.stringify({
+                    transactionId: result.transactionId,
+                    amount: totalPrice,
+                    userId: userId,
+                    days: months * 30,
+                    tierId: tier?.tierId,
+                    tierName: tier?.tierName
+                }));
+
+                navigate("/payment");
+            } else {
                 toast.error(result.message)
             }
 
@@ -93,8 +100,8 @@ const PaymentPage: React.FC = () => {
                                     key={m.id}
                                     onClick={() => setPaymentMethod(m.id)}
                                     className={`flex items-center justify-between w-full p-3 rounded-lg bg-gray-800 h-14 transition border  ${paymentMethod === m.id
-                                            ? "border-blue-500"
-                                            : "border-transparent hover:border-gray-600"
+                                        ? "border-blue-500"
+                                        : "border-transparent hover:border-gray-600"
                                         }`}
                                 >
                                     <span className="flex items-center gap-2">
