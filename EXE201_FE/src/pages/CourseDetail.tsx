@@ -169,7 +169,7 @@ const CourseDetail: React.FC = () => {
               <div className="flex flex-col lg:flex-row items-center gap-8">
                 <div className="relative group">
                   <img
-                    src={fullThumbnailUrl}
+                    src={`${fullThumbnailUrl}?t=${Date.now()}`}
                     alt="Course thumbnail"
                     className="w-80 h-80 object-cover rounded-2xl shadow-2xl border-4 border-white/20
                               group-hover:scale-105 transition-transform duration-500"

@@ -55,6 +55,7 @@ const LoginPage: React.FC = () => {
       const profile = await fetchUserProfile(userData.userId, isTeacher);
 
       const completeUserData = { ...userData, roleId: role };
+      // localStorage.setItem("refreshToken", completeUserData.accessToken); 
       dispatch(setUserRedux(completeUserData));
       Cookies.set("user", JSON.stringify(completeUserData), { expires: 7 });
       setUserId(userData.userId);
@@ -137,6 +138,7 @@ const LoginPage: React.FC = () => {
         setUserData(userData)
         dispatch(setUserRedux(userData));
         Cookies.set('user', JSON.stringify(userData), { expires: 7 });
+        // localStorage.setItem("refreshToken", userData.refreshToken); 
 
         toast.success("Đăng nhập thành công");
       } else {

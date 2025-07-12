@@ -40,10 +40,12 @@ const Header: React.FC = () => {
       }
     };
     const checkSupscriptionData = async () => {
+      
       const data = {
         userId: user.userId,
         isTeacher: isTeacher,
       }
+
       try {
         const response = await checkSupscription(data);
         setIsUpdate(response.isUpdated);

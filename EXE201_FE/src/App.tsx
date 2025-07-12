@@ -6,11 +6,13 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import './index.css';
+import { useTokenWatcher } from "./components/hooks/useTokenWatcher ";
 
 
 function App() {
   const accessToken = useSelector((state: RootState) => state.user.accessToken)
   const isAuthenticated = !!accessToken;
+  useTokenWatcher();
 
   return (
     <>
