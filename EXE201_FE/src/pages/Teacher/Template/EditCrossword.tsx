@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
@@ -157,8 +157,8 @@ const EditCrossword: React.FC<EditCrosswordProps> = ({
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-3xl rounded-lg bg-white p-6 border shadow-lg space-y-4">
-            <Dialog.Title className="text-xl font-bold text-center">Edit Crossword</Dialog.Title>
+          <DialogPanel className="w-full max-w-3xl max-h-[90vh] overflow-auto rounded-lg bg-white p-6 border shadow-lg space-y-4">
+            <DialogTitle className="text-xl font-bold text-center">Edit Crossword</DialogTitle>
             <input
               type="text"
               value={activityName}
@@ -258,7 +258,7 @@ const EditCrossword: React.FC<EditCrosswordProps> = ({
                 ✅ Finish
               </button>
             </div>
-          </Dialog.Panel>
+          </DialogPanel>
         </div>
       </Dialog>
     </>

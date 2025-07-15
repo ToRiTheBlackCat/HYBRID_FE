@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { useParams } from "react-router-dom";
@@ -116,8 +116,8 @@ const EditPairing: React.FC<EditPairingProps> = ({
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-2xl rounded-lg bg-white p-6 border shadow-lg space-y-4">
-            <Dialog.Title className="text-xl font-bold text-center">Edit Pairing</Dialog.Title>
+          <DialogPanel className="w-full max-w-2xl max-h-[90vh] overflow-auto rounded-lg bg-white p-6 border shadow-lg space-y-4">
+            <DialogTitle className="text-xl font-bold text-center">Edit Pairing</DialogTitle>
 
             {/* activity name */}
             <input
@@ -159,7 +159,7 @@ const EditPairing: React.FC<EditPairingProps> = ({
               <button onClick={() => setIsOpen(false)} className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancel</button>
               <button onClick={handleSubmit} className="px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600">✅ Finish</button>
             </div>
-          </Dialog.Panel>
+          </DialogPanel>
         </div>
       </Dialog>
     </>

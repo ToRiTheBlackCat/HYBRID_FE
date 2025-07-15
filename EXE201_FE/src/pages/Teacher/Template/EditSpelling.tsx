@@ -1,6 +1,6 @@
 // components/Teacher/Template/EditSpelling.tsx
 import React, { useState } from "react";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Image, Trash } from "lucide-react";
@@ -116,8 +116,8 @@ const EditSpelling: React.FC<EditSpellingProps> = ({
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white max-w-4xl w-full rounded p-6">
-            <Dialog.Title className="text-lg font-bold mb-4">Edit Spelling</Dialog.Title>
+          <DialogPanel className="bg-white max-w-4xl max-h-[90vh] w-full rounded p-6">
+            <DialogTitle className="text-lg font-bold mb-4">Edit Spelling</DialogTitle>
 
             {/* general */}
             <div className="space-y-4">
@@ -263,7 +263,7 @@ const EditSpelling: React.FC<EditSpellingProps> = ({
                 </button>
               </div>
             </div>
-          </Dialog.Panel>
+          </DialogPanel>
         </div>
       </Dialog>
     </>

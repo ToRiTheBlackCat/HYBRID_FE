@@ -136,7 +136,7 @@ const ConjunctionReview: React.FC = () => {
 
   const startGame = () => {
     setIsPlaying(true);
-    setIsPaused(false);
+    setIsPaused(true);
   };
 
   const getScoreColor = (): string => {

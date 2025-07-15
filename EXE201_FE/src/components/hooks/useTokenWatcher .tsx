@@ -12,7 +12,7 @@ export function useTokenWatcher() {
   const [tokenStartTime, setTokenStartTime] = useState<number | null>(null);
 
   // Cấu hình thời gian (tính bằng milliseconds)
-  const TOKEN_LIFETIME_MS = 30 * 60 * 1000; // 10 phút
+  const TOKEN_LIFETIME_MS = 30 * 60 * 1000; // 30 phút
   const WARN_BEFORE_MS = 1 * 60 * 1000; // Cảnh báo trước 1 phút (9 phút sau khi bắt đầu)
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export function useTokenWatcher() {
                 refreshToken: refreshData.refreshToken,
               };
 
-              localStorage.removeItem("refreshToken");
+              // localStorage.removeItem("refreshToken");
               dispatch(setUserRedux(updatedUser));
               Cookies.set('user', JSON.stringify(updatedUser), { expires: 7 });
 
@@ -119,7 +119,7 @@ export function useTokenWatcher() {
                 refreshToken: refreshData.refreshToken,
               };
 
-              localStorage.removeItem("refreshToken");
+              // localStorage.removeItem("refreshToken");
               dispatch(setUserRedux(updatedUser));
               Cookies.set('user', JSON.stringify(updatedUser), { expires: 7 });
 

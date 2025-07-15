@@ -20,7 +20,7 @@ const QuizReview: React.FC = () => {
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0); // Khởi tạo bằng 0, sẽ được cập nhật trong loadData
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [activityName, setActivityName] = useState("");
   const [duration, setDuration] = useState(60);

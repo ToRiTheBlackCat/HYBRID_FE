@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { useParams } from "react-router-dom";
@@ -153,8 +153,8 @@ const EditCompletion: React.FC<EditCompletionProps> = ({
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
-          <Dialog.Panel className="w-full max-w-3xl rounded-lg bg-white p-6 border shadow-lg space-y-4">
-            <Dialog.Title className="text-xl font-bold text-center">Edit Completion</Dialog.Title>
+          <DialogPanel className="w-full max-w-3xl max-h-[90vh] overflow-auto rounded-lg bg-white p-6 border shadow-lg space-y-4 mt-20">
+            <DialogTitle className="text-xl font-bold text-center">Edit Completion</DialogTitle>
 
             {/* general info */}
             <input
@@ -266,7 +266,7 @@ const EditCompletion: React.FC<EditCompletionProps> = ({
                 ✅ Finish
               </button>
             </div>
-          </Dialog.Panel>
+          </DialogPanel>
         </div>
       </Dialog>
     </>

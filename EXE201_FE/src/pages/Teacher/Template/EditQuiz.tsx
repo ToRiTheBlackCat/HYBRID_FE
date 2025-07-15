@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { editQuiz } from "../../../services/authService";
@@ -202,8 +202,8 @@ const EditQuiz: React.FC<EditQuizProps> = ({
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-10">
         <div className="fixed inset-0 bg-black bg-opacity-30" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <Dialog.Title className="text-lg font-semibold mb-4">Edit Quiz</Dialog.Title>
+          <DialogPanel className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto mt-25">
+            <DialogTitle className="text-lg font-semibold mb-4">Edit Quiz</DialogTitle>
 
             {/* Basic Info */}
             <div className="grid grid-cols-2 gap-4 mb-6">
@@ -337,7 +337,7 @@ const EditQuiz: React.FC<EditQuizProps> = ({
                 {isLoading ? "Saving..." : "Save Changes"}
               </button>
             </div>
-          </Dialog.Panel>
+          </DialogPanel>
         </div>
       </Dialog>
     </>

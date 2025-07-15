@@ -118,7 +118,6 @@ const CourseDetail: React.FC = () => {
           allowedTemplateIds.includes(game.templateId)
         );
       }
-      console.log("Filtered Minigames:", filteredMinigames);
 
       const gamesWithScores = await Promise.all(
         filteredMinigames.map(async (game: Minigame) => {

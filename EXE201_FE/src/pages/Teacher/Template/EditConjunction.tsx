@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { ConjunctionEntry } from "../../../types/index";
 import { editConjunction } from "../../../services/authService";
 import { useSelector } from "react-redux";
@@ -158,7 +158,7 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl border-0">
+          <DialogPanel className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl border-0">
             {/* Header */}
             <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl">
               <div className="flex items-center justify-between">
@@ -168,7 +168,7 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </div>
-                  <Dialog.Title className="text-2xl font-bold">Edit Minigame</Dialog.Title>
+                  <DialogTitle className="text-2xl font-bold">Edit Minigame</DialogTitle>
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
@@ -378,7 +378,7 @@ const EditConjunction: React.FC<EditConjunctionProps> = ({
                 </div>
               </div>
             </div>
-          </Dialog.Panel>
+          </DialogPanel>
         </div>
       </Dialog>
     </>

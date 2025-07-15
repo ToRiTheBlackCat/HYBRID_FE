@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { editRandomCard } from "../../../services/authService";
@@ -99,8 +99,8 @@ const EditRandomCard: React.FC<EditRandomCardProp> = ({
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white p-6 rounded max-w-4xl w-full">
-            <Dialog.Title className="text-lg font-bold mb-4">Edit Random Card</Dialog.Title>
+          <DialogPanel className="bg-white p-6 rounded max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <DialogTitle className="text-lg font-bold mb-4">Edit Random Card</DialogTitle>
 
             <div className="space-y-4">
               <div>
@@ -238,7 +238,7 @@ const EditRandomCard: React.FC<EditRandomCardProp> = ({
                 </button>
               </div>
             </div>
-          </Dialog.Panel>
+          </DialogPanel>
         </div>
       </Dialog>
     </>
