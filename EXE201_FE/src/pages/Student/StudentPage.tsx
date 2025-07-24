@@ -121,9 +121,9 @@ const StudentPage: React.FC = () => {
                   </div>
                   
                   {/* Connector line */}
-                  {index < steps.length - 1 && (
+                  {/* {index < steps.length - 1 && (
                     <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-blue-300 to-indigo-300 transform -translate-y-1/2 z-10"></div>
-                  )}
+                  )} */}
                 </div>
               </FadeInOnView>
             ))}

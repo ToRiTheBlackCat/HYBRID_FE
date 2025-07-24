@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import KeywordDragDrop from "../../components/Conjunction/DragDrop";
 import Header from "../../components/HomePage/Header";
@@ -24,11 +24,11 @@ const ConjunctionReview: React.FC = () => {
   const [score, setScore] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const handleDrop = (targetIndex: number, keyword: string) => {
-    if (!isTimeUp && !isPaused) {
-      setDropped((prev) => ({ ...prev, [targetIndex]: keyword }));
-    }
-  };
+  // const handleDrop = (targetIndex: number, keyword: string) => {
+  //   if (!isTimeUp && !isPaused) {
+  //     setDropped((prev) => ({ ...prev, [targetIndex]: keyword }));
+  //   }
+  // };
 
   const normalizeUrl = (base: string, path: string): string => {
     return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
@@ -111,6 +111,12 @@ const ConjunctionReview: React.FC = () => {
     const s = (seconds % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
+  const correctAnswersMap = useMemo(() => {
+      return keywords.reduce((acc, keyword, index) => {
+        acc[index] = keyword;
+        return acc;
+      }, {} as { [index: number]: string });
+    }, [keywords]);
 
   const getTimeProgress = (): number => {
     if (initialDuration === 0) return 100;
@@ -332,9 +338,9 @@ const ConjunctionReview: React.FC = () => {
               <KeywordDragDrop
                 keywords={keywords}
                 targets={meanings}
-                onDrop={handleDrop}
-                droppedKeywords={dropped}
-                disabled={isTimeUp || isPaused}
+                correctAnswers={correctAnswersMap}
+                showResults={true}
+                onComplete={(isCorrect) => console.log(isCorrect)}
               />
             </div>
 

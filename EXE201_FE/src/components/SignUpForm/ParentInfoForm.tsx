@@ -23,14 +23,16 @@ const ParentInfoForm: React.FC<ParentInfoFormProps> = ({ onSubmit }) => {
     confirmPassword: "",
     birthYear: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match!");
       return;
@@ -41,15 +43,22 @@ const ParentInfoForm: React.FC<ParentInfoFormProps> = ({ onSubmit }) => {
       toast.error("Please enter a valid birth year");
       return;
     }
-
-    onSubmit({
-      email: formData.email,
-      password: formData.password,
-      fullName: formData.fullName,
-      address: formData.address,
-      phone: formData.phone,
-      birthYear: year,
-    });
+    try {
+      setIsSubmitting(true); 
+      await onSubmit({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
+        address: formData.address,
+        phone: formData.phone,
+        birthYear: year,
+      });
+    } catch (error) {
+      console.log(error)
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false); // 👈 mở lại nút sau khi xong
+    }
   };
 
   return (
@@ -81,9 +90,10 @@ const ParentInfoForm: React.FC<ParentInfoFormProps> = ({ onSubmit }) => {
         <div className="col-span-1 md:col-span-2 flex justify-center mt-2">
           <button
             type="submit"
+            disabled={isSubmitting}
             className="bg-[#1e4c91] text-white px-6 py-2 rounded-full shadow hover:bg-blue-700 transition"
           >
-            Sign up
+            {isSubmitting ? "Signing up..." : "Sign up"}
           </button>
         </div>
       </form>

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import KeywordDragDrop from "../../../components/Conjunction/DragDrop";
 import Header from "../../../components/HomePage/Header";
@@ -111,11 +111,12 @@ const PlayConjunction: React.FC = () => {
   }, [courseIdFromState]);
 
   /* ───────── logic ───────── */
-  const handleDrop = (targetIndex: number, keyword: string) => {
-    if (!isTimeUp && !isPaused) {
-      setDropped((prev) => ({ ...prev, [targetIndex]: keyword }));
-    }
-  };
+  const correctAnswersMap = useMemo(() => {
+    return keywords.reduce((acc, keyword, index) => {
+      acc[index] = keyword;
+      return acc;
+    }, {} as { [index: number]: string });
+  }, [keywords]);
 
   const calculateScore = useCallback(() => {
     let correct = 0;
@@ -235,8 +236,8 @@ const PlayConjunction: React.FC = () => {
                       })
                     }
                     className={`w-full flex items-center gap-4 text-left p-4 m-1 rounded-xl transition-all duration-300 hover:scale-[1.02] ${isActive
-                        ? "bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 shadow-lg"
-                        : "bg-white hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 border border-gray-200 hover:border-blue-300 hover:shadow-md"
+                      ? "bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 shadow-lg"
+                      : "bg-white hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 border border-gray-200 hover:border-blue-300 hover:shadow-md"
                       }`}
                     disabled={isActive}
                   >
@@ -265,8 +266,8 @@ const PlayConjunction: React.FC = () => {
                       </p>
                       <div className="flex items-center gap-2 mt-2">
                         <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${isActive
-                            ? "bg-blue-200 text-blue-700"
-                            : "bg-gray-100 text-gray-600"
+                          ? "bg-blue-200 text-blue-700"
+                          : "bg-gray-100 text-gray-600"
                           }`}>
                           #{index + 1}
                         </div>
@@ -318,8 +319,8 @@ const PlayConjunction: React.FC = () => {
                     <button
                       onClick={() => setIsPaused(!isPaused)}
                       className={`px-6 py-3 rounded-2xl font-semibold transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 ${isPaused
-                          ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-                          : "bg-amber-500 hover:bg-amber-600 text-white"
+                        ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                        : "bg-amber-500 hover:bg-amber-600 text-white"
                         }`}
                     >
                       {isPaused ? (
@@ -389,9 +390,10 @@ const PlayConjunction: React.FC = () => {
             <KeywordDragDrop
               keywords={keywords}
               targets={meanings}
-              onDrop={handleDrop}
-              droppedKeywords={dropped}
-              disabled={isTimeUp || isPaused}
+              correctAnswers={correctAnswersMap}
+              showResults={true}
+              onDropUpdate={(newDropped) => setDropped(newDropped)}
+              onComplete={(isCorrect) => console.log(isCorrect)}
             />
           </div>
 
@@ -435,8 +437,8 @@ const PlayConjunction: React.FC = () => {
                       <div
                         key={index}
                         className={`p-6 rounded-2xl border-2 transition-all duration-300 ${isCorrect
-                            ? "border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50"
-                            : "border-rose-200 bg-gradient-to-r from-rose-50 to-red-50"
+                          ? "border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50"
+                          : "border-rose-200 bg-gradient-to-r from-rose-50 to-red-50"
                           }`}
                       >
                         <div className="flex items-start justify-between gap-6">
@@ -446,8 +448,8 @@ const PlayConjunction: React.FC = () => {
                               <div className="flex items-center gap-3">
                                 <span className="text-sm text-gray-600 font-medium min-w-[80px]">Your answer:</span>
                                 <span className={`font-semibold px-4 py-2 rounded-full ${isCorrect
-                                    ? "bg-emerald-100 text-emerald-700"
-                                    : "bg-rose-100 text-rose-700"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-rose-100 text-rose-700"
                                   }`}>
                                   {userAnswer}
                                 </span>
@@ -463,8 +465,8 @@ const PlayConjunction: React.FC = () => {
                             </div>
                           </div>
                           <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${isCorrect
-                              ? "bg-gradient-to-r from-emerald-500 to-green-600"
-                              : "bg-gradient-to-r from-rose-500 to-red-600"
+                            ? "bg-gradient-to-r from-emerald-500 to-green-600"
+                            : "bg-gradient-to-r from-rose-500 to-red-600"
                             }`}>
                             {isCorrect ? (
                               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

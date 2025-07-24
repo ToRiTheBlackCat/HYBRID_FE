@@ -1,182 +1,394 @@
 
-import React from "react";
-import {
-  DndContext,
-  useDraggable,
-  useDroppable,
-  closestCenter,
-  DragEndEvent,
-} from "@dnd-kit/core";
+import React, { useState, useRef, useEffect } from "react";
 
 // Enhanced KeywordDragDrop Component
 interface KeywordDragDropProps {
   keywords: string[];
   targets: string[];
-  onDrop: (targetIndex: number, keyword: string) => void;
-  droppedKeywords: { [index: number]: string | null };
-  disabled?: boolean;
+  correctAnswers: { [index: number]: string }; // Thêm correct answers
+  onComplete?: (isCorrect: boolean) => void;
+  onDropUpdate?: (dropped: { [index: number]: string | null }) => void;
+  showResults?: boolean;
 }
-
-const DraggableKeyword = ({ id, disabled }: { id: string; disabled?: boolean }) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id,
-    disabled,
-  });
-
-  const style: React.CSSProperties = {
-    transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
-    zIndex: isDragging ? 1000 : 1,
-  };
-
-  return (
-    <div 
-      ref={setNodeRef} 
-      style={style} 
-      {...(disabled ? {} : listeners)} 
-      {...(disabled ? {} : attributes)}
-      className={`
-        inline-block px-4 py-2 m-1 rounded-lg font-medium text-sm
-        transition-all duration-200 select-none
-        ${disabled 
-          ? 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60' 
-          : isDragging
-            ? 'bg-blue-600 text-white shadow-2xl scale-105 cursor-grabbing'
-            : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md hover:shadow-lg hover:scale-105 cursor-grab active:scale-95'
-        }
-      `}
-    >
-      {id}
-    </div>
-  );
-};
-
-const DroppableArea = ({
-  id,
-  children,
-  isCorrect,
-}: {
-  id: string;
-  children: React.ReactNode;
-  isCorrect?: boolean;
-}) => {
-  const { setNodeRef, isOver } = useDroppable({ id });
-  
-  return (
-    <div 
-      ref={setNodeRef}
-      className={`
-        border-2 border-dashed rounded-xl p-4 min-h-16 flex items-center justify-center
-        transition-all duration-300 text-center font-medium
-        ${isOver 
-          ? 'border-blue-400 bg-blue-50 scale-105' 
-          : isCorrect 
-            ? 'border-green-400 bg-green-50 text-green-700'
-            : children !== "Drop keyword here"
-              ? 'border-purple-400 bg-purple-50 text-purple-700'
-              : 'border-gray-300 bg-gray-50 text-gray-500 hover:border-gray-400 hover:bg-gray-100'
-        }
-      `}
-    >
-      {children === "Drop keyword here" ? (
-        <span className="text-sm italic">Drop keyword here</span>
-      ) : (
-        <span className="px-3 py-1 bg-white rounded-lg shadow-sm border">
-          {children}
-        </span>
-      )}
-    </div>
-  );
-};
 
 const KeywordDragDrop: React.FC<KeywordDragDropProps> = ({
   keywords,
   targets,
-  onDrop,
-  droppedKeywords,
-  disabled = false,
+  correctAnswers,
+  onComplete,
+  onDropUpdate,
+  showResults = false
 }) => {
-  const handleDragEnd = (event: DragEndEvent) => {
-    if (disabled) return;
 
-    const { over, active } = event;
-    if (over) {
-      const targetIndex = parseInt(over.id as string);
-      onDrop(targetIndex, active.id as string);
+  const [droppedKeywords, setDroppedKeywords] = useState<{ [index: number]: string | null }>({});
+  const [availableKeywords, setAvailableKeywords] = useState<string[]>([]);
+  const [draggedKeyword, setDraggedKeyword] = useState<string | null>(null);
+  const [dragOverZone, setDragOverZone] = useState<number | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
+  useEffect(() => {
+    setAvailableKeywords(keywords);
+  }, [keywords]);
+
+  // Reset game khi keywords thay đổi
+  useEffect(() => {
+    if (keywords.length > 0) {
+      resetGame();
+    }
+  }, [keywords]);
+  const dragCounter = useRef(0);
+  // Xử lý drag start
+  const handleDragStart = (e: React.DragEvent, keyword: string) => {
+    setDraggedKeyword(keyword);
+    e.dataTransfer.setData('text/plain', keyword);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  // Xử lý drag over drop zone
+  const handleDragOver = (e: React.DragEvent, zoneIndex: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverZone(zoneIndex);
+  };
+
+  // Xử lý drag enter
+  const handleDragEnter = (e: React.DragEvent, zoneIndex: number) => {
+    e.preventDefault();
+    dragCounter.current++;
+    setDragOverZone(zoneIndex);
+  };
+
+  // Xử lý drag leave
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setDragOverZone(null);
     }
   };
 
+  // Xử lý drop
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    dragCounter.current = 0;
+    setDragOverZone(null);
+
+    const keyword = e.dataTransfer.getData('text/plain');
+    if (!keyword) return;
+
+    // Tìm vị trí cũ của keyword (nếu có)
+    const oldIndex = Object.keys(droppedKeywords).find(
+      key => droppedKeywords[parseInt(key)] === keyword
+    );
+
+    // Cập nhật state
+    setDroppedKeywords(prev => {
+      const newDropped = { ...prev };
+
+      // Remove từ vị trí cũ
+      if (oldIndex !== undefined) {
+        newDropped[parseInt(oldIndex)] = null;
+      }
+
+      // Thêm vào vị trí mới
+      newDropped[targetIndex] = keyword;
+      onDropUpdate?.(newDropped);
+      return newDropped;
+    });
+
+    // Cập nhật available keywords
+    setAvailableKeywords(prev => {
+      let newAvailable = [...prev];
+
+      // Nếu keyword đang ở trong available pool
+      if (prev.includes(keyword)) {
+        newAvailable = prev.filter(k => k !== keyword);
+      }
+
+      // Nếu có keyword bị thay thế trong drop zone
+      const replacedKeyword = droppedKeywords[targetIndex];
+      if (replacedKeyword) {
+        newAvailable = [...newAvailable, replacedKeyword];
+      }
+
+      return newAvailable;
+    });
+
+    setDraggedKeyword(null);
+  };
+
+  // Remove keyword khỏi drop zone
+  const removeKeyword = (targetIndex: number) => {
+    const keyword = droppedKeywords[targetIndex];
+    if (!keyword) return;
+
+    setDroppedKeywords(prev => {
+      const updated = { ...prev, [targetIndex]: null };
+
+      // ✅ Gọi callback khi xóa keyword
+      onDropUpdate?.(updated);
+
+      return updated;
+    });
+
+    setAvailableKeywords(prev => [...prev, keyword]);
+  };
+
+  // Kiểm tra kết quả
+  const checkAnswers = () => {
+    setShowValidation(true);
+    const isCorrect = Object.keys(correctAnswers).every(
+      index => droppedKeywords[parseInt(index)] === correctAnswers[parseInt(index)]
+    );
+    onComplete?.(isCorrect);
+  };
+
+  // Reset game
+  const resetGame = () => {
+    setDroppedKeywords({});
+    setAvailableKeywords(keywords);
+    setShowValidation(false);
+    setDraggedKeyword(null);
+    setDragOverZone(null);
+  };
+
+  // Keyboard support cho drop zones
+  const handleKeyDown = (e: React.KeyboardEvent, targetIndex: number) => {
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      removeKeyword(targetIndex);
+    }
+  };
+
+  const getZoneStatus = (index: number) => {
+    if (!showValidation) return 'neutral';
+    const droppedKeyword = droppedKeywords[index];
+    const correctKeyword = correctAnswers[index];
+
+    if (!droppedKeyword) return 'empty';
+    return droppedKeyword === correctKeyword ? 'correct' : 'incorrect';
+  };
+
+  const completedCount = Object.values(droppedKeywords).filter(Boolean).length;
+  const isComplete = completedCount === targets.length;
+  useEffect(() => {
+    const handleDragOver = (e: DragEvent) => {
+      const buffer = 100; // px từ mép dưới
+      const y = e.clientY;
+      const height = window.innerHeight;
+
+      if (y > height - buffer) {
+        window.scrollBy(0, 5); // scroll xuống
+      } else if (y < buffer) {
+        window.scrollBy(0, -5); // scroll lên
+      }
+    };
+
+    window.addEventListener('dragover', handleDragOver);
+    return () => window.removeEventListener('dragover', handleDragOver);
+  }, []);
+
   return (
-    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+    <div className="max-w-4xl mx-auto p-6 bg-gray-50 rounded-xl">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Keyword Matching Game</h2>
+        <p className="text-gray-600">Drag keywords to their correct definitions</p>
+      </div>
+
       {/* Keywords Pool */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
           <h4 className="text-lg font-semibold text-gray-700">Available Keywords</h4>
+          <span className="text-sm text-gray-500">({availableKeywords.length} remaining)</span>
         </div>
+
         <div className="p-6 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-2xl border border-gray-200 shadow-inner">
-          <div className="flex flex-wrap gap-2 justify-center">
-            {keywords.map((word) => (
-              <DraggableKeyword key={word} id={word} disabled={disabled} />
-            ))}
-          </div>
+          {availableKeywords.length > 0 ? (
+            <div className="flex flex-wrap gap-3 justify-center">
+              {availableKeywords.map((keyword) => (
+                <div
+                  key={keyword}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, keyword)}
+                  className={`
+                    inline-block px-4 py-2 rounded-lg font-medium text-sm
+                    bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md
+                    cursor-grab active:cursor-grabbing hover:shadow-lg hover:scale-105
+                    transition-all duration-200 select-none
+                    focus:outline-none focus:ring-2 focus:ring-blue-300
+                    ${draggedKeyword === keyword ? 'opacity-50 scale-95' : ''}
+                  `}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Drag keyword: ${keyword}`}
+                >
+                  {keyword}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              <p className="text-lg">🎯 All keywords are in use!</p>
+              <p className="text-sm mt-1">Remove keywords from drop zones to reuse them</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Drop Targets */}
-      <div className="space-y-4">
+      <div className="space-y-4 mb-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-3 h-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
           <h4 className="text-lg font-semibold text-gray-700">Match Definitions</h4>
         </div>
-        
-        {targets.map((target, index) => (
-          <div key={index} className="group">
-            <div className="p-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200">
-              <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                  {index + 1}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-gray-800 mb-3 leading-relaxed">
-                    {target}
+
+        {targets.map((target, index) => {
+          const status = getZoneStatus(index);
+          const isOver = dragOverZone === index;
+
+          return (
+            <div key={index} className="group">
+              <div className={`
+                p-4 rounded-xl border-2 transition-all duration-200
+                ${status === 'correct' ? 'bg-green-50 border-green-300' :
+                  status === 'incorrect' ? 'bg-red-50 border-red-300' :
+                    'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'}
+              `}>
+                <div className="flex items-center gap-4">
+                  <div className={`
+                    flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm
+                    ${status === 'correct' ? 'bg-green-500' :
+                      status === 'incorrect' ? 'bg-red-500' :
+                        'bg-gradient-to-r from-purple-500 to-pink-500'}
+                  `}>
+                    {status === 'correct' ? '✓' : status === 'incorrect' ? '✗' : index + 1}
                   </div>
-                  <DroppableArea 
-                    id={index.toString()}
-                    isCorrect={droppedKeywords[index] !== null && droppedKeywords[index] !== undefined}
-                  >
-                    {droppedKeywords[index] || "Drop keyword here"}
-                  </DroppableArea>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-gray-800 mb-3 leading-relaxed">
+                      {target}
+                    </div>
+
+                    <div
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnter={(e) => handleDragEnter(e, index)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onKeyDown={(e) => handleKeyDown(e, index)}
+                      tabIndex={droppedKeywords[index] ? 0 : -1}
+                      role="button"
+                      aria-label={`Drop zone ${index + 1}: ${droppedKeywords[index] || 'empty'}`}
+                      className={`
+                        border-2 border-dashed rounded-xl p-4 min-h-16 flex items-center justify-center
+                        transition-all duration-300 text-center font-medium
+                        focus:outline-none focus:ring-2 focus:ring-purple-300
+                        ${isOver ? 'border-blue-400 bg-blue-50 scale-105 shadow-lg' :
+                          status === 'correct' ? 'border-green-400 bg-green-100' :
+                            status === 'incorrect' ? 'border-red-400 bg-red-100' :
+                              droppedKeywords[index] ? 'border-purple-400 bg-purple-50' :
+                                'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'}
+                      `}
+                    >
+                      {droppedKeywords[index] ? (
+                        <div className="flex items-center gap-2">
+                          <span className={`
+                            px-3 py-1 rounded-lg shadow-sm border font-medium
+                            ${status === 'correct' ? 'bg-green-100 border-green-300 text-green-800' :
+                              status === 'incorrect' ? 'bg-red-100 border-red-300 text-red-800' :
+                                'bg-white border-purple-200 text-purple-700'}
+                          `}>
+                            {droppedKeywords[index]}
+                          </span>
+                          <button
+                            onClick={() => removeKeyword(index)}
+                            className="w-5 h-5 bg-gray-400 hover:bg-red-500 text-white rounded-full text-xs flex items-center justify-center transition-colors"
+                            aria-label="Remove keyword"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-sm italic text-gray-500">
+                          Drop keyword here
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Progress indicator */}
-      <div className="mt-8 p-4 bg-gray-50 rounded-xl">
+      {/* Progress and Controls */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <div className="flex justify-between text-sm text-gray-600 mb-3">
           <span className="font-medium">Progress</span>
-          <span className="font-bold">
-            {Object.values(droppedKeywords).filter(Boolean).length} / {targets.length}
-          </span>
+          <span className="font-bold">{completedCount} / {targets.length}</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-          <div 
+
+        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden mb-4">
+          <div
             className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 ease-out"
-            style={{ 
-              width: `${(Object.values(droppedKeywords).filter(Boolean).length / targets.length) * 100}%` 
-            }}
+            style={{ width: `${(completedCount / targets.length) * 100}%` }}
           ></div>
         </div>
-        <div className="text-center text-xs text-gray-500 mt-2">
-          {Object.values(droppedKeywords).filter(Boolean).length === targets.length 
-            ? "🎉 All matches complete!" 
-            : `${targets.length - Object.values(droppedKeywords).filter(Boolean).length} more to go`
-          }
+
+        <div className="text-center text-sm text-gray-600 mb-4">
+          {isComplete ? "🎉 All matches complete!" : `${targets.length - completedCount} more to go`}
         </div>
+
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={checkAnswers}
+            disabled={!isComplete}
+            className={`
+              px-6 py-2 rounded-lg font-medium transition-all duration-200
+              ${isComplete
+                ? 'bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
+            `}
+          >
+            Check Answers
+          </button>
+
+          <button
+            onClick={resetGame}
+            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+          >
+            Reset
+          </button>
+        </div>
+
+        {showValidation && showResults && (
+          <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+            <h5 className="font-semibold text-blue-800 mb-2">Results:</h5>
+            <div className="space-y-1 text-sm">
+              {Object.keys(correctAnswers).map(index => {
+                const idx = parseInt(index);
+                const userAnswer = droppedKeywords[idx];
+                const correctAnswer = correctAnswers[idx];
+                const isCorrect = userAnswer === correctAnswer;
+
+                return (
+                  <div key={index} className={`
+                    flex items-center gap-2 p-2 rounded
+                    ${isCorrect ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100'}
+                  `}>
+                    <span>{isCorrect ? '✓' : '✗'}</span>
+                    <span>Definition {idx + 1}: </span>
+                    <span className="font-medium">
+                      {userAnswer || 'No answer'}
+                      {!isCorrect && ` (Correct: ${correctAnswer})`}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
-    </DndContext>
+    </div>
   );
 };
 

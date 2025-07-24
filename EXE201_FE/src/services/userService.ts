@@ -98,7 +98,6 @@ export const upgradeTier = async (data: UpgradeTierData) => {
 
 export const LoginGoggle = async (body: { token: string, roleId: string }) => {
     try {
-        console.log('LoginGoggle credential:', body);
         const response = await axiosInstance.post('/api/Auth/login-google', body,
             {
                 headers: {
@@ -114,7 +113,7 @@ export const LoginGoggle = async (body: { token: string, roleId: string }) => {
             accessToken: response.data.accessToken,
             refreshToken: response.data.refreshToken,
         }
-        console.log('LoginGoggle response:', response.data);
+        // console.log('LoginGoggle response:', response.data);
         return userData;
     } catch (error) {
         console.error('Login error:', error);
@@ -283,6 +282,15 @@ export const getTopMinigame = async (count: number) => {
         });
         return response.data;
     } catch (error) {
+        console.log(error);
+        throw error
+    }
+}
+export const updateRole = async (isTeacher: boolean) =>{
+    try{
+        const response = await axiosInstance.post(`/api/User/update-role?isTeacher=${isTeacher}`);
+        return response.data
+    }catch (error) {
         console.log(error);
         throw error
     }
