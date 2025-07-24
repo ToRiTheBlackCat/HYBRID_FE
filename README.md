@@ -161,6 +161,6 @@ Distributed under the Unlicense License. See `LICENSE.txt` for more information.
 
 Nguyễn Huỳnh Minh Trí - triminh0502@gmail.com - [![LinkedIn](https://img.shields.io/badge/LinkedIn-%230077B5.svg?logo=linkedin&logoColor=white)](https://linkedin.com/in/tringuyenhuynhminh)  
 
-Project Link: https://github.com/ToRiTheBlackCat/HYBRID_BE
+Project Link: https://github.com/ToRiTheBlackCat/HYBRID_FE
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
