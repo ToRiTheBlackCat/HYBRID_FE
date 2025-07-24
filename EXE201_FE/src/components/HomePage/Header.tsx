@@ -1,96 +1,167 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import Logo from "../../assets/Logo2_noBg.png"
-import { FiMenu, FiX, FiUser, FiChevronDown } from 'react-icons/fi';
+import Logo from "../../assets/whitecat_logo.jpg";
+import { FiMenu, FiX } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-// import "../../tailwind.css";
+import { useSelector, useDispatch } from 'react-redux';
+import Cookies from 'js-cookie';
+import { RootState } from '../../store/store';
+import { logout } from '../../store/userSlice';
+import DropdownMenu from "./DropdownMenu";
+import { fetchUserProfile } from "../../services/authService";
+import { checkSupscription } from '../../services/userService';
+import { Profile } from '../../types';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userData, setUserData] = useState<Profile>();
+  const [isUpdate, setIsUpdate] = useState<boolean>(false);
 
-  // 🟡 Giả lập trạng thái đăng nhập
-  const isAuthenticated = false;
-  const userAccountName = 'User Name';
+  const user = useSelector((state: RootState) => state.user);
+  const isAuthenticated = !!user.userId;
+  const roleId = user.roleId;
+
+  const menuRef = useRef<HTMLDivElement>(null);
+  const isTeacher = user.roleId === "3";
+
 
   useEffect(() => {
+    const getFullName = async () => {
+      try {
+        const data = await fetchUserProfile(user.userId, isTeacher);
+        setUserData(data ?? undefined);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    const checkSupscriptionData = async () => {
+      
+      const data = {
+        userId: user.userId,
+        isTeacher: isTeacher,
+      }
+
+      try {
+        const response = await checkSupscription(data);
+        setIsUpdate(response.isUpdated);
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    checkSupscriptionData();
+    getFullName();
+
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isTeacher, user.roleId, user.userId]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    if (isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMobileMenuOpen]);
 
   const handleLogout = () => {
+    Cookies.remove('user');
+    dispatch(logout());
     navigate('/');
     setIsMobileMenuOpen(false);
+  };
+
+  const handleHomeClick = () => {
+    if (roleId === "2") {
+      navigate('/student');
+    } else {
+      navigate('/');
+    }
   };
 
   const isActiveLink = (path: string) => location.pathname === path;
 
   const menuItems = [
-    { path: '/', label: 'Template' },
-    { path: '/chat-with-ai', label: 'Courses' },
-    { path: '/career-guidance', label: 'Pricing' },
+    { path: '/', label: 'Home' },
+    { path: '/course', label: 'Courses', requireLogin: true },
+    { path: '/pricing', label: 'Pricing', requireLogin: true },
     { path: '/about-us', label: 'About Us' },
   ];
 
   return (
-    <>
     <motion.header
       initial={{ y: -80 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 100 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md' : 'bg-white'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md' : 'bg-white'
+        }`}
     >
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <button onClick={handleHomeClick} className="flex items-center gap-2">
           <img src={Logo} alt="Logo" className="h-10 w-auto" />
-          {/* <span className="text-xl font-bold text-blue-700">Hybrid</span> */}
-        </Link>
+        </button>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center gap-6">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`text-sm px-4 py-2 rounded-full font-medium transition ${
-                isActiveLink(item.path)
-                  ? 'bg-blue-600 text-white shadow'
-                  : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div className="hidden lg:flex mr-20 items-center gap-4">
+          {menuItems
+            .filter((item) => {
+              if (item.path === '/course') {
+                return roleId === "3";
+              }
+              if (item.requireLogin) {
+                return isAuthenticated;
+              }
+              return true;
+            })
+            .map((item) => {
+              const isHome = item.path === '/';
+              const handleClick = () => {
+                if (isHome && roleId === "2") {
+                  navigate('/student');
+                } else {
+                  navigate(item.path);
+                }
+              };
+              return (
+                <button
+                  key={item.path}
+                  onClick={handleClick}
+                  className={`text-sm px-4 py-2 rounded-full font-medium transition ${isActiveLink(item.path)
+                    ? 'bg-blue-600 text-white shadow'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                    }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+
         </div>
 
         {/* Auth Buttons */}
         <div className="hidden lg:flex items-center gap-4">
           {isAuthenticated ? (
-            <div className="flex items-center gap-2 cursor-pointer">
-              <FiUser className="w-5 h-5 text-blue-600" />
-              <span className="text-sm text-gray-700">{userAccountName}</span>
-              <FiChevronDown className="w-4 h-4 text-gray-500" />
-              <button
-                onClick={handleLogout}
-                className="text-sm text-red-500 hover:text-red-600 ml-3"
-              >
-                Đăng xuất
-              </button>
-            </div>
+            <DropdownMenu userName={userData?.fullName} roleId={roleId} isUpdated={isUpdate} />
           ) : (
             <>
-              <Link to="/login" className="text-sm text-gray-700 hover:text-blue-600">
+              <Link to="/login" className="text-sm px-4 py-2 bg-blue-600 rounded-full text-white hover:bg-green-700">
                 Đăng nhập
               </Link>
               <Link
                 to="/sign-up"
-                className="text-sm px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+                className="text-sm px-4 py-2 bg-white text-black rounded-full hover:bg-orange-500"
               >
                 Đăng ký
               </Link>
@@ -111,26 +182,36 @@ const Header: React.FC = () => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
+            ref={menuRef}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             className="lg:hidden bg-white shadow-md"
           >
             <div className="flex flex-col px-4 pb-4 space-y-2">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-sm px-4 py-2 rounded-md ${
-                    isActiveLink(item.path)
+              {menuItems.map((item) => {
+                const isHome = item.path === '/';
+                const handleClick = () => {
+                  setIsMobileMenuOpen(false);
+                  if (isHome && roleId === "2") {
+                    navigate('/student');
+                  } else {
+                    navigate(item.path);
+                  }
+                };
+                return (
+                  <button
+                    key={item.path}
+                    onClick={handleClick}
+                    className={`text-sm px-4 py-2 rounded-md ${isActiveLink(item.path)
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
+                      }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
 
               {isAuthenticated ? (
                 <>
@@ -139,7 +220,7 @@ const Header: React.FC = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="text-sm text-gray-700 hover:text-blue-600"
                   >
-                    {userAccountName}
+                    My profile
                   </Link>
                   <button
                     onClick={handleLogout}
@@ -171,7 +252,6 @@ const Header: React.FC = () => {
         )}
       </AnimatePresence>
     </motion.header>
-    </>
   );
 };
 

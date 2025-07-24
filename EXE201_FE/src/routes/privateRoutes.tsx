@@ -1,0 +1,84 @@
+
+import ConjunctionReview from '../pages/Template/ConjunctionReview';
+import AnagramReview from '../pages/Template/AnagramReview';
+import CoursePage from '../pages/CoursePage';
+import StudentAccomplishment from '../pages/Student/StudentAccomplishment';
+import TeacherMinigameData from '../pages/Teacher/TeacherMinigameData';
+import QuizReview from '../pages/Template/QuizReview';
+import RandomCard from '../pages/Template/RandomCard';
+import RandomCardReview from '../pages/Template/RandomCardReview';
+import Spelling from '../pages/Template/Spelling';
+import ProfilePage from '../pages/ProfilePage';
+import SpellingReview from '../pages/Template/SpellingReview';
+import CompletionReview from "../pages/Template/Basic/CompletionReview";
+import PairingScreen from "../pages/Template/Basic/Pairing";
+import PairingReview from "../pages/Template/Basic/PairingReview";
+import RestorationScreen from "../pages/Template/Basic/Restoration";
+import RestorationReview from "../pages/Template/Basic/RestorationReview";
+import FindWordsScreen from "../pages/Template/Basic/FindWords";
+import FindWordsReview from "../pages/Template/Basic/FindWordsReview";
+import TrueFalse from "../pages/Template/Basic/TrueFalse";
+import TrueFalseReview from "../pages/Template/Basic/TrueFalseReview";
+import CrosswordEditor from "../pages/Template/Basic/Crossword";
+import CrosswordReview from "../pages/Template/Basic/CrosswordReview";
+import FlashcardDesigner from "../pages/Template/Flashcard";
+import FlashcardReview from "../pages/Template/FLashcardReview";
+
+import CourseDetail from '../pages/CourseDetail';
+import TeacherCourseDetail from '../pages/Teacher/TeacherCourseDetail';
+import TeacherActivities from '../pages/Teacher/TeacherActivities';
+import PlayConjunction from '../pages/Student/Template/PlayConjunction';
+import PlayAnagram from '../pages/Student/Template/PlayAnagram';
+import PlayQuiz from '../pages/Student/Template/PlayQuiz';
+import PlayRandomCard from '../pages/Student/Template/PlayRandomCard';
+import PlaySpelling from '../pages/Student/Template/PlaySpelling';
+import PlayFlashcard from '../pages/Student/Template/PlayFlashcard';
+import PlayCompletion from '../pages/Student/Template/PlayCompletion';
+import PlayPairing from '../pages/Student/Template/PlayPairing';
+import PlayRestoration from '../pages/Student/Template/PlayRestoration';
+import PlayTrueFalse from '../pages/Student/Template/PlayTrueFalse';
+import PlayFindWord from '../pages/Student/Template/PlayFindWord';
+import PlayCrossword from '../pages/Student/Template/PlayCrossword';
+
+export const privateRoutes = [
+    {path: "/teacher/conjunction-review/:minigameId", element: <ConjunctionReview/>},
+    {path: "/teacher/anagram-review/:minigameId", element: <AnagramReview/>},
+    
+    {path: "/teacher/quiz-review/:minigameId", element: <QuizReview/>},
+    {path: "/random-card", element: <RandomCard/>},
+    {path: "/teacher/random-card-review/:minigameId", element: <RandomCardReview/>},
+    {path: "/spelling", element: <Spelling/>},
+    {path: "/profile", element: <ProfilePage/>},
+    {path: "/teacher/spelling-review/:minigameId", element: <SpellingReview/>},
+    {path: "/teacher/completion-review/:minigameId", element: <CompletionReview/>},
+    {path: "/teacher/pairing-review/:minigameId", element: <PairingReview/>},
+    {path: "/teacher/restoration-review/:minigameId", element: <RestorationReview/>},
+    {path: "/pairing", element: <PairingScreen/>},
+    {path: "/restoration", element: <RestorationScreen/>},
+    {path: "/find-word", element: <FindWordsScreen/>},
+    {path: "/teacher/find-word-review/:minigameId", element: <FindWordsReview/>},
+    {path: "/true-false", element: <TrueFalse/>},
+    {path: "/teacher/true-false-review/:minigameId", element: <TrueFalseReview/>},
+    {path: "/crossword", element: <CrosswordEditor/>},
+    {path: "/teacher/crossword-review/:minigameId", element: <CrosswordReview/>},
+    {path: "/flashcard", element: <FlashcardDesigner/>},
+    {path: "/teacher/flashcard-review/:minigameId", element: <FlashcardReview/>},
+    {path: "/course", element: <CoursePage/>},
+    {path: "/student/course/:courseId", element: <CourseDetail/>},
+    {path: "/teacher/course/:courseId", element: <TeacherCourseDetail/>},
+    {path: "/teacher/activities", element: <TeacherActivities/>},
+    {path: "/student/conjunction/:minigameId", element: <PlayConjunction/>},
+    {path: "/student/anagram/:minigameId", element: <PlayAnagram/>},
+    {path: "/student/quiz/:minigameId", element: <PlayQuiz/>},
+    {path: "/student/random-card/:minigameId", element: <PlayRandomCard/>},
+    {path: "/student/spelling/:minigameId", element: <PlaySpelling/>},
+    {path: "/student/accomplishments", element: <StudentAccomplishment/>},
+    {path: "/teacher/minigame-data/:minigameId", element: <TeacherMinigameData/>},
+    {path: "/student/flashcard/:minigameId", element: <PlayFlashcard/>},
+    {path: "/student/completion/:minigameId", element: <PlayCompletion/>},
+    {path: "/student/pairing/:minigameId", element: <PlayPairing/>},
+    {path: "/student/restoration/:minigameId", element: <PlayRestoration/>},
+    {path: "/student/true-false/:minigameId", element: <PlayTrueFalse/>},
+    {path: "/student/find-word/:minigameId", element: <PlayFindWord/>},
+    {path: "/student/crossword/:minigameId", element: <PlayCrossword/>},
+]
